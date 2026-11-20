@@ -361,3 +361,50 @@ describe("BulkEnquiryForm → Server Action", () => {
     expect(screen.getByRole("alert")).toHaveTextContent(/Add at least one product/);
   });
 });
+
+describe("Email enquiry button (mailto) — the email counterpart of WhatsApp", () => {
+  const mailto = () =>
+    screen.queryByRole("link", { name: /Send list by email/ }) as HTMLAnchorElement | null;
+
+  it("opens the customer's email app with the list prefilled from server data, and creates NO record", () => {
+    act(() => {
+      enquiryList.add("p1", 100);
+      enquiryList.add("p3", 5.5);
+    });
+    render(
+      <BulkEnquiryForm
+        catalogue={catalogue}
+        whatsappNumber={null}
+        businessEmail="sales@example.test"
+      />,
+    );
+    const link = mailto()!;
+    expect(link).toBeInTheDocument();
+    expect(link.href.startsWith("mailto:sales@example.test?")).toBe(true);
+    const params = new URLSearchParams(link.href.split("?")[1]);
+    expect(params.get("subject")).toBe("Bulk quotation enquiry");
+    expect(params.get("body")).toContain("- Item One: 100 Bag");
+    expect(params.get("body")).toContain("- Item Three: 5.5 Metric Ton");
+    expect(link).not.toHaveAttribute("target"); // no tab hijack; mail app handles it
+    fireEvent.click(link);
+    expect(actions.submitBulkEnquiryAction).not.toHaveBeenCalled();
+    expect(actions.submitContactEnquiryAction).not.toHaveBeenCalled();
+  });
+
+  it("is hidden when no valid business email is configured (never a dead or invented address)", () => {
+    const { unmount } = render(<BulkEnquiryForm catalogue={catalogue} whatsappNumber={null} />);
+    expect(mailto()).toBeNull();
+    unmount();
+    render(
+      <BulkEnquiryForm catalogue={catalogue} whatsappNumber={null} businessEmail="not-an-email" />,
+    );
+    expect(mailto()).toBeNull();
+  });
+
+  it("does not claim anything was sent", () => {
+    render(
+      <BulkEnquiryForm catalogue={catalogue} whatsappNumber={null} businessEmail="a@b.test" />,
+    );
+    expect(screen.getByText(/only prepares a message; you must press Send/)).toBeInTheDocument();
+  });
+});

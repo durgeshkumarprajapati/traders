@@ -50,6 +50,7 @@ describe("Phase 6 credential boundaries", () => {
       .filter((r) => !r.startsWith("lib/supabase/") && !r.startsWith("lib/email/"))
       .sort();
     expect(owners).toEqual([
+      "app/api/notifications/test/route.ts", // operator-only (CRON_SECRET) email delivery test
       "features/admin/server/dashboard.ts",
       "features/admin/server/enquiries.ts",
       "features/auth/actions.ts",
@@ -119,6 +120,7 @@ describe("Phase 6 credential boundaries", () => {
       "app/api/catalogue/product/route.ts",
       "app/api/health/route.ts",
       "app/api/notifications/process/route.ts",
+      "app/api/notifications/test/route.ts",
     ]);
   });
 });

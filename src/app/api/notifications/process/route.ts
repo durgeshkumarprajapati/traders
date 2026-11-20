@@ -1,6 +1,6 @@
-import { createHash, timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { buildNotificationDeps, processDueNotifications } from "@/features/enquiries/server/deps";
+import { authorizeCron } from "@/lib/cron-auth";
 import { toErrorResponse } from "@/lib/errors";
 import { logger } from "@/lib/logger";
 
@@ -16,17 +16,8 @@ import { logger } from "@/lib/logger";
  */
 const noStore = { "cache-control": "no-store" };
 
-const digest = (v: string) => createHash("sha256").update(v).digest();
-
-function authorize(request: Request): "ok" | "unauthorized" | "unconfigured" {
-  const secret = process.env.CRON_SECRET?.trim();
-  if (!secret || secret.length < 16) return "unconfigured";
-  const given = request.headers.get("authorization") ?? "";
-  return timingSafeEqual(digest(given), digest(`Bearer ${secret}`)) ? "ok" : "unauthorized";
-}
-
 async function handle(request: Request) {
-  const auth = authorize(request);
+  const auth = authorizeCron(request);
   if (auth === "unconfigured") {
     return NextResponse.json(
       { error: { code: "NOT_CONFIGURED", message: "The sweeper is not configured." } },

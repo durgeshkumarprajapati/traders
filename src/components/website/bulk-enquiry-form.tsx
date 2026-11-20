@@ -18,8 +18,9 @@ import {
 } from "@/features/enquiries/enquiry-list-store";
 import type { EnquiryCatalogueItem } from "@/features/enquiries/types";
 import { bulkEnquirySchema, toFieldErrors, type FieldErrors } from "@/features/enquiries/schemas";
+import { BULK_ENQUIRY_SUBJECT } from "@/lib/mailto";
 import { bulkEnquiryMessage } from "@/lib/whatsapp";
-import { WhatsAppButton } from "./contact-actions";
+import { EmailButton, WhatsAppButton } from "./contact-actions";
 import { submitBulkEnquiryAction } from "@/features/enquiries/actions";
 import { EnquiryReceived } from "./enquiry-received";
 import { useEnquirySubmit } from "./use-enquiry-submit";
@@ -35,9 +36,12 @@ export type { EnquiryCatalogueItem };
 export function BulkEnquiryForm({
   catalogue,
   whatsappNumber,
+  businessEmail = null,
 }: {
   catalogue: EnquiryCatalogueItem[];
   whatsappNumber: string | null;
+  /** Business email from settings; enables the "Send list by email" button (mailto). */
+  businessEmail?: string | null;
 }) {
   const items = useEnquiryItems();
   const byId = useMemo(() => new Map(catalogue.map((c) => [c.id, c])), [catalogue]);
@@ -370,8 +374,20 @@ export function BulkEnquiryForm({
             >
               Send list on WhatsApp
             </WhatsAppButton>
+            <EmailButton
+              hideIfUnavailable
+              email={businessEmail}
+              subject={BULK_ENQUIRY_SUBJECT}
+              message={bulkEnquiryMessage(waItems)}
+              variant="outline"
+              size="lg"
+              className="w-full"
+            >
+              Send list by email
+            </EmailButton>
             <p className="text-body-sm text-on-surface-variant">
-              No payment is taken. Opening WhatsApp only prepares a message; you must press Send.
+              No payment is taken. Opening WhatsApp or your email app only prepares a message; you
+              must press Send.
             </p>
           </CardBody>
         </Card>

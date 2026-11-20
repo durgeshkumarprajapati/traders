@@ -93,3 +93,21 @@ export async function sendWeb3FormsEmail(
     clearTimeout(timer);
   }
 }
+
+/**
+ * Owner-facing, plain-language next step for a failed send. For the operator (test route / docs) — never shown to
+ * customers. Contains no secrets and makes no claim beyond what the classified result proves.
+ */
+export function explainEmailFailure(result: Extract<EmailResult, { ok: false }>): string {
+  if (result.kind === "TIMEOUT" || result.kind === "NETWORK")
+    return "The server could not reach Web3Forms (timeout or network error). This is usually temporary: run the test again, and check the host's outbound network access.";
+  if (result.status === 401 || result.status === 403)
+    return "Web3Forms refused the request. Check that WEB3FORMS_ACCESS_KEY is correct, active and its recipient email is verified. Web3Forms may also restrict server-side (API) submissions on its free plan — confirm this with Web3Forms; a paid plan or a different email provider may be required.";
+  if (result.status === 429)
+    return "Web3Forms is rate limiting this key. Wait and retry; enquiries are kept and retried automatically.";
+  if (result.status !== null && result.status >= 500)
+    return "Web3Forms reported a server error. Enquiries are kept and retried automatically.";
+  if (result.kind === "REJECTED" || result.status === 400 || result.status === 422)
+    return "Web3Forms received the request but did not send an email. Check that WEB3FORMS_ACCESS_KEY is the key created for the inbox that should receive enquiries.";
+  return "Web3Forms did not accept the message. See the summary for the provider's response.";
+}

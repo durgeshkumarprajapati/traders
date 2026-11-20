@@ -4,13 +4,14 @@ import { useState } from "react";
 import { Card, CardBody } from "@/components/ui/card";
 import { Field, Input } from "@/components/ui/form-controls";
 import { QuantityInput } from "@/components/common/quantity-input";
+import { productEnquirySubject } from "@/lib/mailto";
 import { productEnquiryMessage } from "@/lib/whatsapp";
 import { AddToEnquiryButton } from "./add-to-enquiry-button";
-import { WhatsAppButton } from "./contact-actions";
+import { EmailButton, WhatsAppButton } from "./contact-actions";
 
 /**
- * Enquiry panel on the product page. The WhatsApp link only opens a prepared message
- * (customer presses Send) and creates NO database record; "Add to enquiry list" feeds the bulk enquiry.
+ * Enquiry panel on the product page. The WhatsApp and email links only open a prepared message
+ * (customer presses Send) and create NO database record; "Add to enquiry list" feeds the bulk enquiry.
  */
 export function ProductEnquiryPanel({
   productId,
@@ -19,6 +20,7 @@ export function ProductEnquiryPanel({
   sku,
   unit,
   whatsappNumber,
+  businessEmail = null,
 }: {
   productId: string;
   productName: string;
@@ -26,6 +28,7 @@ export function ProductEnquiryPanel({
   sku: string | null;
   unit: string;
   whatsappNumber: string | null;
+  businessEmail?: string | null;
 }) {
   const [quantity, setQuantity] = useState(1);
   const [location, setLocation] = useState("");
@@ -72,6 +75,22 @@ export function ProductEnquiryPanel({
           >
             WhatsApp enquiry
           </WhatsAppButton>
+          <EmailButton
+            hideIfUnavailable
+            email={businessEmail}
+            size="lg"
+            subject={productEnquirySubject(productName)}
+            message={productEnquiryMessage({
+              productName,
+              brandName,
+              sku,
+              quantity,
+              unitLabel: unit,
+              deliveryLocation: location,
+            })}
+          >
+            Email enquiry
+          </EmailButton>
           <AddToEnquiryButton
             productId={productId}
             productName={productName}

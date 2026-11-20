@@ -20,6 +20,7 @@ export async function BulkEnquiryContent() {
       <BulkEnquiryForm
         catalogue={toEnquiryItems(load.catalogue)}
         whatsappNumber={load.settings.whatsappNumber}
+        businessEmail={load.settings.email}
       />
     );
 

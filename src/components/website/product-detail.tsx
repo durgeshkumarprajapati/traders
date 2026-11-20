@@ -147,6 +147,7 @@ export async function ProductDetail({ params }: { params: Params }) {
             sku={product.sku}
             unit={unitLabel(product.unit)}
             whatsappNumber={settings.whatsappNumber}
+            businessEmail={settings.email}
           />
         </div>
       </div>
