@@ -34,7 +34,7 @@ export const DEFAULT_CAROUSEL_SLIDES: CarouselSlide[] = [
       "Reliable dispatch of OPC 43, OPC 53, and PPC cement grades from leading manufacturers for residential and commercial projects.",
     primaryCta: { label: "Explore Products", href: "/products" },
     secondaryCta: { label: "Get a Bulk Quote", href: "/bulk-enquiry" },
-    imageSrc: "/images/carousel/cement-materials.jpg",
+    imageSrc: "/images/carousel/cement-materials.jpeg",
     altText: "Warehouse and site delivery of premium cement bags and construction materials",
   },
   {
@@ -45,7 +45,7 @@ export const DEFAULT_CAROUSEL_SLIDES: CarouselSlide[] = [
       "Verified quality reinforcement steel, structural beams, and binding wire with weight precision and manufacturer test certificates.",
     primaryCta: { label: "Request Steel Quotation", href: "/bulk-enquiry" },
     secondaryCta: { label: "View Specifications", href: "/products" },
-    imageSrc: "/images/carousel/tmt-steel.jpg",
+    imageSrc: "/images/carousel/tmt-steel.jpeg",
     altText: "Bundles of ribbed TMT steel reinforcement rebars ready for site delivery",
   },
   {
@@ -56,7 +56,7 @@ export const DEFAULT_CAROUSEL_SLIDES: CarouselSlide[] = [
       "Standard and fly ash bricks, AAC blocks, blue metal, and river sand supplied with prompt transport logistics.",
     primaryCta: { label: "Browse Masonry Supplies", href: "/products" },
     secondaryCta: { label: "Contact Our Desk", href: "/contact" },
-    imageSrc: "/images/carousel/bricks-blocks.jpg",
+    imageSrc: "/images/carousel/bricks-blocks.jpeg",
     altText: "Uniform construction bricks and masonry building materials neatly stacked",
   },
   {
@@ -67,7 +67,7 @@ export const DEFAULT_CAROUSEL_SLIDES: CarouselSlide[] = [
       "Heavy-duty pipes, fittings, water tanks, and essential site hardware to ensure project durability from foundation to finishing.",
     primaryCta: { label: "Send An Enquiry", href: "/bulk-enquiry" },
     secondaryCta: { label: "Contact Us", href: "/contact" },
-    imageSrc: "/images/carousel/hardware-supplies.jpg",
+    imageSrc: "/images/carousel/hardware-supplies.jpeg",
     altText: "Comprehensive construction hardware, pipes, and plumbing supplies",
   },
 ];

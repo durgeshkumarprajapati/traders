@@ -143,6 +143,7 @@ export type SweepSummary = {
 export async function processDueNotifications(
   limit: number,
   deps: NotificationDeps,
+  maxDurationMs = 20000,
 ): Promise<SweepSummary> {
   const ids = z
     .array(z.uuid())
@@ -155,7 +156,15 @@ export async function processDueNotifications(
     notConfigured: 0,
     unrecorded: 0,
   };
+  const startTime = Date.now();
   for (const id of ids) {
+    if (Date.now() - startTime >= maxDurationMs) {
+      logger.warn("notification_sweep_deadline_reached", {
+        processed: summary.sent + summary.failed + summary.skipped,
+        due: summary.due,
+      });
+      break;
+    }
     const o = await processNotification(id, deps);
     if (o === "sent") summary.sent++;
     else if (o === "failed") summary.failed++;

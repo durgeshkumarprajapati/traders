@@ -30,13 +30,14 @@ Validation happens in `src/lib/google-sheets/config.ts` (`loadSheetsConfig`). A 
 | ------------------------------- | --------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes (admin login, SSR auth) | Public-safe | Supabase anon key (`sb-test-anon-...` or JWT). Used by `@supabase/ssr` (`createBrowserClient` and `createServerClient`) for session management. Subject to database Row Level Security. |
 
-## Phase 9 — Live Credentials Status & Verification
+## Phase 9 & 10 — Live Credentials Status & Verification
 
-In Phase 9, configured environment variables in local development were audited and verified:
+In Phase 9 and Phase 10, configured environment variables in local development were audited and verified:
 
-- **Google Sheets:** `GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_PRIVATE_KEY`, and `GOOGLE_SHEET_ID` are configured and validated. Service Account JWT was signed and OAuth 2.0 token successfully exchanged with Google endpoints (HTTP 200). The target spreadsheet was inspected, discovering the default `"Sheet1"`.
-- **Web3Forms:** `WEB3FORMS_ACCESS_KEY` is configured and validated as a 36-character UUID string. Server-side payload generation and error classification were verified via unit tests; real outbound emails were suppressed per safety constraints.
-- **Supabase:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` remain empty in `.env`. Supabase persistence, RLS policies, and admin session checks operate via automated tests with mock clients until project credentials are provided.
+- **Google Sheets:** `GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_PRIVATE_KEY`, and `GOOGLE_SHEET_ID` are configured and validated. Service Account JWT was signed and OAuth 2.0 token successfully exchanged with Google endpoints (HTTP 200). The target spreadsheet was inspected, discovering the default `"Sheet1"`. Status: `CONNECTED (Worksheets pending manual import)`.
+- **Web3Forms:** `WEB3FORMS_ACCESS_KEY` is configured and validated as a 36-character UUID string. Server-side payload generation and error classification were verified via unit tests; real outbound emails were suppressed per safety constraints. Status: `PASS (Server-side verified)`.
+- **Supabase:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` are configured in `.env`. Live connectivity to the Supabase endpoint over HTTPS was verified. However, PostgREST returned missing table/function errors because the SQL migrations have not yet been executed in the live database. Status: `BLOCKED (Migrations pending in Supabase Dashboard SQL Editor)`.
+- **Cron Sweeper & Rate Limiting:** `CRON_SECRET` protects `/api/notifications/process` against unauthorized triggers; `RATE_LIMIT_SECRET` seeds HMAC hashing for enquiry IP/mobile privacy. Both must be set in Vercel project settings prior to production launch.
 
 Names are reported by the loaders; values are never logged or returned to the browser (verified by automated tests and inspection of `.next/static`).
 

@@ -58,6 +58,7 @@ describe("Phase 6 credential boundaries", () => {
       "features/enquiries/server/notifications.ts",
       "features/enquiries/server/rate-limit.ts",
       "features/enquiries/server/submit.ts",
+      "features/health/server.ts",
       "lib/auth/admin.ts",
       "proxy.ts",
     ]);
@@ -75,6 +76,7 @@ describe("Phase 6 credential boundaries", () => {
       "features/enquiries/server/notifications.ts",
       "features/enquiries/server/rate-limit.ts",
       "features/enquiries/server/submit.ts",
+      "features/health/server.ts",
     ])
       expect(text(join(SRC, f)), f).toMatch(/^import "server-only";/m);
   });
@@ -110,11 +112,12 @@ describe("Phase 6 credential boundaries", () => {
     expect(t.match(/^export\s/gm)).toHaveLength(2); // no other export kinds
   });
 
-  it("only the catalogue-product route, sweeper route, admin session route and Server Actions are public entry points", () => {
+  it("only the catalogue-product route, sweeper route, admin session route, health route and Server Actions are public entry points", () => {
     const api = nonTest.map(rel).filter((r) => /^app\/api\//.test(r));
     expect(api.sort()).toEqual([
       "app/api/admin/session/route.ts",
       "app/api/catalogue/product/route.ts",
+      "app/api/health/route.ts",
       "app/api/notifications/process/route.ts",
     ]);
   });

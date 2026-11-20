@@ -139,3 +139,36 @@ Phase 9 interacts with the following Supabase structures established in Phase 6:
 3. **`notification_outbox` & `retry_notification`:**
    - Outbox records store delivery state (`PENDING`, `PROCESSING`, `SENT`, `FAILED`), retry count, and errors.
    - The PostgreSQL stored function `public.retry_notification(p_outbox_id uuid)` safely resets a failed/stuck outbox notification to `PENDING` with `next_attempt_at = now()`, ready for processing.
+
+---
+
+## 6. Live Supabase Activation & Migration Instructions (Phase 10 Finding)
+
+During Phase 10 verification, live connectivity to the configured Supabase project was tested via PostgREST over HTTPS. The endpoint was reachable and responded with HTTP 404 / 400 schema cache errors:
+
+- `"Could not find the table 'public.enquiries' in the schema cache"`
+- `"Could not find the function public.is_admin without parameters in the schema cache"`
+
+This indicates that while the project credentials in `.env` are valid, **the SQL migrations have not yet been executed in your remote Supabase database**.
+
+### Action Required by Project Owner:
+
+To activate your Supabase database, follow these steps:
+
+1. **Log in to Supabase:** Navigate to [https://supabase.com/dashboard](https://supabase.com/dashboard) and open your project.
+2. **Open the SQL Editor:** Click on the **SQL Editor** icon in the left navigation sidebar.
+3. **Execute Migration 1 (Enquiries Schema):**
+   - Click **New Query**.
+   - Copy the entire contents of `supabase/migrations/20261118000000_enquiries.sql` from your repository.
+   - Paste into the SQL Editor and click **Run** (or `Cmd/Ctrl + Enter`).
+   - Confirm the success output: tables `enquiries`, `enquiry_items`, `enquiry_notes`, `notification_outbox`, `notification_attempts`, `rate_limits` created with RLS enabled.
+4. **Execute Migration 2 (Admin Auth Schema):**
+   - Click **New Query**.
+   - Copy the entire contents of `supabase/migrations/20261120000000_admin_auth.sql` from your repository.
+   - Paste into the SQL Editor and click **Run**.
+   - Confirm the success output: table `admin_profiles`, function `is_admin()`, and admin RLS policies created.
+5. **Provision the Administrator Account:**
+   - Follow **Section 3** above to create the Auth User in **Authentication → Users** and run the `INSERT INTO public.admin_profiles` query in the SQL Editor.
+6. **Verify:**
+   - Run the health check endpoint: `curl http://localhost:3000/api/health`
+   - The `supabase` status will transition to `"connected"`.

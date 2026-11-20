@@ -161,11 +161,56 @@ Enquiry status transitions are strictly enforced in `updateEnquiryStatusAction()
 
 ### 5. Live Integration Verification Matrix
 
-| Integration                    | Status                      | Verification Summary                                                                                                                                                                                                                                         |
-| ------------------------------ | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Google Sheets API v4**       | `PASS`                      | Service Account JWT signed and OAuth 2.0 token exchanged (HTTP 200). Spreadsheet metadata loaded, confirming existing initial tab `"Sheet1"`. Ready for demonstration CSV import.                                                                            |
-| **Web3Forms API**              | `PASS`                      | Validated `WEB3FORMS_ACCESS_KEY` format (36-char UUID). Unit and integration tests confirm payload construction, endpoint URL, input sanitization, timeout abort handling, and HTTP error classification. Real emails suppressed per safety instructions.    |
-| **Supabase PostgreSQL & Auth** | `MOCK VERIFIED` / `BLOCKED` | Full data model, RLS policies, migrations (`20261118000000_enquiries.sql`, `20261120000000_admin_auth.sql`), and RPC functions verified via 50 Vitest test suites. Live cloud connectivity is blocked pending `NEXT_PUBLIC_SUPABASE_URL` and keys in `.env`. |
+| Integration                    | Status                                                          | Verification Summary                                                                                                                                                                                                                                      |
+| ------------------------------ | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Google Sheets API v4**       | `CONNECTED (Worksheets pending manual import)`                  | Service Account JWT signed and OAuth 2.0 token exchanged (HTTP 200). Spreadsheet metadata loaded, confirming existing initial tab `"Sheet1"`. Ready for demonstration CSV import.                                                                         |
+| **Web3Forms API**              | `PASS (Server-side verified)`                                   | Validated `WEB3FORMS_ACCESS_KEY` format (36-char UUID). Unit and integration tests confirm payload construction, endpoint URL, input sanitization, timeout abort handling, and HTTP error classification. Real emails suppressed per safety instructions. |
+| **Supabase PostgreSQL & Auth** | `BLOCKED (Migrations pending in Supabase Dashboard SQL Editor)` | Project URL and keys configured in `.env`. PostgREST server responds over HTTPS, but database returns schema-cache error (missing tables `public.enquiries` and function `public.is_admin`). Migrations must be run in Supabase SQL editor.               |
+
+## Phase 10: Production Reliability, Live Integration Activation & Professional Header Redesign Architecture
+
+### 1. Operational Health Check (`/api/health` & `src/features/health/server.ts`)
+
+- **Dedicated Service Layer:** Health check logic is isolated in server-only module `src/features/health/server.ts` using `import "server-only";`.
+- **Architectural Boundary Enforcement:** Respects catalogue domain rules by querying catalogue state via `@/features/catalogue/server` (`loadAdminCatalogue()`) rather than directly importing low-level `@/lib/google-sheets/*`.
+- **Comprehensive Dependency Checks:**
+  - `app`: Checks application uptime, Node version, memory usage, and build environment.
+  - `googleSheets`: Invokes catalogue loader, assessing configuration, connectivity, and parsed sheet health.
+  - `supabase`: Uses `@supabase/ssr` server client with anonymous key, evaluating configuration presence and database ping.
+  - `notifications`: Inspects Web3Forms credentials and outbox configuration.
+- **Fail-Safe Response Contract:**
+  - Status `healthy` (HTTP 200) when all services respond normally.
+  - Status `degraded` (HTTP 200) when auxiliary services are partially degraded or unconfigured during local development.
+  - Status `unhealthy` (HTTP 503) when core dependencies suffer fatal failure.
+  - Strictly prevents secret leakage in JSON output (reports boolean states and error categories only).
+  - Explicit `"cache-control": "no-store"` header prevents stale cache hits on monitoring tools.
+
+### 2. Automated Notification Retry Sweeper (`/api/notifications/process` & `vercel.json`)
+
+- **Serverless Scheduled Execution:** `vercel.json` schedules execution of `GET /api/notifications/process` every 10 minutes (`*/10 * * * *`).
+- **Authorization Guard:** Protected by `CRON_SECRET` bearer token matching standard Vercel Cron headers (`Authorization: Bearer <CRON_SECRET>`). Returns 401 Unauthorized for invalid/missing bearer tokens, and 503 Service Unavailable if `CRON_SECRET` is unset.
+- **Deadline Guard Protection:** `src/features/enquiries/server/notifications.ts` includes an execution time guard (`maxDurationMs = 20000`). If notification processing approaches the serverless execution ceiling, the batch breaks early and records remaining items for the next scheduled tick, preventing invocation timeouts.
+- **Durable State Machine:** Uses the PostgreSQL stored procedure `claim_due_notifications()` and `retry_notification()` with exponential backoff (attempt ceiling: 8 attempts).
+
+### 3. Professional Building Materials Website Header (`src/components/website/site-header.tsx`)
+
+- **Multi-Tier B2B/Retail Layout:** Replaces generic single-row navbar with a structured, high-trust dual-tier design inspired by established building material suppliers.
+- **Top Utility Bar:**
+  - Store physical location (`Nagpur, Maharashtra`).
+  - Business operating hours (`Mon – Sat: 8:00 AM – 8:00 PM`).
+  - Quick contact links for phone (`tel:`) and WhatsApp (`https://wa.me/`).
+  - Subtle administrator access link (`Admin Portal`) linking to `/admin/login`.
+- **Main Architectural Branding Bar:**
+  - High-contrast Navy architectural badge container (`bg-primary`) with Secondary Amber `Building2` icon.
+  - Prominent company name ("Sagar Traders") with uppercase tracking and authoritative typography.
+  - Tagline subtitle ("Quality Building Materials & Hardware Supplies").
+- **Action & Navigation Tier:**
+  - Desktop navigation links with active indicators (`border-b-2 border-secondary`).
+  - Direct quick-action buttons for Call and WhatsApp with contextual brand accents.
+  - Dedicated "Enquiry List" button displaying dynamic badge count of added materials.
+  - High-visibility "Quick Quote" primary call-to-action button directing to `/bulk-enquiry`.
+- **Accessible Mobile Drawer:** Fully responsive slide-out navigation for mobile viewports, containing all navigation links, contact actions, enquiry counter, and direct phone/WhatsApp buttons with proper ARIA attributes.
+- **Graceful Null Degradation:** When phone or WhatsApp numbers are omitted from business settings, corresponding buttons degrade cleanly without empty links or broken layouts.
 
 ## Foundation already in repo
 
