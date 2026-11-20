@@ -13,48 +13,46 @@ Names only — **never put real values in this repository or its documentation.*
 
 Validation happens in `src/lib/google-sheets/config.ts` (`loadSheetsConfig`). A problem is reported by **variable name only** (never the value). Missing or malformed configuration makes every Sheets read fail with a generic "product data is temporarily unavailable" message — it never produces fake data.
 
-## Block to append to `.env.example`
-
-`.env.example` is a protected file in the agent sandbox and could not be edited there, so please append this yourself:
-
-```dotenv
-# ── Phase 4: Google Sheets (server-only; never prefix with NEXT_PUBLIC_) ───────
-# Service-account e-mail, e.g. name@project-id.iam.gserviceaccount.com
-GOOGLE_SERVICE_ACCOUNT_EMAIL=
-# Service-account private key (PEM). Keep on ONE line with literal \n sequences,
-# optionally wrapped in double quotes. Never log or commit it.
-GOOGLE_PRIVATE_KEY=
-# Spreadsheet ID: the long id in the sheet URL between /d/ and /edit
-GOOGLE_SHEET_ID=
-# Optional: "true" appends price changes to the PriceHistory worksheet (default: false)
-GOOGLE_SHEETS_PRICE_HISTORY=false
-```
-
 ## Phase 6 — Enquiries, email, rate limiting, indexing
 
 | Variable                    | Required                            | Exposure                                             | Purpose / format                                                                                                                                                    |
 | --------------------------- | ----------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`  | Yes (enquiries)                     | Public-safe (a project URL, not a secret)            | `https://<project-ref>.supabase.co` (https, or `http://localhost` for local Supabase). Read by server code only in Phase 6.                                         |
-| `SUPABASE_SERVICE_ROLE_KEY` | Yes (enquiries)                     | **Server only — bypasses RLS; never `NEXT_PUBLIC_`** | Used by `src/lib/supabase/rest.ts` to call the locked-down `create_enquiry` / outbox / rate-limit functions.                                                        |
+| `NEXT_PUBLIC_SUPABASE_URL`  | Yes (enquiries, admin auth)         | Public-safe (a project URL, not a secret)            | `https://<project-ref>.supabase.co` (https, or `http://localhost:54321` for local Supabase). Used by both server and browser clients.                               |
+| `SUPABASE_SERVICE_ROLE_KEY` | Yes (enquiries, server operations)  | **Server only — bypasses RLS; never `NEXT_PUBLIC_`** | Used by `src/lib/supabase/rest.ts` and `src/lib/supabase/admin.ts` to call locked-down functions and privileged operations.                                         |
 | `WEB3FORMS_ACCESS_KEY`      | No — enquiries are saved without it | Server only                                          | Email notifications. If missing, enquiries are still saved and the notification stays `PENDING` (visible, retryable).                                               |
 | `RATE_LIMIT_SECRET`         | Yes (enquiries)                     | Server only                                          | ≥ 16 random chars; HMAC key for hashing IP / mobile before they are stored in the rate-limit table. Missing ⇒ submissions fail closed (generic "unavailable").      |
 | `CRON_SECRET`               | Only to use the sweeper route       | Server only                                          | ≥ 16 random chars. `/api/notifications/process` answers 503 while unset and 401 for any other bearer token. Vercel Cron sends `Authorization: Bearer $CRON_SECRET`. |
 | `SITE_INDEXING`             | No (default: not indexable)         | Server / build time                                  | Set to exactly `enabled` at launch. Anything else keeps `noindex, nofollow` and `Disallow: /`. Read at build, so **redeploy after changing it**.                    |
 
-Names are reported by the loaders; values are never logged or returned to the browser (verified by tests and a grep of `.next/static`).
+## Phase 7 — Admin Authentication & Authorization
 
-## Block to append to `.env.example`
+| Variable                        | Required                    | Exposure    | Purpose / format                                                                                                                                                                        |
+| ------------------------------- | --------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes (admin login, SSR auth) | Public-safe | Supabase anon key (`sb-test-anon-...` or JWT). Used by `@supabase/ssr` (`createBrowserClient` and `createServerClient`) for session management. Subject to database Row Level Security. |
 
-`.env.example` is masked in the agent sandbox, so append this yourself (together with the Phase 4 block above):
+Names are reported by the loaders; values are never logged or returned to the browser (verified by automated tests and inspection of `.next/static`).
+
+## Ready-to-copy `.env.example` Block
 
 ```dotenv
-# ── Phase 6: Enquiries (server-only unless noted) ──────────────────────────────
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+
+# ── Phase 4: Google Sheets (server-only; never prefix with NEXT_PUBLIC_) ───────
+GOOGLE_SERVICE_ACCOUNT_EMAIL=
+GOOGLE_PRIVATE_KEY=
+GOOGLE_SHEET_ID=
+GOOGLE_SHEETS_PRICE_HISTORY=false
+
+# ── Phase 6/7: Supabase ────────────────────────────────────────────────────────
 # Public-safe project URL, e.g. https://abcdefgh.supabase.co
 NEXT_PUBLIC_SUPABASE_URL=
+# Public-safe anon key (used by browser client and SSR session handling; RLS enforced)
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
 # Service-role key. Bypasses RLS. NEVER prefix with NEXT_PUBLIC_, never commit.
 SUPABASE_SERVICE_ROLE_KEY=
-# Web3Forms access key (server-side email notifications). Optional: without it
-# enquiries are saved and their notification stays PENDING.
+
+# ── Phase 6: Enquiries, Web3Forms & Rate Limiting ──────────────────────────────
+# Web3Forms access key (server-side email notifications). Optional.
 WEB3FORMS_ACCESS_KEY=
 # Random string (>=16 chars) used to hash IPs/mobiles for rate limiting.
 RATE_LIMIT_SECRET=
@@ -62,8 +60,8 @@ RATE_LIMIT_SECRET=
 CRON_SECRET=
 # Leave unset until launch. Set to "enabled" (and redeploy) to allow indexing.
 SITE_INDEXING=
+
+# ── Phase 10: Cloudinary (future) ──────────────────────────────────────────────
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_SECRET=
 ```
-
-## Other variables (later phases)
-
-`NEXT_PUBLIC_SITE_URL` (used now), `NEXT_PUBLIC_SUPABASE_ANON_KEY` (admin auth, Phase 7), `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` — see `PROJECT_BLUEPRINT.md` §25.2.

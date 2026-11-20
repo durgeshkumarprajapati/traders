@@ -1,26 +1,28 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { sanitizeReturnUrl } from "@/lib/auth/admin";
+import { createSupabaseProxyClient } from "@/lib/supabase/proxy";
 
 /**
- * Returns a genuine HTTP 404 for product URLs that do not exist.
- *
- * Why Proxy: with Cache Components the page shell is sent (status 200) before the request-time
- * catalogue check can run, so `notFound()` inside the page can only render the not-found UI with a 200.
- * Proxy runs BEFORE rendering, so it can still decide the status (Next.js docs: "To return a request-time 404, use Proxy").
- *
- * Behaviour: malformed slug → 404. Otherwise ask the internal catalogue route whether an ACTIVE product has
- * this slug: 404 → 404; exists / unavailable / error / timeout → continue (FAIL OPEN, so a Google Sheets outage
- * shows the page's own "unavailable" state instead of turning every product URL into a 404).
- * Proxy cannot use `use cache` itself, hence the internal fetch to a route handler that does.
+ * Next.js Proxy for Sagar Traders:
+ * 1. Product routes (/products/:slug): Returns a genuine HTTP 404 for products that do not exist.
+ * 2. Admin routes (/admin/:path*): Refreshes Supabase session cookies and redirects unauthenticated visitors to /admin/login.
  */
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const CHECK_TIMEOUT_MS = 2500;
-// A path no route matches: Next renders the app's not-found UI with a real 404 status.
 const MISSING_PATH = "/__product-not-found__";
 
 export async function proxy(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+
+  // Handle Admin routes
+  if (pathname.startsWith("/admin")) {
+    return handleAdminProxy(request);
+  }
+
+  // Handle Product routes
   let slug = "";
   try {
-    slug = decodeURIComponent(request.nextUrl.pathname.split("/")[2] ?? "");
+    slug = decodeURIComponent(pathname.split("/")[2] ?? "");
   } catch {
     return notFoundResponse(request);
   }
@@ -41,9 +43,56 @@ export async function proxy(request: NextRequest) {
   return NextResponse.next();
 }
 
+async function handleAdminProxy(request: NextRequest): Promise<NextResponse> {
+  const response = NextResponse.next({ request });
+  const pathname = request.nextUrl.pathname;
+
+  try {
+    const supabase = createSupabaseProxyClient(request, response);
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    // /admin/login route
+    if (pathname === "/admin/login") {
+      if (user) {
+        const { data: profile } = await supabase
+          .from("admin_profiles")
+          .select("id, is_active")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (profile?.is_active) {
+          const returnTo = sanitizeReturnUrl(request.nextUrl.searchParams.get("returnTo"));
+          const destination = returnTo ?? "/admin/dashboard";
+          return NextResponse.redirect(new URL(destination, request.url));
+        }
+      }
+      return response;
+    }
+
+    // All other /admin/* routes are protected
+    if (!user) {
+      const returnTo = sanitizeReturnUrl(pathname + request.nextUrl.search);
+      const loginUrl = new URL("/admin/login", request.url);
+      if (returnTo) {
+        loginUrl.searchParams.set("returnTo", returnTo);
+      }
+      return NextResponse.redirect(loginUrl);
+    }
+
+    return response;
+  } catch {
+    // If Supabase check fails on protected route, fail closed
+    if (pathname !== "/admin/login") {
+      return NextResponse.redirect(new URL("/admin/login", request.url));
+    }
+    return response;
+  }
+}
+
 function notFoundResponse(request: NextRequest) {
   return NextResponse.rewrite(new URL(MISSING_PATH, request.url));
 }
 
-// Single-segment product URLs only (/products/<slug>); the listing and everything else are untouched.
-export const config = { matcher: ["/products/:slug"] };
+export const config = { matcher: ["/products/:slug", "/admin/:path*"] };

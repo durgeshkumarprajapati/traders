@@ -15,6 +15,8 @@ const schema = z.object({
   SITE_INDEXING: z.enum(["enabled", "disabled"]).optional(),
   /** "true" records price changes in the optional PriceHistory worksheet. */
   GOOGLE_SHEETS_PRICE_HISTORY: z.enum(["true", "false"]).optional(),
+  NEXT_PUBLIC_SUPABASE_URL: z.string().optional(),
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().optional(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
   /** Secret for HMAC-hashing rate-limit identifiers (≥ 16 chars). Required for public enquiry submission. */
   RATE_LIMIT_SECRET: z.string().optional(),

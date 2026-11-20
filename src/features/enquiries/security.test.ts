@@ -43,18 +43,21 @@ describe("Phase 6 credential boundaries", () => {
     expect(offenders).toEqual([]);
   });
 
-  it("only the enquiry server layer imports the Supabase / email clients", () => {
+  it("only the enquiry and auth server layers import the Supabase / email clients", () => {
     const owners = nonTest
       .filter((f) => imports(f).some((i) => /^@\/lib\/(supabase|email)\//.test(i)))
       .map(rel)
       .filter((r) => !r.startsWith("lib/supabase/") && !r.startsWith("lib/email/"))
       .sort();
     expect(owners).toEqual([
+      "features/auth/actions.ts",
       "features/enquiries/server/deps.ts",
       "features/enquiries/server/email-template.ts",
       "features/enquiries/server/notifications.ts",
       "features/enquiries/server/rate-limit.ts",
       "features/enquiries/server/submit.ts",
+      "lib/auth/admin.ts",
+      "proxy.ts",
     ]);
   });
 
@@ -62,6 +65,9 @@ describe("Phase 6 credential boundaries", () => {
     for (const f of [
       "lib/supabase/config.ts",
       "lib/supabase/rest.ts",
+      "lib/supabase/server.ts",
+      "lib/supabase/admin.ts",
+      "lib/auth/admin.ts",
       "lib/email/web3forms.ts",
       "features/enquiries/server/deps.ts",
       "features/enquiries/server/notifications.ts",
@@ -102,9 +108,10 @@ describe("Phase 6 credential boundaries", () => {
     expect(t.match(/^export\s/gm)).toHaveLength(2); // no other export kinds
   });
 
-  it("only the catalogue-product route, sweeper route and Server Actions are public entry points for Phase 6", () => {
+  it("only the catalogue-product route, sweeper route, admin session route and Server Actions are public entry points", () => {
     const api = nonTest.map(rel).filter((r) => /^app\/api\//.test(r));
     expect(api.sort()).toEqual([
+      "app/api/admin/session/route.ts",
       "app/api/catalogue/product/route.ts",
       "app/api/notifications/process/route.ts",
     ]);

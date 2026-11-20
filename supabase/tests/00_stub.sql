@@ -10,3 +10,5 @@ create schema auth;
 create table auth.users (id uuid primary key);
 
 insert into auth.users (id) values ('00000000-0000-0000-0000-0000000000a1');
+
+create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;

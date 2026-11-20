@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { SupabaseApiError, SupabaseConfigError, SupabaseTimeoutError } from "./errors";
-import { loadSupabaseConfig } from "./config";
+import { loadSupabaseAuthConfig, loadSupabaseConfig } from "./config";
 import { createSupabaseRpc, RPC_TIMEOUT_MS, type RestDeps } from "./rest";
 
 const KEY = "sb-test-service-role-key-0123456789";
@@ -69,6 +69,43 @@ describe("loadSupabaseConfig", () => {
         expect(text).not.toContain("http://proj.supabase.test");
         expect((e as SupabaseConfigError).invalid.length).toBeGreaterThan(0);
       }
+    }
+  });
+});
+
+describe("loadSupabaseAuthConfig", () => {
+  const ANON = "sb-test-anon-public-key-0123456789";
+
+  it("accepts a valid auth configuration and normalises the URL", () => {
+    expect(
+      loadSupabaseAuthConfig({
+        NEXT_PUBLIC_SUPABASE_URL: "https://proj.supabase.test/",
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ANON,
+      }),
+    ).toEqual({ url: "https://proj.supabase.test", anonKey: ANON, serviceRoleKey: undefined });
+  });
+
+  it("reports names only, never values, when keys are missing or invalid", () => {
+    try {
+      loadSupabaseAuthConfig({});
+      expect.unreachable();
+    } catch (e) {
+      expect((e as SupabaseConfigError).missing).toEqual([
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      ]);
+    }
+
+    try {
+      loadSupabaseAuthConfig({
+        NEXT_PUBLIC_SUPABASE_URL: "https://proj.supabase.test",
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: "short key",
+      });
+      expect.unreachable();
+    } catch (e) {
+      const text = `${(e as Error).message} ${(e as SupabaseConfigError).detail}`;
+      expect(text).not.toContain("short key");
+      expect((e as SupabaseConfigError).invalid).toContain("NEXT_PUBLIC_SUPABASE_ANON_KEY");
     }
   });
 });

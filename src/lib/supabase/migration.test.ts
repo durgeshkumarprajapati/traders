@@ -11,8 +11,13 @@ const migration = readFileSync(
   join(root, "supabase/migrations/20261118000000_enquiries.sql"),
   "utf8",
 );
+const authMigration = readFileSync(
+  join(root, "supabase/migrations/20261120000000_admin_auth.sql"),
+  "utf8",
+);
 const stub = readFileSync(join(root, "supabase/tests/00_stub.sql"), "utf8");
 const sqlTests = readFileSync(join(root, "supabase/tests/01_enquiries.sql"), "utf8");
+const authSqlTests = readFileSync(join(root, "supabase/tests/02_admin_auth.sql"), "utf8");
 
 describe("migration (static checks — always run)", () => {
   const tables = [...migration.matchAll(/create table public\.(\w+)/g)].map((m) => m[1]);
@@ -125,6 +130,58 @@ describe("migration (static checks — always run)", () => {
   });
 });
 
+describe("Phase 7 admin_auth migration (static checks — always run)", () => {
+  it("creates admin_profiles table referencing auth.users", () => {
+    expect(authMigration).toMatch(
+      /create table public\.admin_profiles\s*\(\s*id uuid primary key references auth\.users\s*\(id\)\s*on delete cascade/,
+    );
+    expect(authMigration).toMatch(/email text not null check/);
+    expect(authMigration).toMatch(/is_active boolean not null default true/);
+  });
+
+  it("enables Row Level Security on admin_profiles and defines restricted policy", () => {
+    expect(authMigration).toMatch(/alter table public\.admin_profiles enable row level security/);
+    expect(authMigration).toMatch(
+      /revoke all on table public\.admin_profiles from public, anon, authenticated/,
+    );
+    expect(authMigration).toMatch(
+      /create policy admin_profiles_read_own on public\.admin_profiles for select to authenticated using \(auth\.uid\(\) = id and is_active = true\)/,
+    );
+  });
+
+  it("defines is_admin() function with security definer and safe search_path", () => {
+    expect(authMigration).toMatch(
+      /create function public\.is_admin\(\) returns boolean language sql stable security definer set search_path = public, pg_temp/i,
+    );
+    expect(authMigration).toMatch(/revoke all on function public\.is_admin\(\) from public, anon/);
+    expect(authMigration).toMatch(
+      /grant execute on function public\.is_admin\(\) to authenticated, service_role/,
+    );
+  });
+
+  it("grants admin RLS access to enquiries, enquiry_items, enquiry_notes, and outbox", () => {
+    expect(authMigration).toContain("create policy admin_enquiries_policy on public.enquiries");
+    expect(authMigration).toContain(
+      "create policy admin_enquiry_items_policy on public.enquiry_items",
+    );
+    expect(authMigration).toContain(
+      "create policy admin_enquiry_notes_policy on public.enquiry_notes",
+    );
+    expect(authMigration).toContain(
+      "create policy admin_outbox_policy on public.notification_outbox",
+    );
+    expect(authMigration).toContain(
+      "create policy admin_attempts_policy on public.notification_attempts",
+    );
+  });
+
+  it("contains no credentials or secrets", () => {
+    expect(authMigration + authSqlTests).not.toMatch(
+      /eyJ[A-Za-z0-9_-]{20,}|BEGIN PRIVATE KEY|service_role_key\s*=/i,
+    );
+  });
+});
+
 function findPostgres(): string | null {
   const dirs = [
     "/usr/lib/postgresql/17/bin",
@@ -159,7 +216,7 @@ describe.skipIf(!bin)("migration on real PostgreSQL (single-user mode)", () => {
       join(bin!, "postgres"),
       ["--single", "-j", "-D", join(dir, "data"), "postgres"],
       {
-        input: [stub, migration, sqlTests].join("\n\n") + "\n\n",
+        input: [stub, migration, sqlTests, authMigration, authSqlTests].join("\n\n") + "\n\n",
         encoding: "utf8",
         maxBuffer: 64 * 1024 * 1024,
       },
@@ -175,5 +232,6 @@ describe.skipIf(!bin)("migration on real PostgreSQL (single-user mode)", () => {
     const errors = output.split("\n").filter((l) => /\b(ERROR|FATAL):/.test(l));
     expect(errors).toEqual([]);
     expect(output).toContain('marker = "SQL_TESTS_PASSED"');
+    expect(output).toContain('marker = "ADMIN_AUTH_SQL_TESTS_PASSED"');
   });
 });
