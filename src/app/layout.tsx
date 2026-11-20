@@ -1,0 +1,28 @@
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import { SkipLink } from "@/components/common/skip-link";
+import { robotsMetadata } from "@/config/indexing";
+import { publicEnv } from "@/lib/env/public";
+import "./globals.css";
+
+const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
+
+export const metadata: Metadata = {
+  // Resolves relative canonical / Open Graph URLs against the configured site URL.
+  metadataBase: new URL(publicEnv.NEXT_PUBLIC_SITE_URL),
+  // noindex until SITE_INDEXING=enabled (see src/config/indexing.ts). Admin and /dev routes always set their own noindex.
+  robots: robotsMetadata(),
+  title: { default: "Sagar Traders", template: "%s | Sagar Traders" },
+  description: "Sagar Traders — product catalogue and quotation enquiries.",
+};
+
+export default function RootLayout({ children }: LayoutProps<"/">) {
+  return (
+    <html lang="en" className={`${inter.variable} h-full antialiased`}>
+      <body className="flex min-h-full flex-col">
+        <SkipLink />
+        {children}
+      </body>
+    </html>
+  );
+}
