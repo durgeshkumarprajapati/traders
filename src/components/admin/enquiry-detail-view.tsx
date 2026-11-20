@@ -220,7 +220,7 @@ export function EnquiryDetailView({ enquiry: initialEnquiry }: EnquiryDetailView
       </div>
 
       {/* Grid: Customer Details & Status Workflow */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Customer & Location Information */}
         <Card className="lg:col-span-2">
           <CardHeader className="border-b border-border p-4 sm:p-6">
@@ -230,7 +230,7 @@ export function EnquiryDetailView({ enquiry: initialEnquiry }: EnquiryDetailView
             </CardTitle>
           </CardHeader>
           <CardBody className="p-4 sm:p-6 space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <p className="text-label-sm text-on-surface-variant">Customer Name</p>
                 <p className="text-body-lg font-semibold text-on-surface mt-0.5">
@@ -241,7 +241,10 @@ export function EnquiryDetailView({ enquiry: initialEnquiry }: EnquiryDetailView
               <div>
                 <p className="text-label-sm text-on-surface-variant">Contact Mobile</p>
                 <p className="text-body-lg font-medium text-on-surface mt-0.5 flex items-center gap-1.5">
-                  <a href={`tel:${enquiry.mobile}`} className="hover:text-primary hover:underline">
+                  <a
+                    href={`tel:${enquiry.mobile}`}
+                    className="inline-flex min-h-8 items-center hover:text-primary hover:underline pointer-coarse:min-h-11"
+                  >
                     {enquiry.mobile}
                   </a>
                 </p>
@@ -251,7 +254,10 @@ export function EnquiryDetailView({ enquiry: initialEnquiry }: EnquiryDetailView
                 <p className="text-label-sm text-on-surface-variant">Email Address</p>
                 <p className="text-body-md text-on-surface mt-0.5">
                   {enquiry.email ? (
-                    <a href={`mailto:${enquiry.email}`} className="text-primary hover:underline">
+                    <a
+                      href={`mailto:${enquiry.email}`}
+                      className="inline-flex min-h-8 items-center text-primary [overflow-wrap:anywhere] hover:underline pointer-coarse:min-h-11"
+                    >
                       {enquiry.email}
                     </a>
                   ) : (
@@ -278,7 +284,7 @@ export function EnquiryDetailView({ enquiry: initialEnquiry }: EnquiryDetailView
                   <MapPin aria-hidden="true" className="size-4 text-primary" />
                   Delivery Location / Site Address
                 </p>
-                <p className="text-body-md font-medium text-on-surface mt-1 bg-surface-muted p-3 rounded border border-border">
+                <p className="text-body-md font-medium text-on-surface mt-1 bg-surface-muted p-3 rounded border border-border [overflow-wrap:anywhere]">
                   {enquiry.deliveryLocation}
                 </p>
               </div>
@@ -290,7 +296,7 @@ export function EnquiryDetailView({ enquiry: initialEnquiry }: EnquiryDetailView
                   <MessageSquare aria-hidden="true" className="size-4 text-primary" />
                   Customer Message / Notes
                 </p>
-                <p className="text-body-md text-on-surface mt-1 bg-surface-muted p-3 rounded border border-border whitespace-pre-line">
+                <p className="text-body-md text-on-surface mt-1 bg-surface-muted p-3 rounded border border-border whitespace-pre-line [overflow-wrap:anywhere]">
                   {enquiry.message}
                 </p>
               </div>
@@ -353,7 +359,7 @@ export function EnquiryDetailView({ enquiry: initialEnquiry }: EnquiryDetailView
                 </Button>
               </form>
 
-              <div className="text-body-xs text-on-surface-variant border-t border-border pt-3">
+              <div className="text-body-md text-on-surface-variant border-t border-border pt-3">
                 <p className="font-semibold text-on-surface mb-1">Standard Lifecycle:</p>
                 <p>
                   NEW → CONTACTED → QUOTATION_SENT → CONFIRMED → COMPLETED (or CANCELLED at any
@@ -415,7 +421,7 @@ export function EnquiryDetailView({ enquiry: initialEnquiry }: EnquiryDetailView
                   )}
 
                   {enquiry.outbox.lastError && (
-                    <div className="rounded bg-surface-muted p-2.5 text-body-xs text-on-surface-variant border border-border">
+                    <div className="rounded bg-surface-muted p-2.5 text-body-md text-on-surface-variant border border-border [overflow-wrap:anywhere]">
                       <span className="font-semibold text-on-surface">Last Error: </span>
                       {enquiry.outbox.lastError}
                     </div>
@@ -453,7 +459,7 @@ export function EnquiryDetailView({ enquiry: initialEnquiry }: EnquiryDetailView
               <Package aria-hidden="true" className="size-5 text-primary" />
               Requested Building Materials ({enquiry.items.length})
             </CardTitle>
-            <span className="text-body-xs text-on-surface-variant">
+            <span className="text-body-md text-on-surface-variant">
               Frozen snapshot captured at submission time.
             </span>
           </CardHeader>
@@ -483,7 +489,7 @@ export function EnquiryDetailView({ enquiry: initialEnquiry }: EnquiryDetailView
                       <Tr key={item.id}>
                         <Td
                           label="Item #"
-                          className="text-body-xs text-on-surface-variant font-mono"
+                          className="text-body-md text-on-surface-variant font-mono"
                         >
                           {item.position}
                         </Td>
@@ -491,7 +497,7 @@ export function EnquiryDetailView({ enquiry: initialEnquiry }: EnquiryDetailView
                         <Td label="Brand" className="text-body-sm text-on-surface-variant">
                           {item.brandName || "—"}
                         </Td>
-                        <Td label="SKU" className="font-mono text-body-xs text-on-surface-variant">
+                        <Td label="SKU" className="font-mono text-body-md text-on-surface-variant">
                           {item.sku || "—"}
                         </Td>
                         <Td label="Quantity" className="text-right font-medium text-on-surface">
@@ -523,7 +529,7 @@ export function EnquiryDetailView({ enquiry: initialEnquiry }: EnquiryDetailView
 
             {indicativeTotal !== null && (
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-t border-border p-4 sm:p-6 bg-surface-muted/50">
-                <p className="text-body-xs text-on-surface-variant italic">
+                <p className="text-body-md text-on-surface-variant italic">
                   * Sum based on indicative rates at submission time. Final quotation may vary based
                   on transport and taxes.
                 </p>
@@ -582,6 +588,7 @@ export function EnquiryDetailView({ enquiry: initialEnquiry }: EnquiryDetailView
                 type="submit"
                 variant="primary"
                 size="sm"
+                className="w-full sm:w-auto"
                 disabled={isAddingNote || !noteBody.trim()}
               >
                 {isAddingNote ? (
@@ -611,7 +618,7 @@ export function EnquiryDetailView({ enquiry: initialEnquiry }: EnquiryDetailView
                   key={note.id}
                   className="rounded-lg border border-border bg-surface-muted/30 p-4 space-y-1.5"
                 >
-                  <div className="flex flex-wrap items-center justify-between gap-x-2 text-body-xs">
+                  <div className="flex flex-wrap items-center justify-between gap-x-2 text-body-md">
                     <span className="font-semibold text-primary">
                       {note.authorName || note.authorEmail || "Administrator"}
                     </span>
@@ -623,7 +630,9 @@ export function EnquiryDetailView({ enquiry: initialEnquiry }: EnquiryDetailView
                       })}
                     </span>
                   </div>
-                  <p className="text-body-md text-on-surface whitespace-pre-line">{note.body}</p>
+                  <p className="text-body-md text-on-surface whitespace-pre-line [overflow-wrap:anywhere]">
+                    {note.body}
+                  </p>
                 </div>
               ))
             )}

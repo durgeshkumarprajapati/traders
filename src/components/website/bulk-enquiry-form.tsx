@@ -131,7 +131,7 @@ export function BulkEnquiryForm({
       onSubmit={onSubmit}
       aria-busy={pending}
       noValidate
-      className="grid gap-gutter-xl lg:grid-cols-3"
+      className="grid grid-cols-1 gap-gutter-xl lg:grid-cols-3"
       aria-label="Bulk quotation enquiry"
     >
       <div className="space-y-gutter-lg lg:col-span-2">

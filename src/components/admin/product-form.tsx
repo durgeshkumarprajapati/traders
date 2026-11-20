@@ -174,11 +174,11 @@ export function ProductForm({ initialData, categories, brands }: ProductFormProp
 
       {/* Primary Details Card */}
       <Card className="border border-border bg-surface">
-        <CardHeader className="border-b border-border px-6 py-4">
+        <CardHeader className="border-b border-border px-4 py-4 sm:px-6">
           <CardTitle className="text-title-lg">Product Identification</CardTitle>
         </CardHeader>
-        <CardBody className="p-6 space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
+        <CardBody className="p-4 space-y-4 sm:p-6">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label="Material Name" required error={fieldErrors.name}>
               {(p) => (
                 <Input
@@ -207,7 +207,7 @@ export function ProductForm({ initialData, categories, brands }: ProductFormProp
             </Field>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <Field label="SKU (Optional)" helper="Unique stock unit code" error={fieldErrors.sku}>
               {(p) => (
                 <Input
@@ -263,11 +263,11 @@ export function ProductForm({ initialData, categories, brands }: ProductFormProp
 
       {/* Pricing & Units Card */}
       <Card className="border border-border bg-surface">
-        <CardHeader className="border-b border-border px-6 py-4">
+        <CardHeader className="border-b border-border px-4 py-4 sm:px-6">
           <CardTitle className="text-title-lg">Pricing & Measurement Unit</CardTitle>
         </CardHeader>
-        <CardBody className="p-6 space-y-4">
-          <div className="grid gap-4 sm:grid-cols-3">
+        <CardBody className="p-4 space-y-4 sm:p-6">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <Field
               label="Indicative Rate (₹)"
               helper="Leave blank if rate is available only on request"
@@ -325,11 +325,11 @@ export function ProductForm({ initialData, categories, brands }: ProductFormProp
 
       {/* Inventory & Display Settings */}
       <Card className="border border-border bg-surface">
-        <CardHeader className="border-b border-border px-6 py-4">
+        <CardHeader className="border-b border-border px-4 py-4 sm:px-6">
           <CardTitle className="text-title-lg">Inventory & Catalog Visibility</CardTitle>
         </CardHeader>
-        <CardBody className="p-6 space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
+        <CardBody className="p-4 space-y-4 sm:p-6">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label="Stock Availability Status" required>
               {(p) => (
                 <Select

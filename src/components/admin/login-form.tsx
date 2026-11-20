@@ -63,7 +63,10 @@ export function LoginForm() {
               <Input
                 {...fieldProps}
                 type="email"
+                inputMode="email"
                 autoComplete="email"
+                autoCapitalize="none"
+                spellCheck={false}
                 placeholder="name@sagartraders.in"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}

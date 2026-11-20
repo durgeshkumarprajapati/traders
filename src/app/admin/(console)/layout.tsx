@@ -9,7 +9,7 @@ export default async function AdminConsoleLayout({ children }: { children: React
   const admin = await requireAdminSession();
 
   return (
-    <div className="flex min-h-screen flex-col lg:flex-row">
+    <div className="flex min-h-dvh flex-col lg:flex-row">
       <Suspense fallback={null}>
         <AdminMobileNav footer={<AdminAccount admin={admin} />} />
       </Suspense>

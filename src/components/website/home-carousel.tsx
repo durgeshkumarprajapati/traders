@@ -12,6 +12,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, ChevronLeft, ChevronRight, Package, Search, ShieldCheck } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
+import { StockBadge, type StockStatus } from "@/components/ui/status-badge";
 import { cn } from "@/lib/cn";
 
 export interface CarouselSlide {
@@ -23,8 +24,11 @@ export interface CarouselSlide {
   secondaryCta?: { label: string; href: string };
   imageSrc?: string;
   altText: string;
+  /** Indicative rate text. Only set when it comes from the live catalogue — never hard-code a price. */
   price?: string;
   unit?: string;
+  /** Stock status. Only set when verified from catalogue data; when omitted no availability badge is shown. */
+  availability?: StockStatus | null;
 }
 
 export const DEFAULT_CAROUSEL_SLIDES: CarouselSlide[] = [
@@ -38,8 +42,6 @@ export const DEFAULT_CAROUSEL_SLIDES: CarouselSlide[] = [
     secondaryCta: { label: "Get a Bulk Quote", href: "/bulk-enquiry" },
     imageSrc: "/images/carousel/cement-materials.jpeg",
     altText: "Warehouse and site delivery of premium cement bags and construction materials",
-    price: "₹385",
-    unit: "/ 50 kg Bag",
   },
   {
     id: "slide-steel",
@@ -51,8 +53,6 @@ export const DEFAULT_CAROUSEL_SLIDES: CarouselSlide[] = [
     secondaryCta: { label: "View Specifications", href: "/products" },
     imageSrc: "/images/carousel/tmt-steel.jpeg",
     altText: "Bundles of ribbed TMT steel reinforcement rebars ready for site delivery",
-    price: "₹62,500",
-    unit: "/ MT",
   },
   {
     id: "slide-bricks",
@@ -64,8 +64,6 @@ export const DEFAULT_CAROUSEL_SLIDES: CarouselSlide[] = [
     secondaryCta: { label: "Contact Our Desk", href: "/contact" },
     imageSrc: "/images/carousel/bricks-blocks.jpeg",
     altText: "Uniform construction bricks and masonry building materials neatly stacked",
-    price: "₹68",
-    unit: "/ Block",
   },
   {
     id: "slide-plumbing",
@@ -77,8 +75,6 @@ export const DEFAULT_CAROUSEL_SLIDES: CarouselSlide[] = [
     secondaryCta: { label: "Contact Us", href: "/contact" },
     imageSrc: "/images/carousel/hardware-supplies.jpeg",
     altText: "Comprehensive construction hardware, pipes, and plumbing supplies",
-    price: "₹340",
-    unit: "/ Length",
   },
 ];
 
@@ -188,7 +184,7 @@ export function HomeCarousel({
           <div className="flex flex-col gap-6 lg:col-span-7">
             <div className="inline-flex items-center gap-2 self-start rounded-md border border-border bg-surface-muted px-3 py-1">
               <ShieldCheck className="size-4 text-primary" aria-hidden="true" />
-              <span className="font-label text-label-md font-medium text-primary">
+              <span className=" text-label-md font-medium text-primary">
                 Wholesale &amp; Retail Supply • Direct Freight Dispatch
               </span>
             </div>
@@ -226,7 +222,7 @@ export function HomeCarousel({
               </div>
               <button
                 type="submit"
-                className="inline-flex h-11 w-full shrink-0 items-center justify-center gap-2 rounded-md bg-primary px-5 sm:h-10 sm:w-auto font-label text-label-lg text-on-primary shadow-xs transition-colors hover:bg-primary/90"
+                className="inline-flex h-11 w-full shrink-0 items-center justify-center gap-2 rounded-md bg-primary px-5 sm:h-10 sm:w-auto text-label-lg text-on-primary shadow-xs transition-colors hover:bg-primary/90"
               >
                 <span>Find Materials</span>
                 <ArrowRight className="size-4" aria-hidden="true" />
@@ -361,9 +357,11 @@ export function HomeCarousel({
                 <span className="absolute top-3 left-3 rounded-md border border-border bg-surface px-2.5 py-1 text-label-sm font-medium text-primary shadow-xs">
                   {currentSlide.badge}
                 </span>
-                <span className="absolute top-3 right-3 rounded-md border border-success/30 bg-surface px-2.5 py-1 text-label-sm font-medium text-success shadow-xs">
-                  In Stock
-                </span>
+                {currentSlide.availability && (
+                  <span className="absolute top-3 right-3">
+                    <StockBadge status={currentSlide.availability} />
+                  </span>
+                )}
               </div>
 
               {/* Spotlight Info & Controls */}
@@ -376,20 +374,22 @@ export function HomeCarousel({
                 </div>
 
                 <div className="flex flex-col gap-3 border-t border-border pt-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <span className="block text-label-sm text-on-surface-variant">
-                      Indicative Rate
-                    </span>
-                    <span className="text-headline-sm font-bold tabular-nums text-primary">
-                      {currentSlide.price ?? "Benchmark Quote"}{" "}
-                      {currentSlide.unit && (
-                        <span className="text-body-sm font-normal text-on-surface-variant">
-                          {currentSlide.unit}
-                        </span>
-                      )}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
+                  {currentSlide.price && (
+                    <div>
+                      <span className="block text-label-sm text-on-surface-variant">
+                        Indicative Rate
+                      </span>
+                      <span className="text-headline-sm font-bold tabular-nums text-primary">
+                        {currentSlide.price}{" "}
+                        {currentSlide.unit && (
+                          <span className="text-body-sm font-normal text-on-surface-variant">
+                            {currentSlide.unit}
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 sm:ml-auto">
                     <button
                       type="button"
                       onClick={prev}

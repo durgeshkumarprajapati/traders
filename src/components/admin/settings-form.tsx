@@ -208,12 +208,12 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
 
       {/* 1. Company Profile */}
       <Card className="border border-border bg-surface">
-        <CardHeader className="flex flex-row items-center gap-2 border-b border-border px-6 py-4">
+        <CardHeader className="flex flex-row items-center gap-2 border-b border-border px-4 py-4 sm:px-6">
           <Building2 className="size-5 text-primary" aria-hidden />
           <CardTitle className="text-title-lg">Company Profile & Legal Details</CardTitle>
         </CardHeader>
-        <CardBody className="p-6 space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
+        <CardBody className="p-4 space-y-4 sm:p-6">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label="Business Name" required error={fieldErrors.businessName}>
               {(p) => (
                 <Input
@@ -240,7 +240,7 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
             </Field>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field
               label="GST Identification Number (GSTIN)"
               helper="15-character registered GSTIN"
@@ -285,12 +285,12 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
 
       {/* 2. Contact & Communications */}
       <Card className="border border-border bg-surface">
-        <CardHeader className="flex flex-row items-center gap-2 border-b border-border px-6 py-4">
+        <CardHeader className="flex flex-row items-center gap-2 border-b border-border px-4 py-4 sm:px-6">
           <Phone className="size-5 text-primary" aria-hidden />
           <CardTitle className="text-title-lg">Contact & Enquiry Communication</CardTitle>
         </CardHeader>
-        <CardBody className="p-6 space-y-4">
-          <div className="grid gap-4 sm:grid-cols-3">
+        <CardBody className="p-4 space-y-4 sm:p-6">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <Field
               label="Primary Phone Number"
               helper="Used for Call Now header actions"
@@ -344,12 +344,12 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
 
       {/* 3. Operations & Delivery */}
       <Card className="border border-border bg-surface">
-        <CardHeader className="flex flex-row items-center gap-2 border-b border-border px-6 py-4">
+        <CardHeader className="flex flex-row items-center gap-2 border-b border-border px-4 py-4 sm:px-6">
           <Truck className="size-5 text-primary" aria-hidden />
           <CardTitle className="text-title-lg">Operations & Delivery Coverage</CardTitle>
         </CardHeader>
-        <CardBody className="p-6 space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
+        <CardBody className="p-4 space-y-4 sm:p-6">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label="Business Hours" helper="e.g. Mon–Sat: 8:00 AM – 8:00 PM">
               {(p) => (
                 <Input
@@ -396,11 +396,11 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
 
       {/* 4. Announcement Banner */}
       <Card className="border border-border bg-surface">
-        <CardHeader className="flex flex-row items-center gap-2 border-b border-border px-6 py-4">
+        <CardHeader className="flex flex-row items-center gap-2 border-b border-border px-4 py-4 sm:px-6">
           <Megaphone className="size-5 text-secondary" aria-hidden />
           <CardTitle className="text-title-lg">Site Announcement Banner</CardTitle>
         </CardHeader>
-        <CardBody className="p-6 space-y-4">
+        <CardBody className="p-4 space-y-4 sm:p-6">
           <Checkbox
             label={
               <span className="font-medium text-on-surface">
@@ -429,12 +429,12 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
 
       {/* 5. Social Media Links */}
       <Card className="border border-border bg-surface">
-        <CardHeader className="flex flex-row items-center gap-2 border-b border-border px-6 py-4">
+        <CardHeader className="flex flex-row items-center gap-2 border-b border-border px-4 py-4 sm:px-6">
           <Share2 className="size-5 text-primary" aria-hidden />
           <CardTitle className="text-title-lg">Social Media Profiles</CardTitle>
         </CardHeader>
-        <CardBody className="p-6 space-y-4">
-          <div className="grid gap-4 sm:grid-cols-3">
+        <CardBody className="p-4 space-y-4 sm:p-6">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <Field label="Facebook Profile URL" helper="HTTPS URL">
               {(p) => (
                 <Input
@@ -476,7 +476,7 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
 
       {/* 6. Why Choose Us Statements */}
       <Card className="border border-border bg-surface">
-        <CardHeader className="flex flex-row items-center gap-2 border-b border-border px-6 py-4">
+        <CardHeader className="flex flex-row items-center gap-2 border-b border-border px-4 py-4 sm:px-6">
           <Sparkles className="size-5 text-secondary" aria-hidden />
           <div>
             <CardTitle className="text-title-lg">Why Choose Us Highlights (Up to 6)</CardTitle>
@@ -486,7 +486,7 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
             </p>
           </div>
         </CardHeader>
-        <CardBody className="p-6 space-y-6">
+        <CardBody className="p-4 space-y-6 sm:p-6">
           {whyItems.map((item, idx) => (
             <div
               key={idx}
@@ -497,13 +497,13 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
                   Statement #{idx + 1}
                 </span>
                 {fieldErrors[`why_${idx}`] && (
-                  <span className="text-body-xs text-error font-medium">
+                  <span className="text-body-md text-error font-medium">
                     {fieldErrors[`why_${idx}`]}
                   </span>
                 )}
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                 <div className="sm:col-span-1">
                   <Field label="Title" helper="Max 80 chars">
                     {(p) => (
@@ -534,10 +534,10 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
           ))}
         </CardBody>
         <CardFooter className="flex flex-col-reverse gap-3 border-t border-border bg-surface-muted/30 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-          <span className="text-body-xs text-on-surface-variant">
+          <span className="text-body-md text-on-surface-variant">
             Changes persist directly to Google Sheets BusinessSettings worksheet.
           </span>
-          <Button type="submit" variant="primary" disabled={isPending}>
+          <Button type="submit" variant="primary" className="w-full sm:w-auto" disabled={isPending}>
             {isPending ? (
               <>
                 <Spinner className="size-4 mr-2" /> Saving...

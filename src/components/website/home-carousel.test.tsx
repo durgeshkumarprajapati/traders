@@ -143,3 +143,28 @@ describe("HomeCarousel Component", () => {
     vi.useRealTimers();
   });
 });
+
+describe("HomeCarousel truthfulness", () => {
+  it("shows no availability badge and no price unless the slide carries verified data", () => {
+    render(<HomeCarousel />);
+    expect(screen.queryByText(/in stock/i)).toBeNull();
+    expect(screen.queryByText(/indicative rate/i)).toBeNull();
+    expect(screen.queryByText(/₹/)).toBeNull();
+    for (const s of DEFAULT_CAROUSEL_SLIDES) {
+      expect(s.price).toBeUndefined();
+      expect(s.availability).toBeUndefined();
+    }
+  });
+
+  it("renders availability and rate only when supplied (e.g. from catalogue data)", () => {
+    const slide = {
+      ...DEFAULT_CAROUSEL_SLIDES[0],
+      price: "₹1.00",
+      unit: "/ Bag",
+      availability: "LIMITED_STOCK" as const,
+    };
+    render(<HomeCarousel slides={[slide]} />);
+    expect(screen.getByText("Limited Stock")).toBeInTheDocument();
+    expect(screen.getByText(/₹1\.00/)).toBeInTheDocument();
+  });
+});

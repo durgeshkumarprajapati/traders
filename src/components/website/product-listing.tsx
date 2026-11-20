@@ -45,7 +45,7 @@ export async function ProductListing({
   const categoryById = new Map(data.categories.map((c) => [c.id, c]));
 
   return (
-    <div className="grid gap-gutter-xl lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-gutter-xl lg:grid-cols-4">
       <aside aria-label="Product filters" className="lg:col-span-1">
         <ProductFilters
           categories={data.categories}
@@ -74,7 +74,7 @@ export async function ProductListing({
           />
         ) : (
           <>
-            <ul className="grid gap-gutter-md sm:grid-cols-2 xl:grid-cols-3">
+            <ul className="grid grid-cols-1 gap-gutter-md sm:grid-cols-2 xl:grid-cols-3">
               {pg.items.map((p) => (
                 <li key={p.id}>
                   <ProductCard
@@ -101,12 +101,12 @@ export async function ProductListing({
 export function ProductListingSkeleton() {
   return (
     <div
-      className="grid gap-gutter-xl lg:grid-cols-4"
+      className="grid grid-cols-1 gap-gutter-xl lg:grid-cols-4"
       aria-busy="true"
       aria-label="Loading products"
     >
       <Skeleton className="hidden h-96 lg:block" />
-      <div className="grid gap-gutter-md sm:grid-cols-2 xl:grid-cols-3 lg:col-span-3">
+      <div className="grid grid-cols-1 gap-gutter-md sm:grid-cols-2 xl:grid-cols-3 lg:col-span-3">
         {Array.from({ length: 6 }, (_, i) => (
           <Skeleton key={i} className="h-72" />
         ))}

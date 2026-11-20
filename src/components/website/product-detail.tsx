@@ -119,7 +119,7 @@ export async function ProductDetail({ params }: { params: Params }) {
         />
       </div>
       {load.source === "STATIC" && <CatalogueFallbackNotice className="mt-gutter-md" />}
-      <div className="mt-gutter-lg grid gap-gutter-xl lg:grid-cols-2">
+      <div className="mt-gutter-lg grid grid-cols-1 gap-gutter-xl lg:grid-cols-2">
         <ProductImage
           src={product.imageUrl}
           name={product.name}
@@ -186,7 +186,7 @@ export async function ProductDetail({ params }: { params: Params }) {
           >
             Related products
           </h2>
-          <ul className="grid gap-gutter-md sm:grid-cols-2 lg:grid-cols-4">
+          <ul className="grid grid-cols-1 gap-gutter-md sm:grid-cols-2 lg:grid-cols-4">
             {related.map((p) => (
               <li key={p.id}>
                 <ProductCard

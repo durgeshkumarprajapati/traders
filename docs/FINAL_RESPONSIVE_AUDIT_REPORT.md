@@ -1,150 +1,132 @@
-# Final Responsive Audit Report — Mobile-First Optimisation
+# Final Responsive Audit Report — Mobile-First Optimisation (corrections pass included)
 
 **Project:** Sagar Traders · **Date:** 2026-11-20 · **Git:** no commits, pushes or GitHub operations.
 
-> **Read this first.** All changes below were made by code inspection and verified with TypeScript, ESLint, Prettier, 963 automated tests (jsdom) and a production build. **No real browser was available**: headless Chrome could not start in the agent sandbox (socket creation is blocked), a Firefox attempt and a local server smoke test were refused by the sandbox, and I did not try to bypass that. **Therefore no page was visually verified at any viewport, no screenshots exist, and no before/after images are included.** Every browser-dependent item is marked `NOT TESTED`. jsdom does not evaluate CSS, so the automated tests prove markup, ARIA and class contracts — not rendered layout.
+> **Status of evidence.** Everything below was implemented by code inspection and verified with TypeScript, ESLint, Prettier, 971 automated jsdom tests and a production build. **No real browser was available**: headless Chrome cannot start in the agent sandbox (socket creation blocked); Firefox and a local `next start` smoke test were refused by the sandbox, and I did not work around that; a search for approved browser tooling in this session found none. **No page was visually verified at any viewport, no screenshots exist, and none are included.** jsdom does not evaluate CSS, so the tests prove markup, ARIA and class contracts — not rendered layout.
 
-## 1. Executive summary
+---
 
-The audit found that the public site was already largely mobile-aware (stacked grids, mobile drawer, 16px gutters), but several real defects would have broken phones:
+## A. Implementation completed
 
-| #   | Defect found in code                                                                                                                                                            | Fix                                                                                                                              |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | **Admin sidebar (260px) was permanently visible at every width** — at 320px only ~36px remained for content; no mobile navigation existed.                                      | Sidebar `hidden lg:flex`; new sticky top bar + drawer (`AdminMobileNav`); `main` gets `min-w-0`, 16px mobile padding.            |
-| 2   | Header main bar could not fit at 320–375px (non-shrinking brand, tagline, Quick Quote, enquiry link, menu).                                                                     | Shrinkable brand, tagline `sm+`, Quick Quote moved into the drawer below 640px, 64px bar on phones.                              |
-| 3   | Toasts were `fixed` + `w-full` + `right-16px` → 16px past the left edge on narrow screens.                                                                                      | Inset from both edges, safe-area bottom.                                                                                         |
-| 4   | Dialogs/drawers: no page-scroll lock, close button 32px, modal not height-bounded, no scroll for long content.                                                                  | Scroll lock, bounded/scrolling dialog, 44px close on touch, sticky dialog header, safe-area padding.                             |
-| 5   | Controls 32–40px high; inputs 14px (iOS zooms the page on focus).                                                                                                               | `pointer-coarse:` 44px targets; 16px inputs below `md`.                                                                          |
-| 6   | Dense tables (9 columns on admin products, 7 on enquiries/homepage rates, 8 on enquiry items) relied on horizontal scrolling.                                                   | `Table stacked`: labelled cards below `md` (single DOM; roles preserved).                                                        |
-| 7   | Hero carousel: price + prev/next + CTA row could not fit 248px; 36px controls; 11px chips; swipe fired on vertical scroll; unlabeled 14px search; 288px image.                  | Wrapping column layout, 44px controls/chips/tabs, horizontal-intent swipe, labelled 16px `type="search"`, 208px image on phones. |
-| 8   | Admin filter row (`w-36` + `w-44` selects) and form action bars did not wrap; six admin `h1`s used a **non-existent token** (`text-display-sm`) and rendered as body-size text. | Wrapping filters; stacked full-width Save/Cancel; headings use `text-headline-lg-mobile md:text-headline-lg`.                    |
+### A1. First responsive pass (summary)
 
-## 2. Responsive architecture and breakpoint strategy
+| Defect found in code                                                                                         | Fix                                                                                                                                                            |
+| ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Admin sidebar (260px) permanently visible at every width; no mobile navigation                               | Sidebar `hidden lg:flex`; sticky top bar + drawer (`AdminMobileNav`); `main` `min-w-0`, 16px mobile padding                                                    |
+| Header could not fit at 320–375px                                                                            | Shrinkable brand, tagline `sm+`, 64px bar on phones (see A4 for the final Quick Quote rule)                                                                    |
+| Toasts `fixed` + `w-full` overflowed the left edge                                                           | Inset from both edges, bottom safe-area                                                                                                                        |
+| Dialogs: no scroll lock, 32px close, unbounded height                                                        | Scroll lock (`html:has(dialog[open])`), bounded/scrolling dialog, 44px close on touch, sticky dialog header                                                    |
+| Controls 32–40px; inputs 14px (iOS focus-zoom)                                                               | `pointer-coarse:` 44px targets; 16px inputs below `md`                                                                                                         |
+| Dense tables relied on horizontal scrolling                                                                  | `Table stacked`: labelled cards below `md` (single DOM, ARIA roles preserved) on admin products/enquiries/items/categories/brands/dashboard and homepage rates |
+| Hero carousel row overflow, 36px controls, 11px chips, vertical-scroll swipes, unlabeled search, 288px image | Wrapping layout, 44px controls, horizontal-intent swipe, labelled 16px search, shorter phone image                                                             |
+| Admin filters/action bars not wrapping; six admin `h1`s used a non-existent token                            | Wrapping rows, stacked Save/Cancel, real mobile-aware heading tokens                                                                                           |
 
-Mobile-first Tailwind with the **default breakpoints retained** (`sm 640`, `md 768`, `lg 1024`, `xl 1280`; the token file only clears colours/type/radii/shadows). Decisions:
+### A2. Corrections pass
 
-- **Customer header:** utility bar `sm+`; desktop nav `md+`; drawer below `md`; Quick Quote button `sm+`.
-- **Admin:** drawer below `lg` (the 260px sidebar returns at 1024px; tablet portrait gets the drawer so content keeps full width).
-- **Tables:** stacked cards below `md`; scroll wrapper only for non-stacked tables.
-- **Touch:** `pointer-coarse:` (touch devices only) so desktop appearance is unchanged.
-- Explicit `viewport` export (`width=device-width, initial-scale=1`; zoom **not** disabled). `viewportFit=cover` deliberately not set (default behaviour already avoids notches); `env(safe-area-inset-bottom)` is used on toasts/drawer content and is harmless without `cover`.
-- `html { scroll-padding-top: 6.5rem }` keeps anchor targets (e.g. `#rates`) below the sticky header.
+**1. Hero availability badge — fixed (and a worse issue found).**
 
-## 3. Pages inspected (source only; none rendered)
+- The hard-coded green "In Stock" badge is removed. `CarouselSlide` now has an optional `availability?: StockStatus | null`; the badge (the shared `StockBadge`) renders **only** when a slide carries verified data. No default slide does, so no badge is shown.
+- **Additional finding, fixed for the same reason:** the four default slides carried hard-coded prices (₹385, ₹62,500, ₹68, ₹340) shown under "Indicative Rate", plus a "Benchmark Quote" fallback. These were invented business data. They are removed; the rate block renders only when a slide supplies `price` (e.g. from catalogue data). The prev/next controls and CTA remain; layout is otherwise unchanged. **Visible change:** the rate text no longer appears on the hero card.
+- Not changed (flagging for your decision): the hero's unverifiable marketing copy ("OPC 43, OPC 53 … leading manufacturers", "manufacturer test certificates", "Quality Tested", "Direct Yard", "Direct Freight", "Wholesale & Retail Supply • Direct Freight Dispatch") and the `/products?category=steel-tmt|cement|bricks-blocks|sand` chip links, whose slugs are assumed rather than read from the catalogue.
 
-Customer: `/`, `/products`, `/products/[slug]`, `/bulk-enquiry`, `/contact`, not-found/error. Admin: `/admin/login`, `/dashboard`, `/products`, `/products/new`, `/products/[id]/edit`, `/categories`, `/enquiries`, `/enquiries/[id]`, `/settings`.
+**2. Undefined design tokens — resolved.** Verified against the generated CSS: `text-body-xs`, `text-xs`, `font-label`, `rounded-DEFAULT` (and also `text-3xl`) emit **no rules**; affected elements silently inherited size/font. Replacements:
 
-## 4. Components inspected
+| Invalid                | Count | Replacement                                   | Appearance                                                                                                  |
+| ---------------------- | ----: | --------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `text-body-xs`         |    27 | `text-body-md` (approved 14px token)          | **Identical** on desktop (it was inheriting 14px); 14px (was inherited 16px) on phones                      |
+| `text-xs` (on Badges)  |     9 | removed (Badge already sets `text-label-md`)  | Identical                                                                                                   |
+| `font-label`           |    11 | removed (Inter is inherited)                  | Identical                                                                                                   |
+| `rounded-DEFAULT`      |     4 | `rounded` (approved 6px radius)               | **Visible:** header brand mark, Enquiry List and Quick Quote now have the 6px radius every other button has |
+| `text-3xl` (dashboard) |     4 | `text-headline-xl-mobile md:text-headline-xl` | **Visible:** the four metric numbers now render at 26px/32px (they were 14px bold)                          |
 
-Read in full: site-header, mobile-nav, admin-sidebar, admin console + auth layouts, modal, button, table, tabs, notification, form-controls, quantity-input, container, product-filters, home-carousel, bulk-enquiry-form (layout parts), product-card, product-detail, product-image, rate-display, enquiry-list-view (table/pagination), product-list-view, enquiry-detail-view (items table), category/brand tables, dashboard recent-enquiries table, form action bars. **Searched by pattern only (not read line-by-line):** footer, contact-details, dashboard stock breakdown, settings-form fields, category/brand edit dialogs, login form, enquiry status/notes/retry controls. These may hide issues a browser would reveal.
+A new test (`src/config/design-tokens.test.ts`) fails on any `text-*`, `rounded-*` or `font-*` class without a token, so this cannot regress silently.
 
-## 5. Header and mobile navigation
+**3. Components previously incompletely inspected — now read in full and fixed.**
 
-- Brand block shrinks (`min-w-0`, name truncates, tagline hidden below 640px); bar height 64px on phones, 80px from `sm`.
-- Phones show: brand, enquiry-list icon (count badge kept), menu button. Quick Quote is the **first, full-width button in the drawer**; Call and WhatsApp remain in the drawer; the desktop utility bar (phone/WhatsApp/Admin) stays `sm+`.
-- Drawer uses the native `<dialog>`: Escape, focus trap, background inert, focus restored; links close it; scroll lock added; ≥48px link rows. `aria-haspopup`, `aria-expanded`, accessible names kept.
-- **Trade-off to review:** on phones Quick Quote is one tap deeper (it is also in the hero and on every product card flow). Say if you prefer it kept in the bar at ≥400px.
-- Admin Portal link is hidden on phones (utility bar `sm+`) — it was already not in the mobile drawer; unchanged, flagged for your decision.
+| Component                 | Finding                                                                                                                                                                                    | Fix                                                                                                                                                                                                    |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Public footer             | Links 12px with ~16px tap height; phone and email were plain, untappable text; long values could widen the grid column                                                                     | 14px text on phones (12px kept from `md`), 44px link targets on touch, phone → `tel:` and email → `mailto:` links (only when configured), `grid-cols-1` + `min-w-0` children, long contact values wrap |
+| Dashboard stock breakdown | Badge + count rows fit (no change needed); "Details" link in recent-enquiries was a small target                                                                                           | Details link 44px on touch; metric numbers token fix (above)                                                                                                                                           |
+| Admin settings fields     | 24px card padding on every width (≈240px field width at 320px); 3 columns from 640px; bottom Save not full-width                                                                           | `p-4 sm:p-6`, `md:grid-cols-3`, full-width Save on phones                                                                                                                                              |
+| Category / brand dialogs  | Inputs fine; slug fields allowed auto-capitalise/auto-correct; order field lacked numeric keypad                                                                                           | `autoCapitalize="none"`, `autoCorrect="off"`, `spellCheck=false`, `inputMode="numeric"`; dialog shell already bounded/scrolling (A1)                                                                   |
+| Admin login form          | Email field lacked mobile keyboard hints; page used `min-h-screen` (wrong on mobile browser bars)                                                                                          | `inputMode="email"`, `autoCapitalize="none"`, `spellCheck=false`; `min-h-dvh` on login and console shells                                                                                              |
+| Enquiry status controls   | Select + full-width button — fine                                                                                                                                                          | None                                                                                                                                                                                                   |
+| Internal notes            | Add Note button right-aligned and small; long notes/addresses/errors could not break                                                                                                       | Full-width on phones; `[overflow-wrap:anywhere]` on email, delivery location, customer message, last error and note body; tel/mailto links 44px on touch                                               |
+| **All grids**             | 12 files had `grid … sm:grid-cols-N` with **no mobile base**; the implicit `auto` column grows to its content's min-content, so one long email/URL can push the page wider than the screen | `grid-cols-1` added everywhere (verified by a guard test)                                                                                                                                              |
 
-## 6. Homepage
+**4. Header (final rule implemented).** Quick Quote is shown in the header bar from **400px** (`min-[400px]:inline-flex`, compact `px-3`, icon from `sm`), with a shrinkable, truncating brand block so the brand yields before anything overflows or crowds. Below 400px it is the first, full-width button in the mobile drawer (it also stays in the drawer at larger widths). The enquiry-list icon with count stays in the bar at all widths; the menu button is `md:hidden`. **Honest caveat:** "only when it fits" is guaranteed by truncation, not measured — at exactly 400px with a long business name the brand will truncate; this needs a real-device look.
 
-Carousel (see §1 #7); rates table stacked below `md`; hero buttons stack below 420px; trust strip headings 14px on phones. Reduced-motion, keyboard arrows, pause-on-focus/hover, tablist semantics were already present and unchanged.
+### A3. Architecture (unchanged from first pass)
 
-## 7. Product catalogue
+Mobile-first Tailwind, default breakpoints (`sm 640`, `md 768`, `lg 1024`, `xl 1280`). Customer drawer below `md`; admin drawer below `lg`; stacked tables below `md`; `pointer-coarse:` for touch-only 44px targets; explicit `viewport` export without disabling zoom; `scroll-padding-top` for the sticky header. See `docs/COMPONENT_USAGE.md` → "Responsive additions".
 
-Cards: brand/SKU row wraps; footer actions already wrapped. Filters: unchanged structure (drawer below `lg`, URL state, `next/form`), now with 44px controls and 16px inputs on touch, scroll-locked drawer, 44px close.
+---
 
-## 8. Product detail
+## B. Automated tests passed (run after the final change)
 
-Specification labels wrap (`whitespace-normal`, `w-2/5` on phones); title uses the mobile heading token; image `aspect-4/3` + `object-contain` (no distortion) unchanged.
+| Check                  | Result                                                                                                                                                                          |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run typecheck`    | **PASS** (no output)                                                                                                                                                            |
+| `npm run lint`         | **PASS** (no output)                                                                                                                                                            |
+| `npm test`             | **PASS — 57 files, 971 tests** (963 before this pass; new: carousel truthfulness ×2, design-token guard ×2, grid base-column guard, footer links ×2, login keyboard attributes) |
+| `npm run build`        | **PASS** (Proxy compiled; all routes unchanged; health-check JSON lines in the build log are informational — Supabase/notifications are `not_configured` in this environment)   |
+| `npm run format:check` | **Script exits with errors only for sandbox-mounted shell files** — see below                                                                                                   |
 
-## 9. Bulk enquiry and contact
+**Prettier — repository files vs sandbox files.** `prettier --check .` reports `EACCES` for `.zshrc` (and the other root dotfiles `.bashrc`, `.profile`, `.bash_profile`, `.zprofile`, …). In the agent sandbox these are `/dev/null`-style character devices (`ls -l .zshrc` → `crw-rw-rw- nobody nogroup 1,3`), mounted over the user's shell configuration; they are untracked, not part of the application, and I did not modify them. `prettier --check src docs supabase *.json *.mjs *.ts *.md` → **all files use Prettier code style**. On a normal checkout (no mounted dotfiles) `npm run format:check` is expected to pass, but I have not seen that result myself.
 
-Enquiry rows become cards on phones (name + remove button top row, quantity group below); long names wrap. Submit buttons are full-width on phones. Already present and unchanged: `type=tel`/`inputMode`, `autoComplete`, pending disable (no double submit), values kept on recoverable errors. Server validation/submission untouched.
+No test was deleted or weakened. (An existing swipe test needed no change: the code treats a missing `clientY` as zero vertical movement; a new test covers vertical scrolling.)
 
-## 10–11. Admin dashboard and management
+## C. Browser tests passed
 
-Navigation drawer; `min-w-0` main; wrapping filter/pagination/card-header rows; stacked product, enquiry, enquiry-item, category, brand and dashboard tables with all columns and actions preserved; stacked full-width Save/Cancel on product and settings forms; mobile-aware page headings.
+**None.** No browser test was run, so none passed.
 
-## 12. Tables and dialogs
+## D. Browser tests not performed (all of them)
 
-See `docs/COMPONENT_USAGE.md` ("Responsive additions"). The specification table is intentionally a normal scrollable table.
+- All 11 routes × 320/375/430/768/1280/1440px; extra widths 360/390/480/640/1024/1920.
+- Landscape/tablet orientation, 200% zoom, on-screen keyboard, real touch gestures.
+- Live-catalogue vs static-fallback visual comparison.
+- Every authenticated admin workflow (no live Supabase session).
+- Screen-reader and keyboard walkthroughs in a browser; Lighthouse/CLS.
+- A local `next start` HTTP smoke test (refused by the sandbox).
 
-## 13. Accessibility
+## E. Remaining limitations
 
-44px touch targets on touch devices; 16px form text on phones; labelled hero search; `aria-current` in both drawers; table roles preserved in stacked mode with headers visually hidden (not removed); Escape/focus handling via native `<dialog>`; reduced-motion unchanged. Remaining: several secondary text tokens are 11–12px (`label-sm`, `body-sm`) and were not enlarged globally.
+1. **Nothing is browser-verified.** Expect small issues on first look at a phone — especially stacked-table card spacing, the carousel tab strip with 4 slides at 320px, header crowding at 400–430px, and the dashboard cards.
+2. Hero marketing copy and chip category slugs are unverified business content (A2 §1) — owner decision.
+3. Secondary text still uses 11–12px tokens (`label-sm`, `body-sm`, `label-md`); only unclassed body copy, footer lists, form inputs and `text-body-xs` replacements moved to ≥14px on phones.
+4. Stacked tables rely on browsers honouring explicit ARIA roles for `display:block` tables; not screen-reader tested.
+5. Desktop appearance intentionally changed in three places only (A2 §2): rounded header controls, larger dashboard metric numbers, and the hero no longer showing a rate/availability. Everything else on desktop is class-identical or token-equivalent.
+6. `.env.example` appears as modified in git; that change is not from this work.
 
-## 14. Images
+---
 
-No images were replaced. Carousel image height reduced on phones; product images keep `aspect-4/3`/`object-contain`; `priority` kept on the first carousel image and product-detail image. Per-image `sizes`/lazy-loading were not audited beyond this.
+## F. Manual browser verification checklist (project owner)
 
-## 15–17. Browser testing, viewports, functional regression
+**How:** `npm run build && npm start`, open Chrome → DevTools → device toolbar. Test each width: **320, 375, 430, 768, 1280, 1440** (also 360/390/480/640/1024/1920 if time). For each: load the page, scroll top→bottom, confirm no horizontal scrollbar (DevTools console: `document.documentElement.scrollWidth <= innerWidth` → `true`), then run the route's checks. Repeat key public pages with **Network → Offline/no Sheets credentials** (static fallback) and with live Sheets. Finally test **landscape**, **browser zoom 200%**, and one real phone.
 
-**NOT TESTED / BLOCKED.** Reason: no usable browser or local server in the agent sandbox. The 11-route × 6-viewport matrix (320/375/430/768/1280/1440), the extra widths (360/390/480/640/1024/1920), landscape, 200% zoom, on-screen keyboard, live-vs-static catalogue visual checks, and all authenticated admin workflows were **not run**. Admin pages additionally need a live Supabase session that is not available.
+Global (every route): no horizontal page scroll · no clipped/overlapping text · tap targets feel ≥44px on touch · Tab key reaches every control with a visible focus ring · page does not scroll behind an open drawer/dialog.
 
-## 18–19. Automated results (run after the final code change)
+| Route                               | 320 | 375 | 430 | 768 | 1280 | 1440 | Specific checks                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| ----------------------------------- | :-: | :-: | :-: | :-: | :--: | :--: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `/`                                 |  ☐  |  ☐  |  ☐  |  ☐  |  ☐   |  ☐   | Header: brand readable, enquiry icon + menu visible, Quick Quote in bar only ≥400px and fully inside the viewport; menu opens, Esc closes, link closes, focus returns to the menu button; drawer shows Quick Quote first, Call/WhatsApp. Hero: heading wraps, search labelled and tappable, buttons stack <420px, no "In Stock"/price on the carousel card, swipe horizontally changes slide but vertical scroll doesn't, prev/next/tabs ≥44px, reduced-motion stops autoplay. Rates table: cards on phones, labels visible, "Quote" button reachable. Why-choose-us, brands, bulk CTA ("WhatsApp Desk" text visible), contact/footer (phone/email tappable) |
+| `/products`                         |  ☐  |  ☐  |  ☐  |  ☐  |  ☐   |  ☐   | Cards fit; long names wrap; price+unit together; badge fits. Filters button opens drawer (scrollable, close button, Apply closes it, URL updates, state preserved); search; sort; pagination; empty and fallback notice states                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `/products/[slug]`                  |  ☐  |  ☐  |  ☐  |  ☐  |  ☐   |  ☐   | Image/title/price stack; long title wraps; no price, unknown availability and unbranded cases; specification labels wrap; WhatsApp + add-to-enquiry visible; related products; unknown slug → 404 page                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `/bulk-enquiry`                     |  ☐  |  ☐  |  ☐  |  ☐  |  ☐   |  ☐   | Add 3+ products; quantity −/+ and typing; remove button doesn't overlap names; long names wrap; fields use full width, correct keyboards (tel/email), keyboard doesn't hide Submit; validation errors visible; double-tap Submit sends once; success + failure states; list persists across pages                                                                                                                                                                                                                                                                                                                                                            |
+| `/contact`                          |  ☐  |  ☐  |  ☐  |  ☐  |  ☐   |  ☐   | Details stack; call/WhatsApp links tappable; form submits without zoom/scroll-x                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `/admin/login`                      |  ☐  |  ☐  |  ☐  |  ☐  |  ☐   |  ☐   | Card fits; email keyboard, no auto-capitalise; show/hide password; error banner wraps; sign-in works                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `/admin/dashboard`                  |  ☐  |  ☐  |  ☐  |  ☐  |  ☐   |  ☐   | Top bar + drawer below 1024px (active route marked, Esc/link closes, sign-out inside); sidebar ≥1024px; metric cards and numbers; recent enquiries as cards; stock overview; warnings list                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `/admin/products`                   |  ☐  |  ☐  |  ☐  |  ☐  |  ☐   |  ☐   | Filter row wraps (no fixed-width selects overflowing); cards show every field; Edit/Deactivate reachable; pagination; archive confirmation modal fits                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `/admin/products/new`, `/[id]/edit` |  ☐  |  ☐  |  ☐  |  ☐  |  ☐   |  ☐   | Sections stack; 3-column groups only ≥768px; Save/Cancel stacked full-width, Save on top; validation visible                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `/admin/categories`                 |  ☐  |  ☐  |  ☐  |  ☐  |  ☐   |  ☐   | Tabs scroll without breaking; cards with actions; create/edit dialogs fit, scroll, close; slug field behaviour; dependency warnings visible                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `/admin/enquiries`, `/[id]`         |  ☐  |  ☐  |  ☐  |  ☐  |  ☐   |  ☐   | Filters; list cards; pagination; detail: call/WhatsApp buttons, long email/address/message wrap, item snapshots as cards, status select + save, notes add/read, retry button when FAILED                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `/admin/settings`                   |  ☐  |  ☐  |  ☐  |  ☐  |  ☐   |  ☐   | All sections readable at 16px gutters; inputs full width; both Save buttons usable; field errors visible                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 
-| Check                  | Result                                                                                                                                                                                                                                       |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm run typecheck`    | PASS (no output)                                                                                                                                                                                                                             |
-| `npm run lint`         | PASS (no output)                                                                                                                                                                                                                             |
-| `npm test`             | PASS — 56 files, **963 tests** (948 existing + 15 new in `src/components/responsive.test.tsx` + carousel test)                                                                                                                               |
-| `npm run build`        | PASS; routes unchanged; Proxy compiled; `pointer-coarse`, `max-md`, `dialog[open]`, safe-area rules present in the emitted CSS                                                                                                               |
-| `npm run format:check` | **Errors only on `.zshrc`/`.bashrc`/`.profile` etc.**: the sandbox mounts these as unreadable character devices in the project root (not repository files). `prettier --check src docs supabase *.json *.mjs *.ts *.md` → all files conform. |
+Record failures with route, width, a screenshot and the DevTools overflow check result.
 
-No existing test was deleted or weakened. One existing swipe test needed no change; the code treats a missing `clientY` as no vertical movement. New tests cover: admin drawer open/close/ARIA/active-route/Escape, customer drawer Quick Quote, stacked-table markup and non-stacked regression, modal sizing classes, and source guards (no fixed widths > 300px, `min-w-0` main, toast insets, touch classes, scroll lock, shrinkable header).
-
-## 20. Remaining issues (known, not fixed)
-
-1. **Nothing is browser-verified** (above). Expect to find small issues the first time these screens are seen on a phone, especially: stacked-table card spacing, the 5-slide carousel tab strip at 320px, dashboard stock breakdown, category/brand edit dialogs, enquiry status/notes controls, footer.
-2. Hero carousel shows a hard-coded **"In Stock"** badge on every slide. That contradicts the Phase 12 "truthful availability" rule. It is business content, not layout, so I left it; recommend removing or driving it from data.
-3. Undefined design tokens are used in places (`text-body-xs`, `text-xs`, `font-label`, `rounded-DEFAULT`) — they generate no CSS, so those elements inherit size/font. Not changed (would alter existing desktop appearance); worth a separate cleanup.
-4. 11–12px text (`label-sm`/`body-sm`) remains for secondary information. Only unclassed body copy moved to 16px on phones.
-5. Stacked mode relies on ARIA roles being honoured for `display:block` tables; screen-reader behaviour was not tested.
-6. `.env.example` shows as modified in git; that change is not from this phase.
-
-## 21. Tests not performed
-
-All real-browser viewport checks; mobile landscape/tablet orientation; 200% zoom; on-screen keyboard; touch gestures on a device; screenshot comparison; admin login/logout and every admin workflow (product create/edit/archive, category/brand, settings, enquiry status/notes/retry) — **no live Supabase/Google credentials**; live-catalogue vs static-fallback visual comparison; Lighthouse/CLS measurement; a local `next start` HTTP smoke test (refused by the sandbox); screen-reader testing.
-
-## Verification matrix
-
-| Area                                                | Status                                                     | Evidence                                                    |
-| --------------------------------------------------- | ---------------------------------------------------------- | ----------------------------------------------------------- |
-| Global responsive layout                            | IMPLEMENTED — NOT BROWSER-TESTED                           | Code audit + class/markup tests                             |
-| Header                                              | IMPLEMENTED — NOT BROWSER-TESTED                           | Source guard test                                           |
-| Mobile navigation                                   | PASS (jsdom interaction)                                   | `responsive.test.tsx` (open/close/ARIA/Escape/active route) |
-| Homepage                                            | IMPLEMENTED — NOT BROWSER-TESTED                           | Code audit                                                  |
-| Product listing / details                           | IMPLEMENTED — NOT BROWSER-TESTED                           | Code audit                                                  |
-| Search and filters                                  | PASS (existing tests); layout NOT TESTED                   | 963 tests                                                   |
-| Bulk enquiry / Contact                              | PASS (existing form tests); layout NOT TESTED              | Existing `enquiry-forms.test.tsx`                           |
-| Enquiry list                                        | IMPLEMENTED — NOT BROWSER-TESTED                           | Existing tests                                              |
-| Admin login/dashboard/management/enquiries/settings | IMPLEMENTED — NOT BROWSER-TESTED                           | Existing view tests + code audit; no live session           |
-| Tables                                              | PASS (markup); usability NOT TESTED                        | Stacked-table tests                                         |
-| Modals and drawers                                  | PASS (jsdom); rendering NOT TESTED                         | Modal/drawer tests                                          |
-| Accessibility                                       | PARTIAL                                                    | ARIA/roles asserted; keyboard/SR not browser-tested         |
-| 320 / 375 / 430px / tablet / desktop                | **NOT TESTED**                                             | No browser available                                        |
-| Regression tests                                    | PASS                                                       | 963/963                                                     |
-| TypeScript / ESLint                                 | PASS                                                       | Command output                                              |
-| Prettier                                            | PASS for all repo files; script errors on sandbox dotfiles | See §18–19                                                  |
-| Production build                                    | PASS                                                       | Build output                                                |
-
-## Required answers
-
-1. **Complete public site responsive on phones?** Code is mobile-first and the identified defects are fixed, but this is **not verified in a browser**.
-2. **Admin dashboard responsive on phones?** The previously missing mobile navigation and table handling are implemented; **not verified in a browser or with a live session**.
-3. **Works at 320px without horizontal overflow?** **Unknown / NOT TESTED.** Known overflow causes were removed; no measurement was possible.
-4. **Mobile header and navigation work?** Interaction contract passes in jsdom; real rendering/touch **NOT TESTED**.
-5. **Customers can browse and filter on mobile?** Functionality unchanged and tests pass; mobile usability **NOT TESTED**.
-6. **Add multiple products to the enquiry list on mobile?** Storage/logic unchanged and tested; mobile layout **NOT TESTED**.
-7. **Submit bulk and contact enquiries on mobile?** Submission logic untouched and tested; on-device submission **NOT TESTED**.
-8. **Admin workflows usable on mobile?** Layouts adapted; workflows **NOT TESTED**.
-9. **Modals, drawers, dropdowns, tables on small screens?** Implemented and unit-tested; **NOT TESTED** visually. Native `<select>` dropdowns are browser-rendered.
-10. **Tested in actual browser viewports?** **No.**
-11. **Existing functionality and integrations intact?** Yes as far as automated tests show (963 pass); no server-side, API, database, auth or integration code was changed.
-12. **Remaining responsive issues?** Section 20.
-13. **Tests that could not be performed?** Section 21.
+---
 
 ## Final status
 
-**RESPONSIVE OPTIMIZATION COMPLETE WITH DOCUMENTED LIMITATIONS** — the code changes and automated checks are complete, but the central acceptance requirement (page-by-page browser verification) was **not met** and must be done on a machine with a browser before this can be called verified. If you require browser evidence for completion, treat the status as `NOT COMPLETE` until then.
+**RESPONSIVE OPTIMIZATION COMPLETE WITH DOCUMENTED LIMITATIONS**
+
+The requested corrections are implemented and every automated check passes, but **no browser verification has been performed**, so visual responsiveness is **not verified**. The first status ("ALL TESTED VIEWPORTS PASSED") is not claimed. If you require browser evidence before accepting completion, treat the work as unverified until the checklist in section F is run.

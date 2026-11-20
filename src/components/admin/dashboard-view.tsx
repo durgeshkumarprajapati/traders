@@ -71,7 +71,7 @@ export function DashboardView({ data }: { data: AdminDashboardData }) {
       )}
 
       {/* Key Metric Statistic Cards */}
-      <div className="grid gap-gutter-md sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-gutter-md sm:grid-cols-2 lg:grid-cols-4">
         {/* Active Products */}
         <Card className="border border-border bg-surface">
           <CardBody className="p-5">
@@ -80,7 +80,7 @@ export function DashboardView({ data }: { data: AdminDashboardData }) {
               <Boxes className="size-5 text-primary" aria-hidden />
             </div>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-on-surface">
+              <span className="text-headline-xl-mobile font-bold text-on-surface md:text-headline-xl">
                 {catalogue ? catalogue.activeProducts : "—"}
               </span>
               {catalogue && (
@@ -109,7 +109,7 @@ export function DashboardView({ data }: { data: AdminDashboardData }) {
               <Layers className="size-5 text-primary" aria-hidden />
             </div>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-on-surface">
+              <span className="text-headline-xl-mobile font-bold text-on-surface md:text-headline-xl">
                 {catalogue ? catalogue.activeCategories : "—"}
               </span>
               <span className="text-body-sm text-on-surface-variant">Categories</span>
@@ -136,11 +136,11 @@ export function DashboardView({ data }: { data: AdminDashboardData }) {
               <Mail className="size-5 text-secondary" aria-hidden />
             </div>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-on-surface">
+              <span className="text-headline-xl-mobile font-bold text-on-surface md:text-headline-xl">
                 {enquiries ? enquiries.newCount : "—"}
               </span>
               {enquiries && enquiries.newCount > 0 && (
-                <Badge tone="warning" appearance="solid" className="text-xs">
+                <Badge tone="warning" appearance="solid">
                   Action needed
                 </Badge>
               )}
@@ -167,7 +167,7 @@ export function DashboardView({ data }: { data: AdminDashboardData }) {
               <Clock className="size-5 text-primary" aria-hidden />
             </div>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-on-surface">
+              <span className="text-headline-xl-mobile font-bold text-on-surface md:text-headline-xl">
                 {enquiries ? enquiries.pendingCount : "—"}
               </span>
               {enquiries && (
@@ -192,7 +192,7 @@ export function DashboardView({ data }: { data: AdminDashboardData }) {
       </div>
 
       {/* Main Two-Column Layout */}
-      <div className="grid gap-gutter-lg lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-gutter-lg lg:grid-cols-3">
         {/* Recent Enquiries (2 Cols) */}
         <div className="lg:col-span-2 space-y-gutter-md">
           <Card className="border border-border bg-surface">
@@ -223,18 +223,17 @@ export function DashboardView({ data }: { data: AdminDashboardData }) {
                   <TBody>
                     {enquiries.recent.map((e) => (
                       <Tr key={e.id}>
-                        <Td label="Reference" className="font-mono text-body-xs font-semibold">
+                        <Td label="Reference" className="font-mono text-body-md font-semibold">
                           {e.reference}
                         </Td>
                         <Td label="Customer">
                           <div className="font-medium text-on-surface">{e.customerName}</div>
-                          <div className="text-body-xs text-on-surface-variant">{e.mobile}</div>
+                          <div className="text-body-md text-on-surface-variant">{e.mobile}</div>
                         </Td>
                         <Td label="Type">
                           <Badge
                             tone={e.type === "BULK" ? "primary" : "neutral"}
                             appearance="outline"
-                            className="text-xs"
                           >
                             {e.type}
                           </Badge>
@@ -242,7 +241,7 @@ export function DashboardView({ data }: { data: AdminDashboardData }) {
                         <Td label="Status">
                           <EnquiryStatusBadge status={e.status} />
                         </Td>
-                        <Td label="Received" className="text-body-xs text-on-surface-variant">
+                        <Td label="Received" className="text-body-md text-on-surface-variant">
                           {formatUpdated(e.createdAt) ?? "Recent"}
                         </Td>
                         <Td>
@@ -365,7 +364,7 @@ export function DashboardView({ data }: { data: AdminDashboardData }) {
                   : "Google Sheets Data Synchronized"}
               </CardTitle>
             </div>
-            <span className="text-body-xs text-on-surface-variant">
+            <span className="text-body-md text-on-surface-variant">
               Snapshot fetched: {formatUpdated(fetchedAt) ?? "Just now"}
             </span>
           </CardHeader>
@@ -375,9 +374,9 @@ export function DashboardView({ data }: { data: AdminDashboardData }) {
                 {catalogue.issues.map((issue, idx) => (
                   <div
                     key={idx}
-                    className="flex items-start gap-2 text-body-xs p-2 rounded bg-surface-muted border border-border"
+                    className="flex items-start gap-2 text-body-md p-2 rounded bg-surface-muted border border-border"
                   >
-                    <Badge tone="warning" appearance="outline" className="text-xs uppercase">
+                    <Badge tone="warning" appearance="outline" className="uppercase">
                       {issue.code}
                     </Badge>
                     <span className="font-mono text-on-surface font-semibold">

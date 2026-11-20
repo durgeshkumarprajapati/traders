@@ -88,5 +88,5 @@ export function ContactDetails({ settings }: { settings: BusinessSettings }) {
       </p>
     );
   }
-  return <div className="grid gap-gutter-md sm:grid-cols-2">{items}</div>;
+  return <div className="grid grid-cols-1 gap-gutter-md sm:grid-cols-2">{items}</div>;
 }

@@ -115,7 +115,7 @@ export function FeaturedProductsSection({
           Featured products appear here once products are marked as featured.
         </ContentPlaceholder>
       ) : (
-        <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {featured.map((p) => (
             <li key={p.id}>
               <ProductCard
@@ -230,7 +230,7 @@ export function WhyChooseUsSection({ items }: { items: { title: string; descript
       title="Why choose us"
       description="Built on straightforward commercial ethics, authentic material grades, and dedicated contractor logistics."
     >
-      <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 items-stretch">
+      <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 items-stretch">
         {items.map((item, idx) => {
           const icons = [ShieldCheck, BadgePercent, Store, Truck];
           const Icon = icons[idx % icons.length];
@@ -293,7 +293,7 @@ export function BulkEnquiryCtaSection({ settings }: { settings: BusinessSettings
       <PageContainer>
         <div className="flex flex-col gap-gutter-lg rounded-lg border border-primary/20 bg-primary p-8 text-on-primary shadow-md lg:p-10 md:flex-row md:items-center md:justify-between">
           <div className="max-w-2xl">
-            <span className="mb-4 inline-block rounded bg-secondary px-3 py-1 font-label text-label-sm font-semibold text-on-secondary">
+            <span className="mb-4 inline-block rounded bg-secondary px-3 py-1 text-label-sm font-semibold text-on-secondary">
               Bulk Procurement Desk
             </span>
             <h2
@@ -342,7 +342,7 @@ export function ContactInfoSection({ settings }: { settings: BusinessSettings })
         </ButtonLink>
       }
     >
-      <div className="grid gap-8 lg:grid-cols-12 items-start">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 items-start">
         <div className="lg:col-span-7">
           <ContactDetails settings={settings} />
         </div>

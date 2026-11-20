@@ -157,7 +157,7 @@ export function ProductListView({ products, categories, brands }: ProductListVie
 
       {/* Filter and Search Bar */}
       <div className="rounded-md border border-border bg-surface p-4 space-y-3">
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {/* Search */}
           <div className="relative">
             <Input
@@ -226,7 +226,7 @@ export function ProductListView({ products, categories, brands }: ProductListVie
 
         <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-border/60">
           <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-            <span className="text-body-xs text-on-surface-variant font-medium">Status:</span>
+            <span className="text-body-md text-on-surface-variant font-medium">Status:</span>
             <Select
               className="h-10 w-full sm:h-8 sm:w-36"
               aria-label="Filter by Active Status"
@@ -241,7 +241,7 @@ export function ProductListView({ products, categories, brands }: ProductListVie
               <option value="inactive">Inactive Only</option>
             </Select>
 
-            <span className="text-body-xs text-on-surface-variant font-medium sm:ml-2">Sort:</span>
+            <span className="text-body-md text-on-surface-variant font-medium sm:ml-2">Sort:</span>
             <Select
               className="h-10 w-full sm:h-8 sm:w-44"
               aria-label="Sort products"
@@ -257,7 +257,7 @@ export function ProductListView({ products, categories, brands }: ProductListVie
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <span className="text-body-xs text-on-surface-variant">
+            <span className="text-body-md text-on-surface-variant">
               Showing <strong>{filteredProducts.length}</strong> of {products.length} products
             </span>
             {(search ||
@@ -306,7 +306,7 @@ export function ProductListView({ products, categories, brands }: ProductListVie
                       <Td>
                         <div className="font-semibold text-on-surface">{p.name}</div>
                         <div className="mt-0.5 flex flex-wrap items-center gap-2">
-                          <span className="text-body-xs text-on-surface-variant font-mono">
+                          <span className="text-body-md text-on-surface-variant font-mono">
                             {p.slug}
                           </span>
                           {p.sku && (
@@ -340,18 +340,18 @@ export function ProductListView({ products, categories, brands }: ProductListVie
                       </Td>
                       <Td label="Status">
                         {p.isActive ? (
-                          <Badge tone="success" appearance="solid" className="text-xs">
+                          <Badge tone="success" appearance="solid">
                             Active
                           </Badge>
                         ) : (
-                          <Badge tone="neutral" appearance="outline" className="text-xs">
+                          <Badge tone="neutral" appearance="outline">
                             Inactive
                           </Badge>
                         )}
                       </Td>
                       <Td
                         label="Last updated"
-                        className="text-body-xs text-on-surface-variant md:whitespace-nowrap"
+                        className="text-body-md text-on-surface-variant md:whitespace-nowrap"
                       >
                         {formatUpdated(p.updatedAt) ?? "—"}
                       </Td>
@@ -410,7 +410,7 @@ export function ProductListView({ products, categories, brands }: ProductListVie
         {/* Pagination controls */}
         {totalPages > 1 && (
           <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border bg-surface-muted/30 px-4 py-3">
-            <span className="text-body-xs text-on-surface-variant">
+            <span className="text-body-md text-on-surface-variant">
               Page {page} of {totalPages}
             </span>
             <div className="flex items-center gap-1">

@@ -82,7 +82,7 @@ export function EnquiryListView({
       <Card>
         <CardBody className="p-4 sm:p-6">
           <form onSubmit={handleSearchSubmit} className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <div className="lg:col-span-2">
                 <Field
                   label="Search Enquiries"
@@ -236,7 +236,7 @@ export function EnquiryListView({
                       </Td>
                       <Td label="Customer">
                         <div className="font-medium text-on-surface">{enquiry.customerName}</div>
-                        <div className="flex items-center gap-1 text-body-xs text-on-surface-variant">
+                        <div className="flex items-center gap-1 text-body-md text-on-surface-variant">
                           <Phone aria-hidden="true" className="size-3" />
                           <a
                             href={`tel:${enquiry.mobile}`}

@@ -337,18 +337,18 @@ export function CategoriesBrandsView({ categories, brands, products }: Categorie
                   const activeProdCount = categoryProductCount.get(c.id) ?? 0;
                   return (
                     <Tr key={c.id}>
-                      <Td label="Order" className="font-mono text-body-xs font-semibold">
+                      <Td label="Order" className="font-mono text-body-md font-semibold">
                         {c.displayOrder ?? "—"}
                       </Td>
                       <Td label="Category">
                         <div className="font-semibold text-on-surface">{c.name}</div>
                         {c.description && (
-                          <div className="text-body-xs text-on-surface-variant line-clamp-1">
+                          <div className="text-body-md text-on-surface-variant line-clamp-1">
                             {c.description}
                           </div>
                         )}
                       </Td>
-                      <Td label="Slug" className="font-mono text-body-xs text-on-surface-variant">
+                      <Td label="Slug" className="font-mono text-body-md text-on-surface-variant">
                         {c.slug}
                       </Td>
                       <Td label="Active products">
@@ -356,11 +356,11 @@ export function CategoriesBrandsView({ categories, brands, products }: Categorie
                       </Td>
                       <Td label="Status">
                         {c.isActive ? (
-                          <Badge tone="success" appearance="solid" className="text-xs">
+                          <Badge tone="success" appearance="solid">
                             Active
                           </Badge>
                         ) : (
-                          <Badge tone="neutral" appearance="outline" className="text-xs">
+                          <Badge tone="neutral" appearance="outline">
                             Inactive
                           </Badge>
                         )}
@@ -452,12 +452,12 @@ export function CategoriesBrandsView({ categories, brands, products }: Categorie
                       <Td label="Brand">
                         <div className="font-semibold text-on-surface">{b.name}</div>
                         {b.description && (
-                          <div className="text-body-xs text-on-surface-variant line-clamp-1">
+                          <div className="text-body-md text-on-surface-variant line-clamp-1">
                             {b.description}
                           </div>
                         )}
                       </Td>
-                      <Td label="Slug" className="font-mono text-body-xs text-on-surface-variant">
+                      <Td label="Slug" className="font-mono text-body-md text-on-surface-variant">
                         {b.slug}
                       </Td>
                       <Td label="Active products">
@@ -465,11 +465,11 @@ export function CategoriesBrandsView({ categories, brands, products }: Categorie
                       </Td>
                       <Td label="Status">
                         {b.isActive ? (
-                          <Badge tone="success" appearance="solid" className="text-xs">
+                          <Badge tone="success" appearance="solid">
                             Active
                           </Badge>
                         ) : (
-                          <Badge tone="neutral" appearance="outline" className="text-xs">
+                          <Badge tone="neutral" appearance="outline">
                             Inactive
                           </Badge>
                         )}
@@ -571,6 +571,9 @@ export function CategoriesBrandsView({ categories, brands, products }: Categorie
               <Input
                 {...p}
                 value={catSlug}
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
                 onChange={(e) => setCatSlug(e.target.value.toLowerCase().trim())}
                 placeholder="e.g. steel-tmt-rebars"
               />
@@ -586,6 +589,7 @@ export function CategoriesBrandsView({ categories, brands, products }: Categorie
               <Input
                 {...p}
                 type="number"
+                inputMode="numeric"
                 min="1"
                 max="999"
                 value={catOrder}
@@ -664,6 +668,9 @@ export function CategoriesBrandsView({ categories, brands, products }: Categorie
               <Input
                 {...p}
                 value={brandSlug}
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
                 onChange={(e) => setBrandSlug(e.target.value.toLowerCase().trim())}
                 placeholder="e.g. brand-name"
               />

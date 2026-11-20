@@ -15,7 +15,7 @@ export default async function AdminAuthLayout({ children }: { children: ReactNod
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-surface p-gutter-md">
+    <div className="flex min-h-dvh flex-col items-center justify-center bg-surface p-gutter-md">
       <div className="w-full max-w-md">
         <div className="mb-gutter-lg text-center">
           <Link

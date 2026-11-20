@@ -6,7 +6,11 @@ import { MobileNav } from "@/components/website/mobile-nav";
 import { Table, TBody, Td, Th, THead, Tr } from "@/components/ui/table";
 import { Modal } from "@/components/ui/modal";
 
-vi.mock("next/navigation", () => ({ usePathname: () => "/admin/products" }));
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/admin/products",
+  useSearchParams: () => new URLSearchParams(),
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn() }),
+}));
 
 /**
  * Responsive behaviour that can be verified without a browser: interaction/ARIA contracts of the
@@ -184,10 +188,70 @@ describe("source-level layout guards", () => {
     expect(css).toMatch(/prefers-reduced-motion/);
   });
 
-  it("the header can shrink on phones: brand block is shrinkable, tagline and Quick Quote move off the narrow bar", () => {
+  it("the header can shrink on phones: brand block is shrinkable, tagline hidden on phones, Quick Quote joins the bar from 400px", () => {
     const h = read("components/website/site-header.tsx");
     expect(h).toMatch(/group flex min-w-0 items-center/);
     expect(h).toMatch(/hidden truncate[^"]*sm:block/);
-    expect(h).toMatch(/hidden items-center[^"]*sm:inline-flex/);
+    expect(h).toMatch(/hidden h-10[^"]*min-\[400px\]:inline-flex/); // Quick Quote: bar from 400px, drawer below
+  });
+});
+
+describe("final-pass guards", () => {
+  const SRC2 = join(process.cwd(), "src");
+  const walk2 = (d: string): string[] =>
+    readdirSync(d).flatMap((n) =>
+      statSync(join(d, n)).isDirectory() ? walk2(join(d, n)) : [join(d, n)],
+    );
+  const files = walk2(SRC2).filter(
+    (f) =>
+      /\.tsx$/.test(f) &&
+      !/\.test\.tsx$/.test(f) &&
+      !relative(SRC2, f).split(sep).join("/").startsWith("app/dev/"),
+  );
+
+  it("every grid that defines columns at a breakpoint also defines a mobile base (grid-cols-1), so long content cannot widen the implicit column", () => {
+    const offenders: string[] = [];
+    for (const f of files)
+      for (const m of readFileSync(f, "utf8").matchAll(/className="([^"]*)"/g)) {
+        const toks = m[1].split(/\s+/);
+        if (
+          toks.includes("grid") &&
+          toks.some((t) => /^(sm|md|lg|xl|min-\[[^\]]+\]):grid-cols-/.test(t)) &&
+          !toks.some((t) => /^grid-cols-/.test(t))
+        )
+          offenders.push(`${relative(SRC2, f)}: ${m[1]}`);
+      }
+    expect(offenders).toEqual([]);
+  });
+
+  it("footer phone and email are tappable links built only from configured settings", async () => {
+    const { SiteFooter } = await import("@/components/website/site-footer");
+    const { emptyBusinessSettings } = await import("@/features/settings/business-settings");
+    const settings = { ...emptyBusinessSettings(), phone: "+91 99999 00000", email: "a@b.test" };
+    render(<SiteFooter settings={settings} categories={[]} />);
+    expect(screen.getByRole("link", { name: "+91 99999 00000" })).toHaveAttribute(
+      "href",
+      "tel:+919999900000",
+    );
+    expect(screen.getByRole("link", { name: "a@b.test" })).toHaveAttribute(
+      "href",
+      "mailto:a@b.test",
+    );
+  });
+
+  it("footer renders no phone/email link when none is configured (nothing invented)", async () => {
+    const { SiteFooter } = await import("@/components/website/site-footer");
+    const { emptyBusinessSettings } = await import("@/features/settings/business-settings");
+    const { container } = render(<SiteFooter settings={emptyBusinessSettings()} categories={[]} />);
+    expect(container.querySelector('a[href^="tel:"], a[href^="mailto:"]')).toBeNull();
+  });
+
+  it("the admin sign-in email field asks mobile keyboards for an email layout without auto-capitalising", async () => {
+    const { LoginForm } = await import("@/components/admin/login-form");
+    render(<LoginForm />);
+    const email = screen.getByLabelText(/email address/i);
+    expect(email).toHaveAttribute("inputmode", "email");
+    expect(email).toHaveAttribute("autocapitalize", "none");
+    expect(email).toHaveAttribute("autocomplete", "email");
   });
 });

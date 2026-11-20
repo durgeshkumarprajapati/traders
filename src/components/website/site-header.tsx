@@ -11,7 +11,7 @@ import { EnquiryListLink } from "./enquiry-list-link";
 import { MobileNav } from "./mobile-nav";
 
 const linkClass =
-  "transition-colors hover:text-primary py-2 font-label text-label-lg border-b-2 border-transparent aria-[current=page]:border-primary aria-[current=page]:text-primary aria-[current=page]:font-bold";
+  "transition-colors hover:text-primary py-2 text-label-lg border-b-2 border-transparent aria-[current=page]:border-primary aria-[current=page]:text-primary aria-[current=page]:font-bold";
 
 /**
  * Professional Sagar Traders site header featuring:
@@ -43,7 +43,7 @@ export function SiteHeader({ settings }: { settings: BusinessSettings }) {
           <div className="flex items-center gap-3 text-body-sm truncate">
             <span className="inline-flex items-center gap-1.5 truncate">
               <span className="size-2 rounded-full bg-secondary shrink-0" aria-hidden="true" />
-              <span className="font-label text-label-md text-secondary font-semibold">
+              <span className=" text-label-md text-secondary font-semibold">
                 {settings.deliveryCoverage || settings.address || "Raipur Depot"}
               </span>
             </span>
@@ -53,7 +53,7 @@ export function SiteHeader({ settings }: { settings: BusinessSettings }) {
               <span>{settings.businessHours || "Mon–Sat: 8:00 AM – 7:00 PM (Sunday Closed)"}</span>
             </span>
             <span className="hidden lg:inline text-on-primary/60">|</span>
-            <span className="hidden lg:inline text-on-primary/90 text-body-xs">
+            <span className="hidden lg:inline text-on-primary/90 text-body-md">
               Wholesale &amp; Retail Supply • Direct Site Supplies
             </span>
           </div>
@@ -63,7 +63,7 @@ export function SiteHeader({ settings }: { settings: BusinessSettings }) {
             {settings.phone && (
               <a
                 href={`tel:${settings.phone.replace(/[^0-9+]/g, "")}`}
-                className="inline-flex items-center gap-1.5 text-on-primary hover:text-secondary transition-colors font-label text-label-md tabular-nums"
+                className="inline-flex items-center gap-1.5 text-on-primary hover:text-secondary transition-colors text-label-md tabular-nums"
               >
                 <Phone aria-hidden="true" className="size-3.5 text-secondary" />
                 <span>Call {settings.phone}</span>
@@ -86,7 +86,7 @@ export function SiteHeader({ settings }: { settings: BusinessSettings }) {
             <span className="text-on-primary/60">|</span>
             <Link
               href="/admin/login"
-              className="inline-flex items-center gap-1 text-on-primary/95 hover:text-secondary transition-colors font-label text-label-md"
+              className="inline-flex items-center gap-1 text-on-primary/95 hover:text-secondary transition-colors text-label-md"
             >
               <Lock aria-hidden="true" className="size-3.5" />
               <span>Admin</span>
@@ -102,7 +102,7 @@ export function SiteHeader({ settings }: { settings: BusinessSettings }) {
           href="/"
           className="group flex min-w-0 items-center gap-3 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
-          <div className="size-10 rounded-DEFAULT bg-primary text-secondary flex items-center justify-center font-bold shadow-xs relative overflow-hidden shrink-0 border border-primary/20">
+          <div className="size-10 rounded bg-primary text-secondary flex items-center justify-center font-bold shadow-xs relative overflow-hidden shrink-0 border border-primary/20">
             <Building2 aria-hidden className="size-6 text-secondary" />
           </div>
           <div className="flex min-w-0 flex-col">
@@ -116,10 +116,7 @@ export function SiteHeader({ settings }: { settings: BusinessSettings }) {
         </Link>
 
         {/* Primary Desktop Navigation */}
-        <nav
-          aria-label="Main"
-          className="hidden md:flex items-center gap-6 lg:gap-8 font-label text-label-lg"
-        >
+        <nav aria-label="Main" className="hidden md:flex items-center gap-6 lg:gap-8 text-label-lg">
           <Suspense
             fallback={websiteNav.map((i) => (
               <Link key={i.href} href={i.href} className={linkClass}>
@@ -138,8 +135,8 @@ export function SiteHeader({ settings }: { settings: BusinessSettings }) {
         {/* Streamlined Header Actions */}
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           {/* Enquiry List / Cart Button */}
-          <EnquiryListLink className="flex items-center gap-1.5 font-medium text-body-sm px-3 py-2 border border-border rounded-DEFAULT hover:bg-surface-muted transition-colors">
-            <span className="hidden sm:inline font-label text-label-md">Enquiry List</span>
+          <EnquiryListLink className="flex items-center gap-1.5 font-medium text-body-sm px-3 py-2 border border-border rounded hover:bg-surface-muted transition-colors">
+            <span className="hidden sm:inline text-label-md">Enquiry List</span>
           </EnquiryListLink>
 
           {/* Direct WhatsApp CTA Button */}
@@ -149,18 +146,18 @@ export function SiteHeader({ settings }: { settings: BusinessSettings }) {
               message={whatsappMessage}
               size="md"
               variant="secondary"
-              className="hidden lg:inline-flex h-10 px-4 font-label text-label-md font-semibold rounded-DEFAULT hover:opacity-90 transition-opacity shadow-xs"
+              className="hidden lg:inline-flex h-10 px-4 text-label-md font-semibold rounded hover:opacity-90 transition-opacity shadow-xs"
             >
               WhatsApp
             </WhatsAppButton>
           )}
 
-          {/* Quick Quote Primary CTA Button */}
+          {/* Quick Quote: in the bar from 400px (brand truncates before anything overflows); below 400px it is the first button in the mobile drawer. */}
           <Link
             href="/bulk-enquiry"
-            className="hidden items-center justify-center gap-2 h-10 px-4 sm:inline-flex sm:px-5 pointer-coarse:h-11 bg-primary text-on-primary font-label text-label-md font-semibold rounded-DEFAULT hover:bg-primary/90 transition-colors shadow-xs"
+            className="hidden h-10 items-center justify-center gap-2 px-3 whitespace-nowrap min-[400px]:inline-flex sm:px-5 pointer-coarse:h-11 bg-primary text-on-primary text-label-md font-semibold rounded hover:bg-primary/90 transition-colors shadow-xs"
           >
-            <ClipboardList aria-hidden className="size-4 text-secondary" />
+            <ClipboardList aria-hidden className="hidden size-4 text-secondary sm:block" />
             <span>Quick Quote</span>
           </Link>
 

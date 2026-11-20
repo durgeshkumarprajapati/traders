@@ -14,7 +14,7 @@ export async function ContactContent() {
         <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Contact" }]} />
       </div>
       <PageHeading title="Contact" description="Reach us directly or send a general enquiry." />
-      <div className="grid gap-gutter-xl lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-gutter-xl lg:grid-cols-2">
         <div className="space-y-gutter-lg">
           <ContactDetails settings={settings} />
           {settings.googleMapsUrl && (
