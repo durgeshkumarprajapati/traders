@@ -3,22 +3,21 @@ import { filterAndSort, parseListingParams } from "@/features/products/query";
 import { loadCatalogue } from "@/features/catalogue/server";
 import { emptyBusinessSettings, hasContactData } from "@/features/settings/business-settings";
 import { CatalogueEmpty, CatalogueUnavailable } from "./catalogue-states";
+import { HomeCarousel } from "./home-carousel";
 import {
   BrandsSection,
   BulkEnquiryCtaSection,
   CategoriesSection,
   ContactInfoSection,
   FeaturedProductsSection,
-  HeroSection,
   RatesSection,
   WhyChooseUsSection,
 } from "./home-sections";
 
 /**
  * Homepage body, driven by the cached Google Sheets snapshot (server component; render inside <Suspense>).
- * Sections without data are HIDDEN (never filled with placeholders or sample content). If the sheet cannot
- * be read, the hero and enquiry call-to-action remain and an honest "unavailable" message replaces the catalogue sections.
- * "Why choose us" shows ONLY the owner-written statements from business settings (hidden when none are configured).
+ * Features a high-impact professional building materials carousel, followed by focused category highlights,
+ * featured materials, indicative rates, verified brands, and direct action entry points for full pages.
  */
 export async function HomeContent() {
   const load = await loadCatalogue();
@@ -65,7 +64,7 @@ export async function HomeContent() {
 
   return (
     <>
-      <HeroSection settings={settings} />
+      <HomeCarousel tagline={settings.tagline} />
       {catalogueSections}
       <BulkEnquiryCtaSection settings={settings} />
       {hasContactData(settings) && <ContactInfoSection settings={settings} />}

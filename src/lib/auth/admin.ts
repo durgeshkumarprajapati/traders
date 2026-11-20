@@ -133,9 +133,10 @@ export async function requireAdminSession(client?: SupabaseClient): Promise<Admi
 export async function withAdminAction<T>(
   actionName: string,
   fn: (admin: AdminContext) => Promise<T>,
+  clientOverride?: SupabaseClient,
 ): Promise<AdminActionResult<T>> {
   try {
-    const admin = await getAuthenticatedAdmin();
+    const admin = await getAuthenticatedAdmin(clientOverride);
     if (!admin) {
       return {
         ok: false,

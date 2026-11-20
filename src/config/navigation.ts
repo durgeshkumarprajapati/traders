@@ -1,8 +1,8 @@
 export const websiteNav = [
   { href: "/", label: "Home" },
   { href: "/products", label: "Products" },
-  { href: "/bulk-enquiry", label: "Bulk Enquiry" },
   { href: "/contact", label: "Contact" },
+  { href: "/bulk-enquiry", label: "Bulk Enquiry" },
 ] as const;
 
 /** One sidebar entry for Categories & Brands (tabs live on the page). */

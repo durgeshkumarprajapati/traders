@@ -8,11 +8,15 @@ import {
 import { logger } from "@/lib/logger";
 import { getSheetsSnapshot } from "./cache";
 import { toPublicCatalogue } from "./public";
+import type { CatalogueSnapshot } from "./types";
 import { toBusinessSettings, toViewCatalogue, type ViewCatalogue } from "./view";
 
 export type CatalogueLoad =
   | { ok: true; catalogue: ViewCatalogue; settings: BusinessSettings; fetchedAt: string }
   | { ok: false };
+
+export type AdminCatalogueLoad =
+  { ok: true; snapshot: CatalogueSnapshot } | { ok: false; error: string };
 
 /**
  * The ONLY entry point customer-facing code uses to read catalogue data (server components only).
@@ -50,3 +54,21 @@ export async function loadSettings(): Promise<BusinessSettings> {
   const r = await loadCatalogue();
   return r.ok ? r.settings : emptyBusinessSettings();
 }
+
+/**
+ * Admin entry point to load full catalogue snapshot (including inactive rows, all categories, brands, and issues).
+ * Server components only; verifies request-time execution with connection().
+ */
+export const loadAdminCatalogue = cache(async (): Promise<AdminCatalogueLoad> => {
+  await connection();
+  try {
+    const snapshot = await getSheetsSnapshot();
+    return { ok: true, snapshot };
+  } catch (error) {
+    logger.warn("admin_catalogue_unavailable", { error });
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "Google Sheets unavailable",
+    };
+  }
+});

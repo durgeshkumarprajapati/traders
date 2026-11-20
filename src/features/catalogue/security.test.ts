@@ -81,13 +81,13 @@ describe("credential boundaries", () => {
     expect(offenders).toEqual([]);
   });
 
-  it("write functions and the Google client are not imported by anything except the catalogue layer itself", () => {
+  it("write functions and the Google client are not imported by anything except the catalogue layer and admin actions", () => {
     const owners = (needle: RegExp) =>
       nonTest
         .filter((f) => imports(f).some((i) => needle.test(i)))
         .map(rel)
         .filter((r) => !r.startsWith("lib/google-sheets/") && !r.startsWith("features/catalogue/"));
-    expect(owners(/features\/catalogue\/write(-errors)?$/)).toEqual([]);
+    expect(owners(/features\/catalogue\/write(-errors)?$/)).toEqual(["features/admin/actions.ts"]);
     expect(owners(/lib\/google-sheets\/(client|auth|jwt|http|config)$/)).toEqual([
       "app/dev/sheets/diagnostics.tsx",
     ]); // dev-only (404 in production)

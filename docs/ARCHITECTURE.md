@@ -102,6 +102,33 @@ Browser ─────────────────► Next.js 16 (App R
 4. **Route Handlers (`src/app/api/admin/session/route.ts`):** Direct HTTP requests protected by `requireAdmin()`.
 5. **Database (Supabase RLS):** SQL policies restricting table access to `public.is_admin()`.
 
+## Phase 8: Admin Dashboard & Catalogue Management Architecture
+
+### 1. Admin Dashboard Loader (`src/features/admin/server/dashboard.ts`)
+
+- Server-only request-time aggregation via `loadAdminDashboardData()`.
+- Fetches full catalogue snapshot from Google Sheets (`loadAdminCatalogue()`) including active/inactive products, categories, brands, and sheet validation issues.
+- Queries Supabase `enquiries` table for status counts (`NEW`, `PENDING` i.e. `CONTACTED`/`QUOTATION_SENT`, total) and the 10 most recent enquiries.
+- Upstream failures degrade gracefully: errors are logged to `pino` and fallback empty structures are returned, keeping the console functional.
+
+### 2. Admin Catalogue Mutations (`src/features/admin/actions.ts`)
+
+- All mutations (`createProductAction`, `updateProductAction`, `toggleProductActiveAction`, `createCategoryAction`, `updateCategoryAction`, `toggleCategoryActiveAction`, `createBrandAction`, `updateBrandAction`, `toggleBrandActiveAction`, `updateBusinessSettingsAction`) are Server Actions guarded with `withAdminAction()`.
+- Validations execute against strict Zod schemas (`productInputSchema`, `categoryInputSchema`, `brandInputSchema`, etc.).
+- Optimistic concurrency control is enforced on updates via `expectedUpdatedAt` timestamps compared against Google Sheets row state.
+- Post-mutation cache clearing uses `invalidateSheetsCache()` and `revalidatePath()`.
+
+### 3. Category & Brand Dependency Guard
+
+- Deactivating a category or brand is evaluated against active products in the catalogue.
+- If any active products depend on the target category or brand, the action rejects with an explicit error message (`INACTIVE_CATEGORY` / `INACTIVE_BRAND`), preventing catalog corruption.
+
+### 4. Public Navigation & Homepage Carousel
+
+- Website navigation is reordered to a 4-item multi-page structure: `Home` (`/`), `Products` (`/products`), `Contact` (`/contact`), and `Bulk Enquiry` (`/bulk-enquiry`).
+- Each route is an independent page with vertical scrolling; infinite single-page scrolling is avoided.
+- `HomeCarousel` is an accessible, touch-responsive carousel component with 4 curated building materials slides. If images in `public/images/carousel/` are pending, it displays a zero-shift, high-contrast Deep Navy (`bg-primary`) SVG geometric grid card.
+
 ## Foundation already in repo
 
 See `docs/FOUNDATION.md` and `docs/FOUNDATION_RECONCILIATION.md`. Token corrections were completed in Phase 1; remaining approved fixes are listed in `PROJECT_BLUEPRINT.md` §26.1 (not started).

@@ -1,29 +1,29 @@
-import { PageContainer, PageHeading } from "@/components/common/container";
-import { placeholderMetadata } from "@/components/common/placeholder-page";
-import { Notification } from "@/components/ui/notification";
-import { Tabs } from "@/components/ui/tabs";
+import { connection } from "next/server";
+import { CategoriesBrandsView } from "@/components/admin/categories-brands-view";
+import { loadAdminCatalogue } from "@/features/catalogue/server";
 
-export const metadata = placeholderMetadata("Categories & Brands");
+export const metadata = {
+  title: "Categories & Brands | Sagar Traders Admin",
+  robots: { index: false, follow: false },
+};
 
-function Panel({ what }: { what: string }) {
-  return (
-    <Notification tone="warning" title="Placeholder">
-      {what} management is not final content. It is implemented in Phase 9.
-    </Notification>
-  );
-}
+export default async function AdminCategoriesPage() {
+  await connection();
+  const catResult = await loadAdminCatalogue();
 
-export default function Page() {
-  return (
-    <PageContainer>
-      <PageHeading title="Categories & Brands" description="Catalogue taxonomy." />
-      <Tabs
-        label="Categories and Brands"
-        items={[
-          { id: "categories", label: "Categories", content: <Panel what="Category" /> },
-          { id: "brands", label: "Brands", content: <Panel what="Brand" /> },
-        ]}
-      />
-    </PageContainer>
-  );
+  if (!catResult.ok) {
+    return (
+      <div className="rounded-md border border-error/40 bg-error/10 p-6 text-error">
+        <h2 className="text-title-lg font-bold">Catalogue Unavailable</h2>
+        <p className="mt-1 text-body-md">
+          Google Sheets catalogue is currently unavailable ({catResult.error}). Please verify
+          credentials and connectivity.
+        </p>
+      </div>
+    );
+  }
+
+  const { categories, brands, products } = catResult.snapshot;
+
+  return <CategoriesBrandsView categories={categories} brands={brands} products={products} />;
 }

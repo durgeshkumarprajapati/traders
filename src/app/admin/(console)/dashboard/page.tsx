@@ -1,9 +1,15 @@
-import { PlaceholderPage, placeholderMetadata } from "@/components/common/placeholder-page";
+import { connection } from "next/server";
+import { DashboardView } from "@/components/admin/dashboard-view";
+import { loadAdminDashboardData } from "@/features/admin/server/dashboard";
 
-export const metadata = placeholderMetadata("Dashboard");
+export const metadata = {
+  title: "Admin Dashboard | Sagar Traders",
+  robots: { index: false, follow: false },
+};
 
-export default function Page() {
-  return (
-    <PlaceholderPage title="Dashboard" description="Administrator overview." phase="Phase 8" />
-  );
+export default async function AdminDashboardPage() {
+  await connection();
+  const data = await loadAdminDashboardData();
+
+  return <DashboardView data={data} />;
 }

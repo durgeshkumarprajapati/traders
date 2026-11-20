@@ -50,6 +50,7 @@ describe("Phase 6 credential boundaries", () => {
       .filter((r) => !r.startsWith("lib/supabase/") && !r.startsWith("lib/email/"))
       .sort();
     expect(owners).toEqual([
+      "features/admin/server/dashboard.ts",
       "features/auth/actions.ts",
       "features/enquiries/server/deps.ts",
       "features/enquiries/server/email-template.ts",
