@@ -83,16 +83,18 @@ describe("Phase 11 Catalogue Fallback & Resolution", () => {
       expect(inCat.length, `Expected products in category ${catId}`).toBeGreaterThan(0);
     }
 
-    // Verify data integrity: no fabricated prices, no fabricated SKUs, stockStatus is AVAILABLE_ON_ORDER
+    // Verify data integrity: no fabricated prices, no fabricated SKUs, stockStatus is null, brandId is null
     for (const p of cat.products) {
       expect(p.price, `Product ${p.id} must not have a fabricated price`).toBeNull();
       expect(p.sku, `Product ${p.id} must not have a fabricated SKU`).toBeNull();
-      expect(p.stockStatus, `Product ${p.id} must be AVAILABLE_ON_ORDER`).toBe(
-        "AVAILABLE_ON_ORDER",
-      );
+      expect(p.stockStatus, `Product ${p.id} must have null stockStatus`).toBeNull();
+      expect(p.brandId, `Product ${p.id} must have null brandId`).toBeNull();
       expect(p.updatedAt, `Product ${p.id} must not have a fabricated updatedAt`).toBeNull();
       expect(p.unit.code).toBeTruthy();
     }
+
+    // Verify STATIC_BRANDS is strictly empty (zero invented distributor brands)
+    expect(cat.brands).toHaveLength(0);
   });
 
   it("finds static product by slug and ID, and returns undefined for unknown products", () => {

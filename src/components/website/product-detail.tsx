@@ -66,7 +66,9 @@ export async function ProductDetail({ params }: { params: Params }) {
   if (!product) notFound();
 
   const { catalogue, settings } = load;
-  const brand = catalogue.brands.find((b) => b.id === product.brandId);
+  const brand = product.brandId
+    ? catalogue.brands.find((b) => b.id === product.brandId)
+    : undefined;
   const category = catalogue.categories.find((c) => c.id === product.categoryId);
   const related = relatedProducts(catalogue, product);
 
@@ -89,7 +91,10 @@ export async function ProductDetail({ params }: { params: Params }) {
                 ? "https://schema.org/InStock"
                 : product.stockStatus === "OUT_OF_STOCK"
                   ? "https://schema.org/OutOfStock"
-                  : "https://schema.org/PreOrder",
+                  : product.stockStatus === "AVAILABLE_ON_ORDER" ||
+                      product.stockStatus === "LIMITED_STOCK"
+                    ? "https://schema.org/PreOrder"
+                    : undefined,
           },
         }
       : {}),
@@ -122,7 +127,7 @@ export async function ProductDetail({ params }: { params: Params }) {
           sizes="(min-width: 1024px) 50vw, 100vw"
         />
         <div className="space-y-gutter-md">
-          <p className="text-label-md text-on-surface-variant">{brand?.name}</p>
+          <p className="text-label-md text-on-surface-variant">{brand?.name ?? category?.name}</p>
           <h1 className="text-headline-lg-mobile md:text-headline-xl">{product.name}</h1>
           <div className="flex flex-wrap items-center gap-gutter-md">
             <StockBadge status={product.stockStatus} />
@@ -183,7 +188,7 @@ export async function ProductDetail({ params }: { params: Params }) {
               <li key={p.id}>
                 <ProductCard
                   product={p}
-                  brand={catalogue.brands.find((b) => b.id === p.brandId)}
+                  brand={p.brandId ? catalogue.brands.find((b) => b.id === p.brandId) : undefined}
                   category={category}
                   whatsappNumber={settings.whatsappNumber}
                 />

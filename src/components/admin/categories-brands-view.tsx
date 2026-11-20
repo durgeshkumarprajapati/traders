@@ -68,7 +68,7 @@ export function CategoriesBrandsView({ categories, brands, products }: Categorie
   const brandProductCount = useMemo(() => {
     const map = new Map<string, number>();
     for (const p of products) {
-      if (p.isActive) {
+      if (p.isActive && p.brandId) {
         map.set(p.brandId, (map.get(p.brandId) ?? 0) + 1);
       }
     }

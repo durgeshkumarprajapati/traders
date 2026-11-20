@@ -248,15 +248,14 @@ Enquiries submitted from both the live Google Sheets catalogue and the static fa
 - For static fallback items: `listed_price` is persisted as `null` ("Rate on request", never coerced to 0), `stock_status` as `"AVAILABLE_ON_ORDER"`.
 - If an item was queued during fallback and the catalogue transitioned, or vice versa, resolution checks the primary resolved catalogue first and falls back to static catalogue. Any unknown product ID is rejected with `INVALID_PRODUCTS`.
 
-### 3. Degraded Email-Only Fallback with In-Memory Rate Limiting
+### 3. Serverless Fail-Closed Enquiry Submission Architecture
 
-To guarantee lead preservation even during catastrophic Supabase database outages:
+In Phase 12, the enquiry fallback architecture was refined for serverless production environments:
 
-- When `create_enquiry` fails or Supabase is unreachable: `submit.ts` activates `deliverEmailOnlyFallback()`.
-- Formats an explicit degraded email notification and dispatches directly via `sendWeb3FormsEmail()`.
-- Uses an in-memory sliding window rate limiter (max 5 submissions per IP per hour) when database rate-limiting tables are unreachable.
-- Returns `{ ok: true, reference: "ENQ-YYYY-FAL-XXXXXX", mode: "EMAIL_FALLBACK", message: "Your enquiry has been sent successfully. Our team will contact you shortly." }`. Does not claim database persistence.
-- If Web3Forms also fails: fails closed with `code: "UNAVAILABLE"` and preserves all entered form data for the user.
+- **Serverless Rate Limiting Constraint:** In-memory sliding rate limiting (`fallbackBuckets`) is local to a single serverless function instance and is not distributed across Vercel regions or concurrent instances. Accepting external email submissions during database outages without distributed rate limiting creates a denial-of-service / spam vulnerability on external email providers (Web3Forms).
+- **Fail-Closed Resilience Model:** Production Server Actions set `enableEmailFallback: false`. If Supabase is unreachable or database rate limiting fails, the submission fails closed safely with `code: "UNAVAILABLE"` and message: _"We could not save your enquiry right now. Please try again in a few minutes, or contact us directly."_
+- **Form State Preservation:** Client forms (`BulkEnquiryForm`, `ContactForm`) do not reset input values or clear enquiry lists on `UNAVAILABLE` responses, ensuring customers never lose drafted enquiry details.
+- **Direct Contact Surfacing:** The application surfaces direct phone and WhatsApp contact options alongside the form and in the page header/footer, enabling customers to reach Sagar Traders directly during database downtime.
 
 ### 4. SEO & Structured Data Architecture
 
@@ -264,6 +263,33 @@ To guarantee lead preservation even during catastrophic Supabase database outage
 - **Crawler Directives (`src/app/robots.ts`):** Enforces strict indexing rules, permitting public pages while blocking `/admin`, `/api`, and `/dev`.
 - **OpenGraph & Twitter Cards (`src/app/layout.tsx`):** Complete site metadata with canonical base URL, OpenGraph title, description, and preview image fallbacks.
 - **Schema.org JSON-LD:** Structured `Product` data on `/products/[slug]`. Omit `offers` when price is null, preventing search engine penalties for unverified pricing claims.
+
+## Phase 12: Production Readiness, Release Verification & Truthful Fallback Architecture
+
+### 1. Truthful Static Availability Model
+
+Static fallback products represent building materials whose real-time inventory cannot be established without live Google Sheets connectivity. Falsely labelling fallback products as `AVAILABLE_ON_ORDER` or `IN_STOCK` violates customer trust. Phase 12 establishes:
+
+- `Product.stockStatus: StockStatus | null` — nullable domain representation.
+- Static fallback products strictly assign `stockStatus: null`.
+- `StockBadge` renders unknown availability as a neutral outlined badge: `<Badge tone="neutral" appearance="outline">Availability on request</Badge>`. Colored status badges (`success`, `warning`, `error`, `info`) are strictly reserved for verified live inventory statuses.
+- Structured data (`Schema.org/Product`) omits availability when null, avoiding misleading search crawler indexing.
+
+### 2. Truthful Static Brand Model
+
+Distributor brands in the static catalogue must not invent unverified regional manufacturers. Phase 12 establishes:
+
+- `Product.brandId: string | null` — nullable brand representation.
+- `STATIC_BRANDS: Brand[] = []` — zero fabricated distributor brand names.
+- All 20 static fallback products assign `brandId: null`.
+- Product cards and detail views display unbranded materials falling back cleanly to their category name (`brand?.name ?? category?.name`).
+
+### 3. Production Deployment & Verification Posture
+
+- Single Next.js 16 App Router monolith with Turbopack compilation.
+- Strict server-side authorization: all admin mutations verified via `requireAdmin()` and PostgreSQL RLS.
+- Dual-mode health check (`GET /api/health`) reporting system, sheets, database, and notification status.
+- Zero client-exposed secrets; all sensitive variables isolated to server execution scopes.
 
 ## Foundation already in repo
 

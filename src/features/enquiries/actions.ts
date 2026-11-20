@@ -34,7 +34,7 @@ async function run(kind: "bulk" | "contact", input: unknown): Promise<EnquiryAct
       processNotification: (id) => processNotification(id, nd),
       processDue: () => processDueNotifications(3, nd),
       web3formsConfig: nd.web3forms,
-      enableEmailFallback: true,
+      enableEmailFallback: false,
     };
   } catch (error) {
     logger.error("enquiry_config_failed", { error }); // names of missing variables only; never values

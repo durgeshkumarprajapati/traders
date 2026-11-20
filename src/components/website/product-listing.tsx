@@ -79,7 +79,7 @@ export async function ProductListing({
                 <li key={p.id}>
                   <ProductCard
                     product={p}
-                    brand={brandById.get(p.brandId)}
+                    brand={p.brandId ? brandById.get(p.brandId) : undefined}
                     category={categoryById.get(p.categoryId)}
                     whatsappNumber={whatsappNumber}
                   />

@@ -28,7 +28,14 @@ const enquiry: Record<
   CANCELLED: { label: "Cancelled", tone: "error", appearance: "solid" },
 };
 
-export function StockBadge({ status }: { status: StockStatus }) {
+export function StockBadge({ status }: { status: StockStatus | null | undefined }) {
+  if (!status) {
+    return (
+      <Badge tone="neutral" appearance="outline">
+        Availability on request
+      </Badge>
+    );
+  }
   const s = stock[status];
   return <Badge tone={s.tone}>{s.label}</Badge>;
 }
@@ -43,6 +50,7 @@ export function EnquiryStatusBadge({ status }: { status: EnquiryStatus }) {
 }
 
 /** Customer-facing label for a stock status (single source, shared with filters and tables). */
-export function stockStatusLabel(status: StockStatus): string {
-  return stock[status].label;
+export function stockStatusLabel(status: StockStatus | null | undefined): string {
+  if (!status) return "Availability on request";
+  return stock[status]?.label ?? "Availability on request";
 }

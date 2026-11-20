@@ -29,7 +29,7 @@ export type Product = {
   /** Optional; unique when present. */
   sku: string | null;
   categoryId: string;
-  brandId: string;
+  brandId: string | null;
   description: string;
   specifications: SpecRow[];
   /** Cloudinary URL once connected; null renders a neutral placeholder image. */
@@ -37,7 +37,7 @@ export type Product = {
   /** Indicative price. `null` = no price (shown as "Rate on request"); never coerced to 0. */
   price: number | null;
   unit: ProductUnit;
-  stockStatus: StockStatus;
+  stockStatus: StockStatus | null;
   isFeatured: boolean;
   /** ISO timestamp of the last price/data update; null = unknown (never fabricated). */
   updatedAt: string | null;

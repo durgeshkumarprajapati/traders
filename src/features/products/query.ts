@@ -75,9 +75,15 @@ export function filterAndSort(data: Catalogue, params: ListingParams): Product[]
 
   const filtered = data.products.filter((p) => {
     if (params.category && p.categoryId !== category?.id) return false;
-    if (params.brands.length && !brandIds.has(p.brandId)) return false;
-    if (params.stock.length && !params.stock.includes(p.stockStatus)) return false;
-    return matches(p, params.q, catById.get(p.categoryId), brandById.get(p.brandId));
+    if (params.brands.length && (!p.brandId || !brandIds.has(p.brandId))) return false;
+    if (params.stock.length && (!p.stockStatus || !params.stock.includes(p.stockStatus)))
+      return false;
+    return matches(
+      p,
+      params.q,
+      catById.get(p.categoryId),
+      p.brandId ? brandById.get(p.brandId) : undefined,
+    );
   });
 
   // Products without a price (or timestamp) always sort last; they are never treated as 0.

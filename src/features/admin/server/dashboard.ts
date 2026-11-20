@@ -58,7 +58,7 @@ export async function loadAdminDashboardData(): Promise<AdminDashboardData> {
       };
 
       for (const p of activeProducts) {
-        if (p.stockStatus in availability) {
+        if (p.stockStatus && p.stockStatus in availability) {
           availability[p.stockStatus]++;
         }
       }

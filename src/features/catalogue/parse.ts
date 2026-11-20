@@ -665,7 +665,8 @@ export function buildCatalogue(tables: Tables): BuiltCatalogue {
   const valid: Sourced<CatalogueProduct>[] = [];
   for (const p of products) {
     const cat = catById.get(p.value.categoryId.toLowerCase());
-    const brand = brandById.get(p.value.brandId.toLowerCase());
+    const brandKey = p.value.brandId?.toLowerCase() ?? "";
+    const brand = brandKey ? brandById.get(brandKey) : undefined;
     let ok = true;
     if (!cat) {
       push(
@@ -698,7 +699,7 @@ export function buildCatalogue(tables: Tables): BuiltCatalogue {
         "brand_id",
         "error",
         "UNKNOWN_BRAND",
-        `brand_id "${excerpt(p.value.brandId)}" does not match any valid brand (it may be missing, invalid or duplicated)`,
+        `brand_id "${excerpt(p.value.brandId ?? "")}" does not match any valid brand (it may be missing, invalid or duplicated)`,
       );
       ok = false;
     } else if (p.value.isActive && !brand.isActive) {

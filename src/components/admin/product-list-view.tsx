@@ -297,7 +297,7 @@ export function ProductListView({ products, categories, brands }: ProductListVie
               <TBody>
                 {paginatedProducts.map((p) => {
                   const catName = categoryMap.get(p.categoryId) ?? p.categoryId;
-                  const brandName = brandMap.get(p.brandId) ?? p.brandId;
+                  const brandName = p.brandId ? (brandMap.get(p.brandId) ?? p.brandId) : "—";
 
                   return (
                     <Tr key={p.id}>

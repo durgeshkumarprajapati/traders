@@ -101,7 +101,7 @@ export function toEnquiryItems(c: ViewCatalogue): EnquiryCatalogueItem[] {
     id: p.id,
     slug: p.slug,
     name: p.name,
-    brandName: brands.get(p.brandId) ?? null,
+    brandName: p.brandId ? (brands.get(p.brandId) ?? null) : null,
     sku: p.sku,
     unitLabel: unitLabel(p.unit),
     stockStatus: p.stockStatus,

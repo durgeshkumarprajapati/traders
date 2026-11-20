@@ -47,10 +47,11 @@ describe("Phase 11 Enquiry Fallback & Reliability", () => {
     expect(t.db.enquiries).toHaveLength(1);
     expect(t.db.items).toHaveLength(2);
 
-    // Verify snapshots: prices must be null (never fabricated!)
+    // Verify snapshots: prices must be null (never fabricated!) and brands must be null
     expect(t.db.items[0]).toMatchObject({
       product_id: "static-cement-opc53",
       product_name: "OPC 53 Grade Cement",
+      brand_name: null,
       quantity: 50,
       listed_price: null,
       stock_status: "AVAILABLE_ON_ORDER",
@@ -58,6 +59,7 @@ describe("Phase 11 Enquiry Fallback & Reliability", () => {
     expect(t.db.items[1]).toMatchObject({
       product_id: "static-steel-tmt-12mm",
       product_name: "Fe 550D TMT Steel Rebar 12mm",
+      brand_name: null,
       quantity: 20,
       listed_price: null,
       stock_status: "AVAILABLE_ON_ORDER",
@@ -110,9 +112,37 @@ describe("Phase 11 Enquiry Fallback & Reliability", () => {
     expect(t.db.items[0]).toMatchObject({
       product_id: "static-cement-opc53",
       product_name: "OPC 53 Grade Cement", // authoritative
+      brand_name: null, // authoritative (static products are unbranded)
       listed_price: null, // authoritative (never 5)
       stock_status: "AVAILABLE_ON_ORDER", // authoritative
     });
+  });
+
+  it("fails closed safely with UNAVAILABLE when enableEmailFallback is false and Supabase is down (production posture)", async () => {
+    const emailsSent: Array<{ subject: string; text: string }> = [];
+    const t = await setup({
+      enableEmailFallback: false,
+      web3formsConfig: { accessKey: "test-web3forms-key-12345" },
+      sendEmail: async (_cfg, msg) => {
+        emailsSent.push(msg);
+        return { ok: true };
+      },
+    });
+
+    t.db.failNext(
+      "create_enquiry",
+      new SupabaseApiError("Database connection lost", 500, "XX000", true),
+    );
+
+    const res = await submitBulkEnquiry(bulkInput(), ctx, t.deps);
+
+    expect(res).toMatchObject({
+      ok: false,
+      code: "UNAVAILABLE",
+    });
+    // No unthrottled emails sent; no phantom DB rows
+    expect(emailsSent).toHaveLength(0);
+    expect(t.db.enquiries).toHaveLength(0);
   });
 
   it("activates degraded email-only fallback when Supabase is down and Web3Forms is available", async () => {

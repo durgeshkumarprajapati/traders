@@ -39,6 +39,17 @@ In Phases 9, 10, and 11, configured environment variables in local development w
 - **Supabase:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` are configured in `.env`. In Phase 11, direct introspection against the live remote instance confirmed that migrations `20261118000000_enquiries.sql` and `20261120000000_admin_auth.sql` were executed. All required tables (`enquiries`, `enquiry_items`, `enquiry_notes`, `notification_outbox`, `notification_attempts`, `rate_limits`, `admin_profiles`), RLS policies, and `is_admin()` RPC function are active, with 1 administrator profile provisioned. Status: `ACTIVE (Migrations & Admin provisioned)`.
 - **Cron Sweeper & Rate Limiting:** `CRON_SECRET` protects `/api/notifications/process` against unauthorized triggers; `RATE_LIMIT_SECRET` seeds HMAC hashing for enquiry IP/mobile privacy. Both must be set in Vercel project settings prior to production launch.
 
+## Phase 12 — Final Production Audit Summary
+
+As part of the Phase 12 production-readiness review:
+
+- **Google Sheets Integration:** Verified. Service account authentication active. Spreadsheets worksheets (`Categories`, `Brands`, `Products`, `BusinessSettings`) verified. In the event of Sheets API downtime or latency, the application gracefully degrades to the truthful static fallback catalogue.
+- **Supabase PostgreSQL & Auth:** Verified. Migrations `20261118000000_enquiries.sql` and `20261120000000_admin_auth.sql` confirmed on live instance. Row Level Security active on all 7 tables. `public.is_admin()` RPC function active. Admin authentication and authorization verified.
+- **Web3Forms Notifications:** Server-side integration verified via mocked unit and integration tests. Real outbound email dispatch classified strictly as `NOT TESTED` for live recipient delivery until explicit business owner approval is granted for a controlled test email.
+- **Fail-Closed Serverless Enquiry Posture:** `enableEmailFallback: false` configured for production Server Actions. Submissions fail closed safely with `UNAVAILABLE` when Supabase is unreachable, eliminating unthrottled serverless email abuse while preserving client form inputs and presenting phone/WhatsApp contact options.
+- **Vercel Cron Sweeper:** Configured in `vercel.json` (`/api/notifications/process`, schedule `*/10 * * * *`). Execution deadline guard (`maxDurationMs = 20000`) prevents serverless timeouts. Protected by `CRON_SECRET`.
+- **Security & Vulnerabilities:** `npm audit` reports 0 vulnerabilities. All sensitive keys isolated to server-side scopes.
+
 Names are reported by the loaders; values are never logged or returned to the browser (verified by automated tests and inspection of `.next/static`).
 
 ## Ready-to-copy `.env.example` Block

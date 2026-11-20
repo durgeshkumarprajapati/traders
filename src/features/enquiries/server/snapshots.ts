@@ -52,13 +52,13 @@ export function buildItemSnapshots(
         product_id: p.id,
         sku: p.sku,
         product_name: p.name,
-        brand_name: brands.get(p.brandId) ?? null,
+        brand_name: p.brandId ? (brands.get(p.brandId) ?? null) : null,
         unit_code: p.unit.code,
         unit_label: unitLabel(p.unit),
         quantity: Math.round(item.quantity * 1000) / 1000,
         listed_price:
           typeof p.price === "number" && Number.isFinite(p.price) && p.price > 0 ? p.price : null,
-        stock_status: p.stockStatus,
+        stock_status: p.stockStatus ?? "AVAILABLE_ON_ORDER",
       });
       continue;
     }
@@ -70,12 +70,12 @@ export function buildItemSnapshots(
         product_id: staticP.id,
         sku: staticP.sku,
         product_name: staticP.name,
-        brand_name: staticBrands.get(staticP.brandId) ?? null,
+        brand_name: staticP.brandId ? (staticBrands.get(staticP.brandId) ?? null) : null,
         unit_code: staticP.unit.code,
         unit_label: unitLabel(staticP.unit),
         quantity: Math.round(item.quantity * 1000) / 1000,
         listed_price: null, // static fallback products never store fabricated prices
-        stock_status: staticP.stockStatus,
+        stock_status: staticP.stockStatus ?? "AVAILABLE_ON_ORDER",
         catalogue_source: "STATIC",
       });
       continue;

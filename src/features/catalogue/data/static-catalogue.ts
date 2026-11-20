@@ -73,46 +73,10 @@ export const STATIC_CATEGORIES: Category[] = [
 
 /**
  * Static fallback catalogue brands.
- * Generic regional manufacturer representations without unverified official dealership claims.
+ * Strictly empty array: no fictional or unverified distributor brands are invented.
+ * Products fall back cleanly to unbranded/generic representations with category labels.
  */
-export const STATIC_BRANDS: Brand[] = [
-  {
-    id: "brand-buildpro",
-    slug: "buildpro",
-    name: "BuildPro Materials",
-    logoUrl: null,
-  },
-  {
-    id: "brand-durasteel",
-    slug: "durasteel",
-    name: "DuraSteel India",
-    logoUrl: null,
-  },
-  {
-    id: "brand-primemasonry",
-    slug: "prime-masonry",
-    name: "Prime Masonry",
-    logoUrl: null,
-  },
-  {
-    id: "brand-flowtech",
-    slug: "flowtech",
-    name: "FlowTech Pipes",
-    logoUrl: null,
-  },
-  {
-    id: "brand-ecobind",
-    slug: "ecobind",
-    name: "EcoBind Chemicals",
-    logoUrl: null,
-  },
-  {
-    id: "brand-generic",
-    slug: "generic",
-    name: "Standard / Regional Quarry",
-    logoUrl: null,
-  },
-];
+export const STATIC_BRANDS: Brand[] = [];
 
 /**
  * Static fallback catalogue products.
@@ -120,7 +84,8 @@ export const STATIC_BRANDS: Brand[] = [
  * Rules:
  * - All 6 categories represented with realistic building materials.
  * - Zero fabricated prices: price is strictly null (displays "Rate on request").
- * - Zero fabricated availability: stockStatus is strictly "AVAILABLE_ON_ORDER".
+ * - Zero fabricated availability: stockStatus is strictly null (displays neutral "Availability on request").
+ * - Zero fabricated brands: brandId is strictly null (unbranded / generic, displays category name fallback).
  * - Zero fabricated SKUs: sku is null.
  * - Zero fabricated update timestamps: updatedAt is null.
  * - Preserves distinction between canonical TON and METRIC_TON.
@@ -134,7 +99,7 @@ export const STATIC_PRODUCTS: Product[] = [
     name: "OPC 53 Grade Cement",
     sku: null,
     categoryId: "cat-cement",
-    brandId: "brand-buildpro",
+    brandId: null,
     description:
       "High-strength Ordinary Portland Cement 53 Grade conforming to IS 12269. Recommended for heavy-load RCC slabs, columns, beams, and high-rise structural foundations.",
     specifications: [
@@ -146,7 +111,7 @@ export const STATIC_PRODUCTS: Product[] = [
     imageUrl: "/cement-materials.jpeg",
     price: null,
     unit: { code: "BAG" },
-    stockStatus: "AVAILABLE_ON_ORDER",
+    stockStatus: null,
     isFeatured: true,
     updatedAt: null,
   },
@@ -156,7 +121,7 @@ export const STATIC_PRODUCTS: Product[] = [
     name: "PPC Portland Pozzana Cement",
     sku: null,
     categoryId: "cat-cement",
-    brandId: "brand-buildpro",
+    brandId: null,
     description:
       "Fly ash-based Portland Pozzolana Cement conforming to national structural specifications. Superior chemical resistance against sulfate and chloride attacks, ideal for plastering and general masonry.",
     specifications: [
@@ -167,7 +132,7 @@ export const STATIC_PRODUCTS: Product[] = [
     imageUrl: "/cement-materials.jpeg",
     price: null,
     unit: { code: "BAG" },
-    stockStatus: "AVAILABLE_ON_ORDER",
+    stockStatus: null,
     isFeatured: false,
     updatedAt: null,
   },
@@ -177,7 +142,7 @@ export const STATIC_PRODUCTS: Product[] = [
     name: "White Portland Cement",
     sku: null,
     categoryId: "cat-cement",
-    brandId: "brand-buildpro",
+    brandId: null,
     description:
       "High-whiteness premium Portland cement for architectural plastering, tile grouting, terrazzo flooring, and decorative precast finishes.",
     specifications: [
@@ -188,7 +153,7 @@ export const STATIC_PRODUCTS: Product[] = [
     imageUrl: "/cement-materials.jpeg",
     price: null,
     unit: { code: "BAG" },
-    stockStatus: "AVAILABLE_ON_ORDER",
+    stockStatus: null,
     isFeatured: false,
     updatedAt: null,
   },
@@ -200,7 +165,7 @@ export const STATIC_PRODUCTS: Product[] = [
     name: "Fe 550D TMT Steel Rebar 10mm",
     sku: null,
     categoryId: "cat-steel",
-    brandId: "brand-durasteel",
+    brandId: null,
     description:
       "High-ductility Thermo-Mechanically Treated reinforcement steel bar (10mm diameter) conforming to IS 1786. Superior bendability and earthquake resistance for residential slabs.",
     specifications: [
@@ -212,7 +177,7 @@ export const STATIC_PRODUCTS: Product[] = [
     imageUrl: "/tmt-steel.jpeg",
     price: null,
     unit: { code: "PIECE" },
-    stockStatus: "AVAILABLE_ON_ORDER",
+    stockStatus: null,
     isFeatured: true,
     updatedAt: null,
   },
@@ -222,7 +187,7 @@ export const STATIC_PRODUCTS: Product[] = [
     name: "Fe 550D TMT Steel Rebar 12mm",
     sku: null,
     categoryId: "cat-steel",
-    brandId: "brand-durasteel",
+    brandId: null,
     description:
       "Structural Fe 550D TMT rebar (12mm diameter) for heavy structural load-bearing RCC columns and foundational plinths.",
     specifications: [
@@ -233,7 +198,7 @@ export const STATIC_PRODUCTS: Product[] = [
     imageUrl: "/tmt-steel.jpeg",
     price: null,
     unit: { code: "PIECE" },
-    stockStatus: "AVAILABLE_ON_ORDER",
+    stockStatus: null,
     isFeatured: false,
     updatedAt: null,
   },
@@ -243,7 +208,7 @@ export const STATIC_PRODUCTS: Product[] = [
     name: "Fe 550D TMT Steel Rebar 16mm",
     sku: null,
     categoryId: "cat-steel",
-    brandId: "brand-durasteel",
+    brandId: null,
     description:
       "Primary reinforcement Fe 550D TMT steel bar (16mm diameter) for heavy structural spans, column cores, and bridge construction.",
     specifications: [
@@ -254,7 +219,7 @@ export const STATIC_PRODUCTS: Product[] = [
     imageUrl: "/tmt-steel.jpeg",
     price: null,
     unit: { code: "TON" },
-    stockStatus: "AVAILABLE_ON_ORDER",
+    stockStatus: null,
     isFeatured: false,
     updatedAt: null,
   },
@@ -264,7 +229,7 @@ export const STATIC_PRODUCTS: Product[] = [
     name: "GI Annealed Binding Wire 18 Gauge",
     sku: null,
     categoryId: "cat-steel",
-    brandId: "brand-durasteel",
+    brandId: null,
     description:
       "Soft galvanized annealed binding wire for tying reinforcement rebar cages, stirrups, and beam links securely.",
     specifications: [
@@ -275,7 +240,7 @@ export const STATIC_PRODUCTS: Product[] = [
     imageUrl: "/tmt-steel.jpeg",
     price: null,
     unit: { code: "KG" },
-    stockStatus: "AVAILABLE_ON_ORDER",
+    stockStatus: null,
     isFeatured: false,
     updatedAt: null,
   },
@@ -287,7 +252,7 @@ export const STATIC_PRODUCTS: Product[] = [
     name: "Standard Red Clay Kiln Bricks",
     sku: null,
     categoryId: "cat-bricks",
-    brandId: "brand-primemasonry",
+    brandId: null,
     description:
       "First-class kiln-burnt traditional red clay bricks conforming to IS 1077. High compressive load-bearing capability for exterior and interior perimeter masonry walls.",
     specifications: [
@@ -298,7 +263,7 @@ export const STATIC_PRODUCTS: Product[] = [
     imageUrl: "/bricks-blocks.jpeg",
     price: null,
     unit: { code: "PIECE" },
-    stockStatus: "AVAILABLE_ON_ORDER",
+    stockStatus: null,
     isFeatured: true,
     updatedAt: null,
   },
@@ -308,7 +273,7 @@ export const STATIC_PRODUCTS: Product[] = [
     name: "AAC Lightweight Concrete Blocks (600x200x150mm)",
     sku: null,
     categoryId: "cat-bricks",
-    brandId: "brand-primemasonry",
+    brandId: null,
     description:
       "Precision autoclaved aerated concrete blocks conforming to IS 2185 Part 3. Lightweight thermal-insulating building blocks providing structural dead-weight reduction and fast installation.",
     specifications: [
@@ -319,7 +284,7 @@ export const STATIC_PRODUCTS: Product[] = [
     imageUrl: "/bricks-blocks.jpeg",
     price: null,
     unit: { code: "BLOCK" },
-    stockStatus: "AVAILABLE_ON_ORDER",
+    stockStatus: null,
     isFeatured: false,
     updatedAt: null,
   },
@@ -329,7 +294,7 @@ export const STATIC_PRODUCTS: Product[] = [
     name: "High-Strength Fly Ash Bricks",
     sku: null,
     categoryId: "cat-bricks",
-    brandId: "brand-primemasonry",
+    brandId: null,
     description:
       "Machine-pressed cement-fly ash mineral composite bricks. Smooth dimensional accuracy requiring less mortar plaster and zero efflorescence.",
     specifications: [
@@ -340,7 +305,7 @@ export const STATIC_PRODUCTS: Product[] = [
     imageUrl: "/bricks-blocks.jpeg",
     price: null,
     unit: { code: "PIECE" },
-    stockStatus: "AVAILABLE_ON_ORDER",
+    stockStatus: null,
     isFeatured: false,
     updatedAt: null,
   },
@@ -352,7 +317,7 @@ export const STATIC_PRODUCTS: Product[] = [
     name: "Washed River Sand for Concrete",
     sku: null,
     categoryId: "cat-sand",
-    brandId: "brand-generic",
+    brandId: null,
     description:
       "Double-washed natural coarse river sand free from organic silt, clay, and salts. Approved for concrete mixing, slab casting, and structural footings.",
     specifications: [
@@ -362,7 +327,7 @@ export const STATIC_PRODUCTS: Product[] = [
     imageUrl: null,
     price: null,
     unit: { code: "BRASS" },
-    stockStatus: "AVAILABLE_ON_ORDER",
+    stockStatus: null,
     isFeatured: true,
     updatedAt: null,
   },
@@ -372,7 +337,7 @@ export const STATIC_PRODUCTS: Product[] = [
     name: "Manufactured M-Sand (Concrete Grade)",
     sku: null,
     categoryId: "cat-sand",
-    brandId: "brand-generic",
+    brandId: null,
     description:
       "Crushed blue metal stone sand manufactured through VSI vertical shaft impactors conforming to IS 383 Zone II. Uniform particle distribution providing high concrete compressive strength.",
     specifications: [
@@ -383,7 +348,7 @@ export const STATIC_PRODUCTS: Product[] = [
     imageUrl: null,
     price: null,
     unit: { code: "BRASS" },
-    stockStatus: "AVAILABLE_ON_ORDER",
+    stockStatus: null,
     isFeatured: false,
     updatedAt: null,
   },
@@ -393,7 +358,7 @@ export const STATIC_PRODUCTS: Product[] = [
     name: "20mm Blue Metal Crushed Stone Aggregates",
     sku: null,
     categoryId: "cat-sand",
-    brandId: "brand-generic",
+    brandId: null,
     description:
       "Granite hard rock crushed stone aggregates graded at 20mm nominal size. Conforms to IS 383 for standard structural concrete works and foundations.",
     specifications: [
@@ -404,7 +369,7 @@ export const STATIC_PRODUCTS: Product[] = [
     imageUrl: null,
     price: null,
     unit: { code: "BRASS" },
-    stockStatus: "AVAILABLE_ON_ORDER",
+    stockStatus: null,
     isFeatured: false,
     updatedAt: null,
   },
@@ -414,7 +379,7 @@ export const STATIC_PRODUCTS: Product[] = [
     name: "10mm Blue Metal Crushed Stone Aggregates",
     sku: null,
     categoryId: "cat-sand",
-    brandId: "brand-generic",
+    brandId: null,
     description:
       "10mm crushed stone aggregates used in high-density thin-slab RCC concrete mix designs and precast block manufacturing.",
     specifications: [
@@ -424,7 +389,7 @@ export const STATIC_PRODUCTS: Product[] = [
     imageUrl: null,
     price: null,
     unit: { code: "TON" },
-    stockStatus: "AVAILABLE_ON_ORDER",
+    stockStatus: null,
     isFeatured: false,
     updatedAt: null,
   },
@@ -436,7 +401,7 @@ export const STATIC_PRODUCTS: Product[] = [
     name: "UPVC Water Supply Pipe 1 Inch (Class 3)",
     sku: null,
     categoryId: "cat-hardware",
-    brandId: "brand-flowtech",
+    brandId: null,
     description:
       "Heavy-duty lead-free unplasticized PVC potable cold water plumbing pipe conforming to IS 4985. Non-corrosive with smooth internal bore reducing friction losses.",
     specifications: [
@@ -447,7 +412,7 @@ export const STATIC_PRODUCTS: Product[] = [
     imageUrl: "/hardware-supplies.jpeg",
     price: null,
     unit: { code: "METER" },
-    stockStatus: "AVAILABLE_ON_ORDER",
+    stockStatus: null,
     isFeatured: true,
     updatedAt: null,
   },
@@ -457,7 +422,7 @@ export const STATIC_PRODUCTS: Product[] = [
     name: "CPVC Hot & Cold Water Pipe 3/4 Inch (SDR 11)",
     sku: null,
     categoryId: "cat-hardware",
-    brandId: "brand-flowtech",
+    brandId: null,
     description:
       "Chlorinated Polyvinyl Chloride pipe conforming to IS 15778 SDR 11. Rated for continuous hot water circulation up to 93 degrees Celsius.",
     specifications: [
@@ -468,7 +433,7 @@ export const STATIC_PRODUCTS: Product[] = [
     imageUrl: "/hardware-supplies.jpeg",
     price: null,
     unit: { code: "PIECE" },
-    stockStatus: "AVAILABLE_ON_ORDER",
+    stockStatus: null,
     isFeatured: false,
     updatedAt: null,
   },
@@ -478,7 +443,7 @@ export const STATIC_PRODUCTS: Product[] = [
     name: "Mild Steel Formwork Shuttering Wire (Bundle)",
     sku: null,
     categoryId: "cat-hardware",
-    brandId: "brand-flowtech",
+    brandId: null,
     description:
       "Annealed mild steel wire bundle for securing formwork shuttering plates and timber props during RCC casting.",
     specifications: [
@@ -488,7 +453,7 @@ export const STATIC_PRODUCTS: Product[] = [
     imageUrl: "/hardware-supplies.jpeg",
     price: null,
     unit: { code: "BUNDLE" },
-    stockStatus: "AVAILABLE_ON_ORDER",
+    stockStatus: null,
     isFeatured: false,
     updatedAt: null,
   },
@@ -500,7 +465,7 @@ export const STATIC_PRODUCTS: Product[] = [
     name: "Integral Liquid Waterproofing Compound (20L Can)",
     sku: null,
     categoryId: "cat-other",
-    brandId: "brand-ecobind",
+    brandId: null,
     description:
       "Specially formulated chloride-free integral liquid waterproofing admixture conforming to IS 2645. Reduces capillary water absorption in concrete and plaster.",
     specifications: [
@@ -511,7 +476,7 @@ export const STATIC_PRODUCTS: Product[] = [
     imageUrl: null,
     price: null,
     unit: { code: "CUSTOM", customLabel: "20L Can" },
-    stockStatus: "AVAILABLE_ON_ORDER",
+    stockStatus: null,
     isFeatured: true,
     updatedAt: null,
   },
@@ -521,7 +486,7 @@ export const STATIC_PRODUCTS: Product[] = [
     name: "Polymer-Modified Tile Adhesive 20kg",
     sku: null,
     categoryId: "cat-other",
-    brandId: "brand-ecobind",
+    brandId: null,
     description:
       "Factory-prepared cementitious polymer-modified tile adhesive conforming to IS 15477 Type 2. High bonding strength for ceramic and vitrified wall and floor tiles.",
     specifications: [
@@ -532,7 +497,7 @@ export const STATIC_PRODUCTS: Product[] = [
     imageUrl: null,
     price: null,
     unit: { code: "BAG" },
-    stockStatus: "AVAILABLE_ON_ORDER",
+    stockStatus: null,
     isFeatured: false,
     updatedAt: null,
   },
@@ -542,7 +507,7 @@ export const STATIC_PRODUCTS: Product[] = [
     name: "High-Strength Non-Shrink Precision Grout",
     sku: null,
     categoryId: "cat-other",
-    brandId: "brand-ecobind",
+    brandId: null,
     description:
       "Free-flowing, non-shrink cementitious grout for anchoring heavy machinery baseplates, precast joint filling, and structural column grouting.",
     specifications: [
@@ -553,7 +518,7 @@ export const STATIC_PRODUCTS: Product[] = [
     imageUrl: null,
     price: null,
     unit: { code: "BAG" },
-    stockStatus: "AVAILABLE_ON_ORDER",
+    stockStatus: null,
     isFeatured: false,
     updatedAt: null,
   },

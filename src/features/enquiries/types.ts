@@ -12,7 +12,7 @@ export type EnquiryCatalogueItem = {
   sku: string | null;
   /** Display label of the product's real unit (custom label for CUSTOM). */
   unitLabel: string;
-  stockStatus: StockStatus;
+  stockStatus: StockStatus | null;
   /** Preformatted indicative rate, or null for "Rate on request". */
   rate: string | null;
 };
