@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Building2 } from "lucide-react";
 import { PageContainer } from "@/components/common/container";
 import { websiteNav } from "@/config/navigation";
 import { PRICE_DISCLAIMER } from "@/features/products/format";
@@ -16,20 +17,29 @@ export function SiteFooter({
   categories: Category[];
 }) {
   return (
-    <footer className="mt-auto border-t border-border bg-surface-muted">
-      <PageContainer className="grid gap-gutter-xl py-section-md sm:grid-cols-2 lg:grid-cols-4">
-        <div>
-          <p className="text-title-lg text-primary">{settings.name}</p>
-          {settings.tagline && (
-            <p className="mt-2 text-body-md text-on-surface-variant">{settings.tagline}</p>
-          )}
+    <footer className="mt-auto border-t border-border bg-surface">
+      <PageContainer className="grid gap-8 py-12 md:grid-cols-2 lg:grid-cols-5">
+        <div className="lg:col-span-2">
+          <div className="mb-4 flex items-center gap-3">
+            <div className="flex size-9 items-center justify-center rounded-md bg-primary text-secondary">
+              <Building2 className="size-5" aria-hidden="true" />
+            </div>
+            <span className="text-headline-sm font-bold text-primary">{settings.name}</span>
+          </div>
+          <p className="mb-4 max-w-sm text-body-sm leading-relaxed text-on-surface-variant">
+            {settings.tagline ??
+              "Wholesale and retail supplier of certified construction materials, structural steel, Portland cement, bricks, and infrastructure plumbing supplies."}
+          </p>
           {settings.gstNumber && (
-            <p className="mt-2 text-body-sm text-on-surface-variant">GSTIN: {settings.gstNumber}</p>
+            <span className="inline-block rounded-md border border-border bg-surface-muted px-2.5 py-1 text-label-sm text-on-surface-variant">
+              GSTIN: {settings.gstNumber}
+            </span>
           )}
         </div>
+
         <nav aria-label="Footer quick links">
-          <h2 className="text-title-md">Quick links</h2>
-          <ul className="mt-gutter-sm space-y-gutter-sm text-body-md">
+          <h2 className="mb-4 text-title-md font-bold text-on-surface">Quick links</h2>
+          <ul className="space-y-2.5 text-body-sm">
             {websiteNav.map((i) => (
               <li key={i.href}>
                 <Link href={i.href} className={link}>
@@ -39,9 +49,10 @@ export function SiteFooter({
             ))}
           </ul>
         </nav>
+
         <nav aria-label="Footer categories">
-          <h2 className="text-title-md">Materials</h2>
-          <ul className="mt-gutter-sm space-y-gutter-sm text-body-md">
+          <h2 className="mb-4 text-title-md font-bold text-on-surface">Materials</h2>
+          <ul className="space-y-2.5 text-body-sm">
             {categories.map((c) => (
               <li key={c.id}>
                 <Link href={`/products?category=${c.slug}`} className={link}>
@@ -51,9 +62,10 @@ export function SiteFooter({
             ))}
           </ul>
         </nav>
+
         <div>
-          <h2 className="text-title-md">Contact</h2>
-          <ul className="mt-gutter-sm space-y-gutter-sm text-body-md text-on-surface-variant">
+          <h2 className="mb-4 text-title-md font-bold text-on-surface">Contact</h2>
+          <ul className="space-y-2.5 text-body-sm text-on-surface-variant">
             {settings.phone && <li>{settings.phone}</li>}
             {settings.email && <li>{settings.email}</li>}
             {settings.address && <li className="whitespace-pre-line">{settings.address}</li>}
@@ -69,17 +81,18 @@ export function SiteFooter({
               </li>
             ))}
             <li>
-              <Link href="/contact" className={link}>
+              <Link href="/contact" className="font-semibold text-primary hover:underline">
                 Contact page
               </Link>
             </li>
           </ul>
         </div>
       </PageContainer>
-      <div className="border-t border-border">
-        <PageContainer className="space-y-1 py-gutter-md text-body-sm text-on-surface-variant">
+
+      <div className="border-t border-border bg-surface-muted">
+        <PageContainer className="flex flex-col gap-2 py-4 text-body-sm text-on-surface-variant md:flex-row md:items-center md:justify-between">
+          <p>© {settings.name}. All rights reserved.</p>
           <p>{PRICE_DISCLAIMER}</p>
-          <p>© {settings.name}</p>
         </PageContainer>
       </div>
     </footer>

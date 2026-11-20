@@ -26,22 +26,36 @@ export function ProductCard({
 }) {
   const Heading = `h${headingLevel}` as const;
   return (
-    <Card className="flex h-full flex-col">
-      <CardBody className="flex flex-1 flex-col gap-gutter-sm">
-        <ProductImage src={product.imageUrl} name={product.name} />
-        <div className="flex items-center justify-between gap-gutter-sm">
-          <p className="text-label-md text-on-surface-variant">{brand?.name ?? category?.name}</p>
+    <Card className="flex h-full flex-col overflow-hidden transition-all duration-200 hover:border-primary hover:shadow-xs">
+      <div className="relative flex h-48 items-center justify-center border-b border-border bg-surface-muted p-4">
+        <div className="absolute top-3 left-3 z-10">
           <StockBadge status={product.stockStatus} />
         </div>
-        <Heading className="text-title-lg">
-          <Link href={`/products/${product.slug}`} className="hover:text-primary hover:underline">
-            {product.name}
-          </Link>
-        </Heading>
-        {product.sku && <p className="text-body-sm text-on-surface-variant">SKU: {product.sku}</p>}
-        <RateDisplay product={product} className="mt-auto" />
+        <span className="absolute top-3 right-3 text-label-sm font-medium text-on-surface-variant">
+          Indicative Rate
+        </span>
+        <ProductImage src={product.imageUrl} name={product.name} />
+      </div>
+      <CardBody className="flex flex-1 flex-col justify-between p-5">
+        <div>
+          <div className="mb-1 flex items-center justify-between text-body-sm text-on-surface-variant">
+            <span>{brand?.name ?? category?.name}</span>
+            {product.sku && <span className="text-label-sm">SKU: {product.sku}</span>}
+          </div>
+          <Heading className="text-title-lg font-bold text-on-surface">
+            <Link
+              href={`/products/${product.slug}`}
+              className="transition-colors hover:text-primary hover:underline"
+            >
+              {product.name}
+            </Link>
+          </Heading>
+          <div className="mt-3">
+            <RateDisplay product={product} />
+          </div>
+        </div>
       </CardBody>
-      <CardFooter className="flex-wrap">
+      <CardFooter className="flex-wrap gap-2 border-t border-border pt-3">
         <ButtonLink href={`/products/${product.slug}`} variant="outline" size="sm">
           View details<span className="sr-only">: {product.name}</span>
         </ButtonLink>

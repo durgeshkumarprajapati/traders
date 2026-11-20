@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { Building2, Clock, MapPin, ShieldCheck } from "lucide-react";
+import { Building2, ClipboardList, Clock, Lock, Phone } from "lucide-react";
 import { PageContainer } from "@/components/common/container";
 import { NavLink } from "@/components/common/nav-link";
 import { websiteNav } from "@/config/navigation";
@@ -11,12 +11,12 @@ import { EnquiryListLink } from "./enquiry-list-link";
 import { MobileNav } from "./mobile-nav";
 
 const linkClass =
-  "transition-colors hover:text-primary py-1 border-b-2 border-transparent aria-[current=page]:border-primary aria-[current=page]:text-primary aria-[current=page]:font-bold";
+  "transition-colors hover:text-primary py-2 font-label text-label-lg border-b-2 border-transparent aria-[current=page]:border-primary aria-[current=page]:text-primary aria-[current=page]:font-bold";
 
 /**
  * Professional Sagar Traders site header featuring:
- * 1. Top utility/meta bar: Location, operating hours, quick contacts, and admin access.
- * 2. Main brand & navigation bar: Architectural brand mark, store title & tagline,
+ * 1. Slim Top Utility Bar (Navy with Secondary Amber accents): Location, operating hours, quick contacts, and admin access.
+ * 2. Clean Sticky Main Navigation: Architectural brand mark, store title & tagline,
  *    primary navigation, and prominent enquiry cart and quick quote CTAs.
  */
 export function SiteHeader({ settings }: { settings: BusinessSettings }) {
@@ -35,52 +35,60 @@ export function SiteHeader({ settings }: { settings: BusinessSettings }) {
   );
 
   return (
-    <header className="border-b border-border bg-surface">
-      {/* Top Utility / Meta Bar */}
-      <div className="hidden border-b border-border bg-surface-muted text-on-surface-variant text-body-xs sm:block">
+    <header className="sticky top-0 z-40 bg-surface border-b border-border shadow-xs">
+      {/* Slim Top Utility Bar */}
+      <div className="hidden border-b border-primary bg-primary text-on-primary text-body-sm sm:block">
         <PageContainer className="flex h-9 items-center justify-between gap-gutter-md">
           {/* Left: Location & Hours */}
-          <div className="flex items-center gap-gutter-md truncate">
-            <span className="flex items-center gap-1.5 truncate">
-              <MapPin aria-hidden className="size-3.5 text-secondary shrink-0" />
-              <span>{settings.deliveryCoverage || settings.address || "Raipur Chhattisgarh"}</span>
-            </span>
-            {settings.businessHours && (
-              <span className="hidden lg:flex items-center gap-1.5 border-l border-border pl-3 truncate">
-                <Clock aria-hidden className="size-3.5 text-on-surface-variant shrink-0" />
-                <span>{settings.businessHours}</span>
+          <div className="flex items-center gap-3 text-body-sm truncate">
+            <span className="inline-flex items-center gap-1.5 truncate">
+              <span className="size-2 rounded-full bg-secondary shrink-0" aria-hidden="true" />
+              <span className="font-label text-label-md text-secondary font-semibold">
+                {settings.deliveryCoverage || settings.address || "Raipur Depot"}
               </span>
-            )}
+            </span>
+            <span className="text-on-primary/60">|</span>
+            <span className="hidden sm:inline-flex items-center gap-1.5 text-on-primary/95 truncate">
+              <Clock aria-hidden="true" className="size-3.5 text-secondary shrink-0" />
+              <span>{settings.businessHours || "Mon–Sat: 8:00 AM – 7:00 PM (Sunday Closed)"}</span>
+            </span>
+            <span className="hidden lg:inline text-on-primary/60">|</span>
+            <span className="hidden lg:inline text-on-primary/90 text-body-xs">
+              Wholesale &amp; Retail Supply • Direct Site Supplies
+            </span>
           </div>
 
           {/* Right: Direct Contacts & Admin Portal Link */}
-          <div className="flex items-center gap-gutter-sm shrink-0">
+          <div className="flex items-center gap-3 shrink-0 text-body-sm">
             {settings.phone && (
-              <CallButton
-                phone={settings.phone}
-                variant="ghost"
-                size="sm"
-                className="h-6 px-2 text-body-xs font-medium text-primary hover:text-primary hover:bg-surface"
+              <a
+                href={`tel:${settings.phone.replace(/[^0-9+]/g, "")}`}
+                className="inline-flex items-center gap-1.5 text-on-primary hover:text-secondary transition-colors font-label text-label-md tabular-nums"
               >
-                Call: {settings.phone}
-              </CallButton>
+                <Phone aria-hidden="true" className="size-3.5 text-secondary" />
+                <span>Call {settings.phone}</span>
+              </a>
             )}
             {settings.whatsappNumber && (
-              <WhatsAppButton
-                number={settings.whatsappNumber}
-                message={whatsappMessage}
-                variant="ghost"
-                size="sm"
-                className="h-6 px-2 text-body-xs font-medium text-success hover:text-success hover:bg-surface"
-              >
-                WhatsApp
-              </WhatsAppButton>
+              <>
+                <span className="text-on-primary/60">|</span>
+                <WhatsAppButton
+                  number={settings.whatsappNumber}
+                  message={whatsappMessage}
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-1 text-label-md font-medium text-secondary hover:text-secondary hover:bg-primary/50"
+                >
+                  WhatsApp
+                </WhatsAppButton>
+              </>
             )}
+            <span className="text-on-primary/60">|</span>
             <Link
               href="/admin/login"
-              className="inline-flex items-center gap-1 text-on-surface-variant hover:text-primary transition-colors text-body-xs font-medium border-l border-border pl-3 ml-1"
+              className="inline-flex items-center gap-1 text-on-primary/95 hover:text-secondary transition-colors font-label text-label-md"
             >
-              <ShieldCheck aria-hidden className="size-3.5" />
+              <Lock aria-hidden="true" className="size-3.5" />
               <span>Admin</span>
             </Link>
           </div>
@@ -92,23 +100,26 @@ export function SiteHeader({ settings }: { settings: BusinessSettings }) {
         {/* Brand Identity / Logo */}
         <Link
           href="/"
-          className="flex items-center gap-3 group focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+          className="flex items-center gap-3 shrink-0 group focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
         >
-          <div className="size-11 rounded-md bg-primary text-on-primary flex items-center justify-center font-bold shadow-xs relative overflow-hidden shrink-0 border border-primary/20">
+          <div className="size-10 rounded-DEFAULT bg-primary text-secondary flex items-center justify-center font-bold shadow-xs relative overflow-hidden shrink-0 border border-primary/20">
             <Building2 aria-hidden className="size-6 text-secondary" />
           </div>
           <div className="flex flex-col">
-            <span className="text-headline-md font-bold tracking-tight text-primary leading-tight group-hover:text-primary/90 transition-colors">
+            <span className="text-headline-sm font-bold tracking-tight text-primary leading-tight group-hover:text-primary/90 transition-colors">
               {settings.name}
             </span>
-            <span className="text-body-xs text-on-surface-variant truncate max-w-[220px] sm:max-w-xs font-normal">
+            <span className="text-label-sm text-on-surface-variant truncate max-w-[220px] sm:max-w-xs font-normal">
               {settings.tagline || "Building Materials & Hardware Supplier"}
             </span>
           </div>
         </Link>
 
         {/* Primary Desktop Navigation */}
-        <nav aria-label="Main" className="hidden lg:flex items-center gap-gutter-lg text-title-md">
+        <nav
+          aria-label="Main"
+          className="hidden md:flex items-center gap-6 lg:gap-8 font-label text-label-lg"
+        >
           <Suspense
             fallback={websiteNav.map((i) => (
               <Link key={i.href} href={i.href} className={linkClass}>
@@ -124,34 +135,33 @@ export function SiteHeader({ settings }: { settings: BusinessSettings }) {
           </Suspense>
         </nav>
 
-        {/* Actions & Mobile Trigger */}
-        <div className="flex items-center gap-gutter-sm">
-          {/* Quick Contact Buttons (Desktop) */}
-          <div className="hidden xl:flex items-center gap-gutter-sm">
-            <CallButton phone={settings.phone} size="sm" variant="outline" />
-            {settings.whatsappNumber && (
-              <WhatsAppButton
-                number={settings.whatsappNumber}
-                message={whatsappMessage}
-                size="sm"
-                variant="secondary"
-              >
-                WhatsApp
-              </WhatsAppButton>
-            )}
-          </div>
-
+        {/* Streamlined Header Actions */}
+        <div className="flex items-center gap-2.5 sm:gap-3">
           {/* Enquiry List / Cart Button */}
-          <EnquiryListLink className="flex items-center gap-2 font-medium text-body-sm px-3.5 py-2">
-            <span className="hidden sm:inline">Enquiry List</span>
+          <EnquiryListLink className="flex items-center gap-1.5 font-medium text-body-sm px-3 py-2 border border-border rounded-DEFAULT hover:bg-surface-muted transition-colors">
+            <span className="hidden sm:inline font-label text-label-md">Enquiry List</span>
           </EnquiryListLink>
 
-          {/* Quick Quote Primary CTA */}
+          {/* Direct WhatsApp CTA Button */}
+          {settings.whatsappNumber && (
+            <WhatsAppButton
+              number={settings.whatsappNumber}
+              message={whatsappMessage}
+              size="md"
+              variant="secondary"
+              className="hidden lg:inline-flex h-10 px-4 font-label text-label-md font-semibold rounded-DEFAULT hover:opacity-90 transition-opacity shadow-xs"
+            >
+              WhatsApp
+            </WhatsAppButton>
+          )}
+
+          {/* Quick Quote Primary CTA Button */}
           <Link
             href="/bulk-enquiry"
-            className="hidden sm:inline-flex items-center justify-center rounded-md bg-primary px-3.5 py-2 text-label-md font-semibold text-on-primary hover:bg-primary/90 transition-colors shadow-xs"
+            className="inline-flex items-center justify-center gap-2 h-10 px-4 sm:px-5 bg-primary text-on-primary font-label text-label-md font-semibold rounded-DEFAULT hover:bg-primary/90 transition-colors shadow-xs"
           >
-            Quick Quote
+            <ClipboardList aria-hidden className="size-4 text-secondary hidden sm:inline" />
+            <span>Quick Quote</span>
           </Link>
 
           {/* Mobile Drawer Trigger */}

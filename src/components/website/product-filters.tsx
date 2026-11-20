@@ -128,8 +128,8 @@ export function ProductFilters({ categories, brands, params, activeCount }: Prop
           />
         </Drawer>
       </div>
-      <div className="hidden lg:block">
-        <h2 className="mb-gutter-md text-title-lg">Filters</h2>
+      <div className="hidden lg:block rounded-lg border border-border bg-surface p-5 shadow-xs">
+        <h2 className="mb-gutter-md text-title-lg font-bold text-on-surface">Filters</h2>
         <FilterForm categories={categories} brands={brands} params={params} />
       </div>
     </>

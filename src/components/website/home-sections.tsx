@@ -1,10 +1,19 @@
-import { ArrowRight, CircleCheck, ClipboardList, Store } from "lucide-react";
+import {
+  ArrowRight,
+  BadgePercent,
+  ChevronRight,
+  ClipboardList,
+  MapPin,
+  ShieldCheck,
+  Store,
+  TrendingUp,
+  Truck,
+} from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { ContentPlaceholder } from "@/components/common/content-placeholder";
 import { PageContainer } from "@/components/common/container";
 import { Section } from "@/components/common/section";
-import Image from "next/image";
-import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { Card, CardBody } from "@/components/ui/card";
 import { StockBadge } from "@/components/ui/status-badge";
@@ -53,17 +62,18 @@ export function CategoriesSection({ categories }: { categories: Category[] }) {
     <Section
       id="categories"
       title="Product categories"
-      description="Choose a category to see products and indicative rates."
+      description="Select a category to compare brands, technical grades, and indicative depot rates."
       action={
         <Link
           href="/products"
-          className="inline-flex items-center gap-1 text-label-lg text-primary hover:underline"
+          className="inline-flex items-center gap-1 text-label-lg font-semibold text-primary hover:underline"
         >
-          View all products <ArrowRight aria-hidden className="size-4" />
+          <span>View Full Catalog</span>
+          <ArrowRight aria-hidden className="size-4" />
         </Link>
       }
     >
-      <ul className="grid gap-gutter-md sm:grid-cols-2 lg:grid-cols-3">
+      <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6 items-stretch">
         {[...categories]
           .sort((a, b) => a.displayOrder - b.displayOrder)
           .map((c) => (
@@ -93,14 +103,19 @@ export function FeaturedProductsSection({
     <Section
       id="featured"
       title="Featured products"
-      description="Selected materials from the catalogue."
+      description="High-demand structural essentials ready for immediate yard loading."
+      action={
+        <ButtonLink href="/products" variant="outline" size="sm">
+          View All Products
+        </ButtonLink>
+      }
     >
       {featured.length === 0 ? (
         <ContentPlaceholder>
           Featured products appear here once products are marked as featured.
         </ContentPlaceholder>
       ) : (
-        <ul className="grid gap-gutter-md sm:grid-cols-2 lg:grid-cols-4">
+        <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {featured.map((p) => (
             <li key={p.id}>
               <ProductCard
@@ -117,7 +132,7 @@ export function FeaturedProductsSection({
   );
 }
 
-/** 5. Indicative rates table (never labelled "live"). */
+/** 5. Indicative rates table. */
 export function RatesSection({
   products,
   brands,
@@ -132,8 +147,20 @@ export function RatesSection({
     <Section
       id="rates"
       title="Indicative rates"
-      description="Rates are shown with their unit and last-updated date when available."
+      description="Daily benchmark rates for primary wholesale construction commodities."
+      action={
+        <div className="inline-flex items-center gap-1.5 text-label-sm font-semibold uppercase tracking-wider text-primary">
+          <TrendingUp aria-hidden className="size-4" />
+          <span>Depot Benchmark Board</span>
+        </div>
+      }
     >
+      <div className="mb-6 max-w-xl rounded-md border border-warning/30 bg-warning/10 p-3.5 text-body-sm text-on-surface shadow-xs">
+        <strong className="block font-semibold mb-0.5">Indicative Price Disclaimer:</strong>
+        All rates shown are non-binding estimates based on depot benchmark data. Final site delivery
+        rates vary with haulage distance, volume thresholds, and applicable GST taxes.
+      </div>
+
       <Table aria-describedby="rates-disclaimer">
         <caption className="sr-only">Indicative rates by product</caption>
         <THead>
@@ -153,21 +180,26 @@ export function RatesSection({
           {rows.map((p) => (
             <Tr key={p.id} interactive>
               <Td>
-                <Link className="hover:text-primary hover:underline" href={`/products/${p.slug}`}>
+                <Link
+                  className="font-medium hover:text-primary hover:underline"
+                  href={`/products/${p.slug}`}
+                >
                   {p.name}
                 </Link>
               </Td>
               <Td>{brands.find((b) => b.id === p.brandId)?.name ?? "—"}</Td>
-              <Td>
+              <Td className="tabular-nums font-semibold text-primary">
                 {formatPrice(p.price) ?? (
-                  <span className="text-on-surface-variant">Rate on request</span>
+                  <span className="font-normal text-on-surface-variant">Rate on request</span>
                 )}
               </Td>
               <Td>{unitLabel(p.unit)}</Td>
               <Td>
                 <StockBadge status={p.stockStatus} />
               </Td>
-              <Td>{formatUpdated(p.updatedAt) ?? "—"}</Td>
+              <Td className="tabular-nums text-on-surface-variant">
+                {formatUpdated(p.updatedAt) ?? "—"}
+              </Td>
               <Td>
                 <WhatsAppButton
                   hideIfUnavailable
@@ -193,21 +225,35 @@ export function RatesSection({
 export function WhyChooseUsSection({ items }: { items: { title: string; description: string }[] }) {
   if (items.length === 0) return null;
   return (
-    <Section id="why" title="Why choose us">
-      <ul className="grid gap-gutter-md sm:grid-cols-2 lg:grid-cols-3">
-        {items.map((item) => (
-          <li key={item.title}>
-            <Card className="h-full">
-              <CardBody className="flex gap-gutter-md">
-                <CircleCheck aria-hidden className="mt-0.5 size-5 shrink-0 text-primary" />
-                <div>
-                  <h3 className="text-title-md">{item.title}</h3>
-                  <p className="mt-1 text-body-md text-on-surface-variant">{item.description}</p>
-                </div>
-              </CardBody>
-            </Card>
-          </li>
-        ))}
+    <Section
+      id="why"
+      title="Why choose us"
+      description="Built on straightforward commercial ethics, authentic material grades, and dedicated contractor logistics."
+    >
+      <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 items-stretch">
+        {items.map((item, idx) => {
+          const icons = [ShieldCheck, BadgePercent, Store, Truck];
+          const Icon = icons[idx % icons.length];
+          const iconBg =
+            idx % 2 === 0 ? "bg-primary/10 text-primary" : "bg-secondary/20 text-warning";
+          return (
+            <li key={item.title}>
+              <Card className="h-full transition-all duration-200 hover:border-primary hover:shadow-xs">
+                <CardBody className="flex flex-col gap-3 p-6">
+                  <div
+                    className={`flex size-11 shrink-0 items-center justify-center rounded-md ${iconBg}`}
+                  >
+                    <Icon className="size-6" aria-hidden="true" />
+                  </div>
+                  <h3 className="text-title-lg font-bold text-on-surface">{item.title}</h3>
+                  <p className="text-body-sm leading-relaxed text-on-surface-variant">
+                    {item.description}
+                  </p>
+                </CardBody>
+              </Card>
+            </li>
+          );
+        })}
       </ul>
     </Section>
   );
@@ -215,61 +261,55 @@ export function WhyChooseUsSection({ items }: { items: { title: string; descript
 
 /** 7. Brands — from the Brands sheet; no dealership relationship is implied. */
 export function BrandsSection({ brands }: { brands: Brand[] }) {
+  if (brands.length === 0) return null;
   return (
     <Section id="brands" title="Brands" description="Brands available in the catalogue.">
-      {brands.length === 0 ? (
-        <ContentPlaceholder icon={<Store />}>
-          Brands appear here once they are added to the catalogue.
-        </ContentPlaceholder>
-      ) : (
-        <ul className="flex flex-wrap gap-gutter-sm">
-          {brands.map((b) => (
-            <li key={b.id}>
-              <Badge
-                tone="neutral"
-                appearance="outline"
-                className="px-gutter-md py-gutter-sm text-label-lg"
-              >
-                {b.logoUrl && (
-                  <Image
-                    src={b.logoUrl}
-                    alt=""
-                    width={24}
-                    height={24}
-                    className="size-6 object-contain"
-                  />
-                )}
-                {b.name}
-              </Badge>
-            </li>
-          ))}
-        </ul>
-      )}
+      <ul className="flex flex-wrap items-center justify-center gap-4 md:gap-8">
+        {brands.map((b) => (
+          <li key={b.id}>
+            <div className="flex items-center gap-2 rounded-lg border border-border bg-surface px-5 py-3 text-label-lg font-bold tracking-wider text-on-surface shadow-xs transition-colors hover:border-primary">
+              {b.logoUrl && (
+                <Image
+                  src={b.logoUrl}
+                  alt=""
+                  width={24}
+                  height={24}
+                  className="size-6 object-contain"
+                />
+              )}
+              <span className="uppercase">{b.name}</span>
+            </div>
+          </li>
+        ))}
+      </ul>
     </Section>
   );
 }
 
-/** 8. Bulk enquiry CTA — white bordered card with navy/amber accents (not a full-width navy band). */
+/** 8. Bulk enquiry CTA — high-impact navy card matching the reference template. */
 export function BulkEnquiryCtaSection({ settings }: { settings: BusinessSettings }) {
   return (
     <section aria-labelledby="bulk-cta-heading" className="border-t border-border py-section-md">
       <PageContainer>
-        <div className="flex flex-col gap-gutter-lg rounded-lg border-2 border-primary p-gutter-lg md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-gutter-lg rounded-lg border border-primary/20 bg-primary p-8 text-on-primary shadow-md lg:p-10 md:flex-row md:items-center md:justify-between">
           <div className="max-w-2xl">
+            <span className="mb-4 inline-block rounded bg-secondary px-3 py-1 font-label text-label-sm font-semibold text-on-secondary">
+              Bulk Procurement Desk
+            </span>
             <h2
               id="bulk-cta-heading"
-              className="flex items-center gap-gutter-sm text-headline-lg-mobile md:text-headline-lg"
+              className="flex items-center gap-gutter-sm text-headline-xl-mobile md:text-headline-xl font-bold text-on-primary"
             >
-              <ClipboardList aria-hidden className="size-6 text-primary" /> Planning a larger
-              requirement?
+              <ClipboardList aria-hidden className="size-7 text-secondary" /> Planning a Major
+              Construction Project?
             </h2>
-            <p className="mt-2 text-body-lg text-on-surface-variant">
-              Put several materials into one enquiry. We will come back to you with a quotation; no
-              payment is taken online.
+            <p className="mt-3 text-body-lg text-on-primary/85">
+              Consolidate your cement, steel, masonry blocks, and sand requirements into one
+              multi-material quotation with staggered site delivery scheduling.
             </p>
           </div>
-          <div className="flex flex-wrap gap-gutter-sm">
-            <ButtonLink href="/bulk-enquiry" size="lg" variant="secondary">
+          <div className="flex shrink-0 flex-wrap gap-3">
+            <ButtonLink href="/bulk-enquiry" size="lg" variant="secondary" className="shadow-xs">
               Request bulk quotation
             </ButtonLink>
             <WhatsAppButton
@@ -278,8 +318,9 @@ export function BulkEnquiryCtaSection({ settings }: { settings: BusinessSettings
               message={generalEnquiryMessage(settings.name)}
               size="lg"
               variant="outline"
+              className="border-on-primary/30 text-on-primary hover:bg-on-primary/10"
             >
-              WhatsApp
+              WhatsApp Desk
             </WhatsAppButton>
           </div>
         </div>
@@ -294,14 +335,42 @@ export function ContactInfoSection({ settings }: { settings: BusinessSettings })
     <Section
       id="contact-info"
       title="Contact"
-      description="How to reach us."
+      description="Our weighbridge and material yard are open for direct contractor inspection and dispatch."
       action={
         <ButtonLink href="/contact" variant="outline" size="sm">
           Contact page
         </ButtonLink>
       }
     >
-      <ContactDetails settings={settings} />
+      <div className="grid gap-8 lg:grid-cols-12 items-start">
+        <div className="lg:col-span-7">
+          <ContactDetails settings={settings} />
+        </div>
+        {settings.googleMapsUrl && (
+          <div className="lg:col-span-5 rounded-lg border border-border bg-surface p-6 shadow-xs flex flex-col justify-between">
+            <div>
+              <div className="mb-3 flex size-10 items-center justify-center rounded-md bg-primary/10 text-primary">
+                <MapPin className="size-5" />
+              </div>
+              <h3 className="text-title-lg font-bold text-on-surface">Depot &amp; Weighbridge</h3>
+              <p className="mt-1 text-body-sm text-on-surface-variant">
+                Physical location verified for heavy commercial truck loading and material sampling.
+              </p>
+            </div>
+            <div className="mt-6 pt-4 border-t border-border">
+              <a
+                href={settings.googleMapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-label-md font-semibold text-primary hover:underline"
+              >
+                Open in Google Maps <ChevronRight className="size-4" aria-hidden="true" />
+                <span className="sr-only"> (opens in a new tab)</span>
+              </a>
+            </div>
+          </div>
+        )}
+      </div>
     </Section>
   );
 }

@@ -7,13 +7,16 @@ import { CallButton, WhatsAppButton } from "./contact-actions";
 
 function Item({ icon, title, children }: { icon: ReactNode; title: string; children: ReactNode }) {
   return (
-    <Card>
+    <Card className="transition-all duration-200 hover:border-primary hover:shadow-xs">
       <CardBody className="flex gap-gutter-md">
-        <span aria-hidden className="mt-0.5 shrink-0 text-primary [&>svg]:size-5">
+        <span
+          aria-hidden
+          className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary [&>svg]:size-5"
+        >
           {icon}
         </span>
-        <div className="min-w-0">
-          <h3 className="text-title-md">{title}</h3>
+        <div className="min-w-0 flex-1">
+          <h3 className="text-title-md font-bold text-on-surface">{title}</h3>
           <div className="mt-1 space-y-gutter-sm text-body-md text-on-surface-variant">
             {children}
           </div>
@@ -29,7 +32,7 @@ export function ContactDetails({ settings }: { settings: BusinessSettings }) {
   if (settings.phone) {
     items.push(
       <Item key="phone" icon={<Phone />} title="Phone">
-        <p>{settings.phone}</p>
+        <p className="font-semibold text-on-surface">{settings.phone}</p>
         <CallButton phone={settings.phone} size="sm" />
       </Item>,
     );
@@ -37,7 +40,7 @@ export function ContactDetails({ settings }: { settings: BusinessSettings }) {
   if (normalizeWhatsAppNumber(settings.whatsappNumber)) {
     items.push(
       <Item key="wa" icon={<MessageCircle />} title="WhatsApp">
-        <p>Opens a prepared message; you press Send.</p>
+        <p>Direct desk connection for material availability and site quotations.</p>
         <WhatsAppButton
           number={settings.whatsappNumber}
           message={generalEnquiryMessage(settings.name)}
@@ -58,7 +61,7 @@ export function ContactDetails({ settings }: { settings: BusinessSettings }) {
     items.push(
       <Item key="mail" icon={<Mail />} title="Email">
         <p>
-          <a className="text-primary hover:underline" href={`mailto:${settings.email}`}>
+          <a className="font-medium text-primary hover:underline" href={`mailto:${settings.email}`}>
             {settings.email}
           </a>
         </p>
