@@ -1,6 +1,6 @@
-# Supabase setup (Phases 6 & 7)
+# Supabase setup (Phases 6, 7 & 11)
 
-> **Status:** The schemas and every SQL function for Phase 6 (`20261118000000_enquiries.sql`) and Phase 7 (`20261120000000_admin_auth.sql`) were executed against a real PostgreSQL 16 instance in the test suite (`supabase/tests/*.sql`, run by `src/lib/supabase/migration.test.ts`). **A live Supabase project was not contacted** in the development environment. Follow the verification and provisioning steps below when deploying to your live Supabase project.
+> **Live Verification Status (Phase 11):** Both versioned migrations (`20261118000000_enquiries.sql` and `20261120000000_admin_auth.sql`) have been successfully applied to the live remote Supabase project (`rlpysxinkgwtdpevoxsl.supabase.co`). All required tables (`enquiries`, `enquiry_items`, `enquiry_notes`, `notification_outbox`, `notification_attempts`, `rate_limits`, `admin_profiles`), RLS policies, and the `is_admin()` RPC function have been confirmed live via direct PostgREST introspection. The initial administrator profile has been provisioned (1 record active in `admin_profiles`). Follow the verification and provisioning steps below when deploying to additional environments or managing administrator credentials.
 
 ---
 

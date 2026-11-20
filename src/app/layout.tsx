@@ -13,7 +13,26 @@ export const metadata: Metadata = {
   // noindex until SITE_INDEXING=enabled (see src/config/indexing.ts). Admin and /dev routes always set their own noindex.
   robots: robotsMetadata(),
   title: { default: "Sagar Traders", template: "%s | Sagar Traders" },
-  description: "Sagar Traders — product catalogue and quotation enquiries.",
+  description:
+    "Quality building materials and construction supplies. Browse indicative rates and request quotations online.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_IN",
+    url: "/",
+    siteName: "Sagar Traders",
+    title: "Sagar Traders",
+    description:
+      "Quality building materials and construction supplies. Browse indicative rates and request quotations online.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Sagar Traders",
+    description:
+      "Quality building materials and construction supplies. Browse indicative rates and request quotations online.",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

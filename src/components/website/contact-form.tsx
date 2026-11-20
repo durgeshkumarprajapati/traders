@@ -21,7 +21,11 @@ export function ContactForm() {
   const received = useRef<HTMLDivElement>(null);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [formMessage, setFormMessage] = useState<string | null>(null);
-  const [reference, setReference] = useState<string | null | undefined>(undefined); // undefined = nothing submitted yet
+  const [submissionResult, setSubmissionResult] = useState<{
+    reference: string | null;
+    mode?: "PERSISTED" | "EMAIL_FALLBACK";
+    message?: string;
+  } | null>(null);
   const [focusTick, setFocusTick] = useState(0);
   const { submit, pending } = useEnquirySubmit(submitContactEnquiryAction);
 
@@ -42,7 +46,7 @@ export function ContactForm() {
       message: get("message"),
     };
     const parsed = contactEnquirySchema.safeParse(values);
-    setReference(undefined);
+    setSubmissionResult(null);
     if (!parsed.success) {
       setErrors(toFieldErrors(parsed.error));
       setFormMessage(null);
@@ -53,7 +57,7 @@ export function ContactForm() {
     setFormMessage(null);
     submit({ ...values, website: get("website") }, (r) => {
       if (r.ok) {
-        setReference(r.reference);
+        setSubmissionResult({ reference: r.reference, mode: r.mode, message: r.message });
         formRef.current?.reset();
       } else {
         setErrors(r.code === "VALIDATION" ? r.fieldErrors : {});
@@ -77,7 +81,14 @@ export function ContactForm() {
       aria-label="General enquiry"
       aria-busy={pending}
     >
-      {reference !== undefined && <EnquiryReceived ref={received} reference={reference} />}
+      {submissionResult && (
+        <EnquiryReceived
+          ref={received}
+          reference={submissionResult.reference}
+          mode={submissionResult.mode}
+          message={submissionResult.message}
+        />
+      )}
       <FormErrorSummary ref={summary} messages={messages} />
       <HoneypotField />
       <Field label="Your name" required error={errors.name}>

@@ -5,8 +5,12 @@ import { Skeleton } from "@/components/ui/feedback";
 import { BulkEnquiryContent } from "@/components/website/bulk-enquiry-content";
 
 export const metadata: Metadata = {
-  title: "Bulk Enquiry",
-  description: "Request a quotation for several materials in one enquiry.",
+  title: "Bulk Quotation Enquiry",
+  description:
+    "Request a competitive quotation for commercial construction materials and hardware supplies in one streamlined enquiry.",
+  alternates: {
+    canonical: "/bulk-enquiry",
+  },
 };
 
 export default function BulkEnquiryPage() {

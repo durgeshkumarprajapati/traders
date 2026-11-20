@@ -5,8 +5,12 @@ import { Breadcrumbs } from "@/components/ui/navigation-aids";
 import { ProductListing, ProductListingSkeleton } from "@/components/website/product-listing";
 
 export const metadata: Metadata = {
-  title: "Products",
-  description: "Browse building and construction materials with indicative rates.",
+  title: "Building Materials Catalogue",
+  description:
+    "Browse verified building and construction materials with indicative rates, specifications, and bulk quotation options.",
+  alternates: {
+    canonical: "/products",
+  },
 };
 
 export default function ProductsPage({

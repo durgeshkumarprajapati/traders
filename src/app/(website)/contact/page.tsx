@@ -5,8 +5,12 @@ import { Skeleton } from "@/components/ui/feedback";
 import { ContactContent } from "@/components/website/contact-content";
 
 export const metadata: Metadata = {
-  title: "Contact",
-  description: "Contact details and general enquiry form.",
+  title: "Contact & Store Location",
+  description:
+    "Get in touch with Sagar Traders for product inquiries, store location, working hours, and building material quotations.",
+  alternates: {
+    canonical: "/contact",
+  },
 };
 
 export default function ContactPage() {

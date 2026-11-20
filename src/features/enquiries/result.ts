@@ -4,6 +4,8 @@ export type EnquiryActionResult =
       ok: true;
       /** Reference number of the saved enquiry; null only when the submission was silently discarded (honeypot). */
       reference: string | null;
+      mode?: "PERSISTED" | "EMAIL_FALLBACK";
+      message?: string;
     }
   | { ok: false; code: "VALIDATION"; message: string; fieldErrors: Record<string, string> }
   | { ok: false; code: "RATE_LIMITED"; message: string; retryAfterSeconds: number }

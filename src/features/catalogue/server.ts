@@ -7,52 +7,81 @@ import {
 } from "@/features/settings/business-settings";
 import { logger } from "@/lib/logger";
 import { getSheetsSnapshot } from "./cache";
+import { getStaticCatalogue, getStaticSettings } from "./data/static-catalogue";
 import { toPublicCatalogue } from "./public";
 import type { CatalogueSnapshot } from "./types";
 import { toBusinessSettings, toViewCatalogue, type ViewCatalogue } from "./view";
 
+export type CatalogueSource = "LIVE" | "STATIC";
+
 export type CatalogueLoad =
-  | { ok: true; catalogue: ViewCatalogue; settings: BusinessSettings; fetchedAt: string }
+  | {
+      ok: true;
+      catalogue: ViewCatalogue;
+      settings: BusinessSettings;
+      source: CatalogueSource;
+      fetchedAt: string;
+    }
   | { ok: false };
 
 export type AdminCatalogueLoad =
   { ok: true; snapshot: CatalogueSnapshot } | { ok: false; error: string };
 
 /**
- * The ONLY entry point customer-facing code uses to read catalogue data (server components only).
+ * The single centralized entry point customer-facing code uses to read catalogue data.
  *
- *  - Reads the shared cached snapshot (`getSheetsSnapshot`): every page, layout slot and metadata call
- *    reuses the same cache entry, and React `cache()` additionally de-duplicates calls within one request
- *    (so a failing sheet is not retried once per layout slot).
- *  - Exposes only public data: active products, categories and brands. Write functions and Google
- *    clients are not reachable from here.
- *  - Deferred to request time with `connection()` (never read, and never cached as a failure, at build time).
- *  - On any failure returns `{ ok: false }` — callers show an honest "unavailable" state. It never
- *    falls back to sample data, and the error detail is logged (redacted), never returned.
+ * Implements strict resolution priority:
+ *  - Priority 1: Live Google Sheets catalogue when valid, successfully parsed products exist.
+ *  - Priority 2: Static fallback catalogue when Google Sheets fails, cannot connect, has missing
+ *    worksheets, returns API/auth errors, or contains no usable products.
+ *
+ * Guarantees the customer website never becomes empty or broken while preserving data integrity.
  */
 export const loadCatalogue = cache(async (): Promise<CatalogueLoad> => {
-  // Defer to REQUEST time. Without this, the cached read can run during `next build` prerender: the build
-  // would need credentials, and a failure could be baked into a static page as an "unavailable" message.
-  // (At request time this resolves immediately; repeated reads are served by the shared remote cache.)
   await connection();
   try {
     const snap = await getSheetsSnapshot();
+    const publicCat = toPublicCatalogue(snap);
+    const viewCat = toViewCatalogue(publicCat);
+
+    // If live Google Sheets returned valid active products, use LIVE catalogue
+    if (viewCat.products.length > 0) {
+      return {
+        ok: true,
+        catalogue: viewCat,
+        settings: toBusinessSettings(snap.settings),
+        source: "LIVE",
+        fetchedAt: snap.fetchedAt,
+      };
+    }
+
+    // Live Google Sheets reached but returned no usable products (e.g. empty or default Sheet1)
+    logger.warn("catalogue_live_empty_falling_back_to_static");
+    const liveSettings = toBusinessSettings(snap.settings);
     return {
       ok: true,
-      catalogue: toViewCatalogue(toPublicCatalogue(snap)),
-      settings: toBusinessSettings(snap.settings),
+      catalogue: getStaticCatalogue(),
+      settings: liveSettings.name ? liveSettings : getStaticSettings(),
+      source: "STATIC",
       fetchedAt: snap.fetchedAt,
     };
   } catch (error) {
-    logger.warn("catalogue_unavailable", { error });
-    return { ok: false };
+    // Google Sheets failure: API error, auth error, missing worksheets, network timeout
+    logger.warn("catalogue_unavailable_using_fallback", { error });
+    return {
+      ok: true,
+      catalogue: getStaticCatalogue(),
+      settings: getStaticSettings(),
+      source: "STATIC",
+      fetchedAt: new Date().toISOString(),
+    };
   }
 });
 
 /** Business settings, or "nothing configured" when the spreadsheet is unavailable. */
 export async function loadSettings(): Promise<BusinessSettings> {
   const r = await loadCatalogue();
-  return r.ok ? r.settings : emptyBusinessSettings();
+  return r.ok && r.source === "LIVE" ? r.settings : emptyBusinessSettings();
 }
 
 /**

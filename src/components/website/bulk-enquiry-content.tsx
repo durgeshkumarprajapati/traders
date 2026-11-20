@@ -3,7 +3,7 @@ import { Breadcrumbs } from "@/components/ui/navigation-aids";
 import { toEnquiryItems } from "@/features/catalogue/view";
 import { loadCatalogue } from "@/features/catalogue/server";
 import { BulkEnquiryForm } from "./bulk-enquiry-form";
-import { CatalogueEmpty, CatalogueUnavailable } from "./catalogue-states";
+import { CatalogueEmpty, CatalogueFallbackNotice, CatalogueUnavailable } from "./catalogue-states";
 
 /**
  * Bulk enquiry body. The picker list is built on the server from the validated public catalogue
@@ -32,6 +32,7 @@ export async function BulkEnquiryContent() {
         title="Bulk quotation enquiry"
         description="List the materials and quantities you need, add your details, and we will respond with a quotation. This is an enquiry, not an order."
       />
+      {load.ok && load.source === "STATIC" && <CatalogueFallbackNotice />}
       {body}
     </PageContainer>
   );

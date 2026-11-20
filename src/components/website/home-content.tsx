@@ -2,7 +2,7 @@ import { PageContainer } from "@/components/common/container";
 import { filterAndSort, parseListingParams } from "@/features/products/query";
 import { loadCatalogue } from "@/features/catalogue/server";
 import { emptyBusinessSettings, hasContactData } from "@/features/settings/business-settings";
-import { CatalogueEmpty, CatalogueUnavailable } from "./catalogue-states";
+import { CatalogueEmpty, CatalogueFallbackNotice, CatalogueUnavailable } from "./catalogue-states";
 import { HomeCarousel } from "./home-carousel";
 import {
   BrandsSection,
@@ -43,6 +43,11 @@ export async function HomeContent() {
       const featured = products.filter((p) => p.isFeatured);
       catalogueSections = (
         <>
+          {load.source === "STATIC" && (
+            <PageContainer className="pt-gutter-md">
+              <CatalogueFallbackNotice />
+            </PageContainer>
+          )}
           {categories.length > 0 && <CategoriesSection categories={categories} />}
           {featured.length > 0 && (
             <FeaturedProductsSection

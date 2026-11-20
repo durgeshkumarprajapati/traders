@@ -7,10 +7,14 @@ import { Notification } from "@/components/ui/notification";
  */
 export function EnquiryReceived({
   reference,
+  mode,
+  message,
   children,
   ref,
 }: {
   reference: string | null;
+  mode?: "PERSISTED" | "EMAIL_FALLBACK";
+  message?: string;
   children?: ReactNode;
   ref?: ComponentProps<"div">["ref"];
 }) {
@@ -21,7 +25,19 @@ export function EnquiryReceived({
       className="outline-none focus-visible:outline-2 focus-visible:outline-primary"
     >
       <Notification tone="success" title="Enquiry received">
-        {reference ? (
+        {mode === "EMAIL_FALLBACK" ? (
+          <>
+            <p>
+              {message ||
+                "Your enquiry has been sent successfully. Our team will contact you shortly."}
+            </p>
+            {reference && (
+              <p className="mt-1 text-body-sm text-on-surface-variant">
+                Reference code: <strong>{reference}</strong>
+              </p>
+            )}
+          </>
+        ) : reference ? (
           <>
             We have saved your enquiry. Your reference number is <strong>{reference}</strong>;
             please keep it for any follow-up.

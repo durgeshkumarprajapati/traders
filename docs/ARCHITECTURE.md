@@ -212,6 +212,59 @@ Enquiry status transitions are strictly enforced in `updateEnquiryStatusAction()
 - **Accessible Mobile Drawer:** Fully responsive slide-out navigation for mobile viewports, containing all navigation links, contact actions, enquiry counter, and direct phone/WhatsApp buttons with proper ARIA attributes.
 - **Graceful Null Degradation:** When phone or WhatsApp numbers are omitted from business settings, corresponding buttons degrade cleanly without empty links or broken layouts.
 
+## Phase 11: Catalogue Fallback, Reliable Enquiries, Security, SEO & Performance Architecture
+
+### 1. Catalogue Resolution Architecture & Static Fallback Pipeline
+
+The public customer-facing website never displays raw errors, blank states, or crashes due to Google Sheets outages, quota exhaustion, network timeouts, or unconfigured spreadsheets. Centralized resolution in `src/features/catalogue/server.ts` enforces a strict two-tier priority:
+
+```
+loadCatalogue() Request
+        │
+        ▼
+[Priority 1: Live Google Sheets]
+   ├── getSheetsSnapshot() with Next.js Cache Components
+   ├── Parse & Validate (Products, Categories, Brands, BusinessSettings)
+   └── Usable Products Count > 0 ?
+          ├── YES ──► return { ok: true, source: "LIVE", catalogue, settings }
+          └── NO  ──► Log Warning & Transition to Priority 2
+                          │
+                          ▼
+        [Priority 2: Static Fallback Catalogue]
+           ├── src/features/catalogue/data/static-catalogue.ts
+           ├── 20 Realistic Construction Materials across 6 Categories & 6 Brands
+           ├── Preserves Truthfulness: price: null ("Rate on request"), stock: "AVAILABLE_ON_ORDER"
+           └── return { ok: true, source: "STATIC", catalogue, settings }
+```
+
+- **Non-blocking Informational Banner (`CatalogueFallbackNotice`):** Rendered on `/`, `/products`, `/products/[slug]`, and `/bulk-enquiry` only when `source === "STATIC"`. Assures visitors of catalogue accuracy and encourages them to contact Sagar Traders directly for current rates and stock.
+- **Truthful Static Fallback Dataset:** 20 products across Cement, Steel & TMT, Bricks & Blocks, Sand & Aggregates, Hardware & Fasteners, and Plumbing & Sanitary. Zero fabricated prices (all `null`), zero fabricated SKUs (`null`), zero fabricated update timestamps (`null`), and stock status strictly set to `AVAILABLE_ON_ORDER`.
+
+### 2. Dual-Source Enquiry Resolution & Server-Side Integrity
+
+Enquiries submitted from both the live Google Sheets catalogue and the static fallback catalogue resolve seamlessly through `src/features/enquiries/server/snapshots.ts`:
+
+- Server-side authoritative validation: browser input supplies only `productId` and `quantity`. Product name, unit, category, brand, listed price, and stock status are strictly looked up server-side from the active catalogue snapshot.
+- For static fallback items: `listed_price` is persisted as `null` ("Rate on request", never coerced to 0), `stock_status` as `"AVAILABLE_ON_ORDER"`.
+- If an item was queued during fallback and the catalogue transitioned, or vice versa, resolution checks the primary resolved catalogue first and falls back to static catalogue. Any unknown product ID is rejected with `INVALID_PRODUCTS`.
+
+### 3. Degraded Email-Only Fallback with In-Memory Rate Limiting
+
+To guarantee lead preservation even during catastrophic Supabase database outages:
+
+- When `create_enquiry` fails or Supabase is unreachable: `submit.ts` activates `deliverEmailOnlyFallback()`.
+- Formats an explicit degraded email notification and dispatches directly via `sendWeb3FormsEmail()`.
+- Uses an in-memory sliding window rate limiter (max 5 submissions per IP per hour) when database rate-limiting tables are unreachable.
+- Returns `{ ok: true, reference: "ENQ-YYYY-FAL-XXXXXX", mode: "EMAIL_FALLBACK", message: "Your enquiry has been sent successfully. Our team will contact you shortly." }`. Does not claim database persistence.
+- If Web3Forms also fails: fails closed with `code: "UNAVAILABLE"` and preserves all entered form data for the user.
+
+### 4. SEO & Structured Data Architecture
+
+- **Dynamic XML Sitemap (`src/app/sitemap.ts`):** Serves `GET /sitemap.xml` with canonical URLs for `/`, `/products`, `/bulk-enquiry`, `/contact`, and dynamic detail routes `/products/[slug]` generated from the active catalogue.
+- **Crawler Directives (`src/app/robots.ts`):** Enforces strict indexing rules, permitting public pages while blocking `/admin`, `/api`, and `/dev`.
+- **OpenGraph & Twitter Cards (`src/app/layout.tsx`):** Complete site metadata with canonical base URL, OpenGraph title, description, and preview image fallbacks.
+- **Schema.org JSON-LD:** Structured `Product` data on `/products/[slug]`. Omit `offers` when price is null, preventing search engine penalties for unverified pricing claims.
+
 ## Foundation already in repo
 
 See `docs/FOUNDATION.md` and `docs/FOUNDATION_RECONCILIATION.md`. Token corrections were completed in Phase 1; remaining approved fixes are listed in `PROJECT_BLUEPRINT.md` §26.1 (not started).

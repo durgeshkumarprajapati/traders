@@ -44,7 +44,11 @@ export function BulkEnquiryForm({
   const [query, setQuery] = useState("");
   const [errors, setErrors] = useState<FieldErrors>({});
   const [formMessage, setFormMessage] = useState<string | null>(null);
-  const [reference, setReference] = useState<string | null | undefined>(undefined); // undefined = nothing submitted yet
+  const [submissionResult, setSubmissionResult] = useState<{
+    reference: string | null;
+    mode?: "PERSISTED" | "EMAIL_FALLBACK";
+    message?: string;
+  } | null>(null);
   const [focusTick, setFocusTick] = useState(0);
   const formRef = useRef<HTMLFormElement>(null);
   const summary = useRef<HTMLDivElement>(null);
@@ -87,7 +91,7 @@ export function BulkEnquiryForm({
     const next: FieldErrors = parsed.success ? {} : toFieldErrors(parsed.error);
     if (unavailable.length > 0)
       next.items = "Remove products that are no longer available from your list.";
-    setReference(undefined);
+    setSubmissionResult(null);
     setFormMessage(null);
     if (Object.keys(next).length > 0) {
       setErrors(next);
@@ -97,7 +101,7 @@ export function BulkEnquiryForm({
     setErrors({});
     submit({ ...values, website: get("website") }, (r) => {
       if (r.ok) {
-        setReference(r.reference);
+        setSubmissionResult({ reference: r.reference, mode: r.mode, message: r.message });
         enquiryList.clear();
         formRef.current?.reset();
       } else if (r.code === "VALIDATION") {
@@ -131,13 +135,18 @@ export function BulkEnquiryForm({
       aria-label="Bulk quotation enquiry"
     >
       <div className="space-y-gutter-lg lg:col-span-2">
-        {reference !== undefined && (
-          <EnquiryReceived ref={received} reference={reference}>
-            {reference && (
+        {submissionResult && (
+          <EnquiryReceived
+            ref={received}
+            reference={submissionResult.reference}
+            mode={submissionResult.mode}
+            message={submissionResult.message}
+          >
+            {submissionResult.reference && (
               <WhatsAppButton
                 hideIfUnavailable
                 number={whatsappNumber}
-                message={`Hello, I am following up on my enquiry ${reference}.`}
+                message={`Hello, I am following up on my enquiry ${submissionResult.reference}.`}
                 variant="outline"
                 size="sm"
               >

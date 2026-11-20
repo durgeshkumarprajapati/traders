@@ -43,11 +43,7 @@ export function SiteHeader({ settings }: { settings: BusinessSettings }) {
           <div className="flex items-center gap-gutter-md truncate">
             <span className="flex items-center gap-1.5 truncate">
               <MapPin aria-hidden className="size-3.5 text-secondary shrink-0" />
-              <span>
-                {settings.deliveryCoverage ||
-                  settings.address ||
-                  "Raipur Chhattisgarh"}
-              </span>
+              <span>{settings.deliveryCoverage || settings.address || "Raipur Chhattisgarh"}</span>
             </span>
             {settings.businessHours && (
               <span className="hidden lg:flex items-center gap-1.5 border-l border-border pl-3 truncate">

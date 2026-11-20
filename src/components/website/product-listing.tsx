@@ -10,7 +10,7 @@ import {
   paginate,
   parseListingParams,
 } from "@/features/products/query";
-import { CatalogueEmpty, CatalogueUnavailable } from "./catalogue-states";
+import { CatalogueEmpty, CatalogueFallbackNotice, CatalogueUnavailable } from "./catalogue-states";
 import { ProductCard } from "./product-card";
 import { ProductFilters } from "./product-filters";
 
@@ -55,6 +55,7 @@ export async function ProductListing({
         />
       </aside>
       <div className="lg:col-span-3">
+        {load.source === "STATIC" && <CatalogueFallbackNotice />}
         <p role="status" className="mb-gutter-md text-body-md text-on-surface-variant">
           {pg.total === 0
             ? "No products found."

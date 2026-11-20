@@ -215,6 +215,7 @@ export async function loadFrom(
     ok: true,
     catalogue: toViewCatalogue(toPublicCatalogue(snap)),
     settings: toBusinessSettings(snap.settings),
+    source: "LIVE",
     fetchedAt: snap.fetchedAt,
   };
 }

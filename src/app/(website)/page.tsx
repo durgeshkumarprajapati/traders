@@ -5,9 +5,12 @@ import { PageContainer } from "@/components/common/container";
 import { HomeContent } from "@/components/website/home-content";
 
 export const metadata: Metadata = {
-  title: "Home",
+  title: "Building Materials & Hardware Supplies",
   description:
-    "Building and construction materials: browse indicative rates and request a quotation.",
+    "Explore cement, TMT steel rebar, bricks, sand, plumbing, and construction materials with indicative rates. Request a quotation online.",
+  alternates: {
+    canonical: "/",
+  },
 };
 
 export default function HomePage() {

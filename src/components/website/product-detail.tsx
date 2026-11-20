@@ -8,7 +8,7 @@ import { findProductBySlug, relatedProducts } from "@/features/catalogue/view";
 import { loadCatalogue } from "@/features/catalogue/server";
 import { PRICE_DISCLAIMER } from "@/features/products/format";
 import { unitLabel } from "@/features/products/units";
-import { CatalogueUnavailable } from "./catalogue-states";
+import { CatalogueFallbackNotice, CatalogueUnavailable } from "./catalogue-states";
 import { ProductCard } from "./product-card";
 import { ProductEnquiryPanel } from "./product-enquiry-panel";
 import { ProductImage } from "./product-image";
@@ -22,7 +22,19 @@ export async function productMetadata(params: Params): Promise<Metadata> {
   const load = await loadCatalogue();
   const product = load.ok ? findProductBySlug(load.catalogue, slug) : undefined;
   if (!product) return { title: "Product" };
-  return { title: product.name, description: product.description.slice(0, 160) || undefined };
+  const desc = product.description.slice(0, 160) || undefined;
+  return {
+    title: product.name,
+    description: desc,
+    alternates: {
+      canonical: `/products/${product.slug}`,
+    },
+    openGraph: {
+      title: product.name,
+      description: desc,
+      ...(product.imageUrl ? { images: [{ url: product.imageUrl }] } : {}),
+    },
+  };
 }
 
 /**
@@ -58,8 +70,37 @@ export async function ProductDetail({ params }: { params: Params }) {
   const category = catalogue.categories.find((c) => c.id === product.categoryId);
   const related = relatedProducts(catalogue, product);
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.description,
+    ...(product.imageUrl ? { image: product.imageUrl } : {}),
+    ...(category ? { category: category.name } : {}),
+    ...(brand ? { brand: { "@type": "Brand", name: brand.name } } : {}),
+    ...(typeof product.price === "number" && product.price > 0
+      ? {
+          offers: {
+            "@type": "Offer",
+            price: product.price,
+            priceCurrency: "INR",
+            availability:
+              product.stockStatus === "IN_STOCK"
+                ? "https://schema.org/InStock"
+                : product.stockStatus === "OUT_OF_STOCK"
+                  ? "https://schema.org/OutOfStock"
+                  : "https://schema.org/PreOrder",
+          },
+        }
+      : {}),
+  };
+
   return (
     <PageContainer className="pb-section-lg">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <div className="pt-gutter-lg">
         <Breadcrumbs
           items={[
@@ -72,6 +113,7 @@ export async function ProductDetail({ params }: { params: Params }) {
           ]}
         />
       </div>
+      {load.source === "STATIC" && <CatalogueFallbackNotice className="mt-gutter-md" />}
       <div className="mt-gutter-lg grid gap-gutter-xl lg:grid-cols-2">
         <ProductImage
           src={product.imageUrl}
