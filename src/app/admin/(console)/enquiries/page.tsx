@@ -1,4 +1,3 @@
-import { connection } from "next/server";
 import { EnquiryListView } from "@/components/admin/enquiry-list-view";
 import { loadAdminEnquiries } from "@/features/admin/server/enquiries";
 
@@ -17,7 +16,6 @@ interface PageProps {
 }
 
 export default async function AdminEnquiriesPage({ searchParams }: PageProps) {
-  await connection();
   const sp = await searchParams;
 
   const search = typeof sp.search === "string" ? sp.search : "";

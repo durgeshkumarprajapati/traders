@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import { connection } from "next/server";
 import { ProductForm } from "@/components/admin/product-form";
 import { loadAdminCatalogue } from "@/features/catalogue/server";
 
@@ -13,7 +12,6 @@ export default async function AdminEditProductPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await connection();
   const { id } = await params;
 
   const catResult = await loadAdminCatalogue();

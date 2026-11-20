@@ -1,4 +1,3 @@
-import { connection } from "next/server";
 import { CategoriesBrandsView } from "@/components/admin/categories-brands-view";
 import { loadAdminCatalogue } from "@/features/catalogue/server";
 
@@ -8,7 +7,6 @@ export const metadata = {
 };
 
 export default async function AdminCategoriesPage() {
-  await connection();
   const catResult = await loadAdminCatalogue();
 
   if (!catResult.ok) {

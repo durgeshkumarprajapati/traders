@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import { connection } from "next/server";
 import { EnquiryDetailView } from "@/components/admin/enquiry-detail-view";
 import { loadAdminEnquiryDetail } from "@/features/admin/server/enquiries";
 
@@ -13,7 +12,6 @@ interface PageProps {
 }
 
 export default async function AdminEnquiryDetailPage({ params }: PageProps) {
-  await connection();
   const { id } = await params;
 
   const enquiry = await loadAdminEnquiryDetail(id);

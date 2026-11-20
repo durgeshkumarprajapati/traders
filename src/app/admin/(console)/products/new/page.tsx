@@ -1,4 +1,3 @@
-import { connection } from "next/server";
 import { ProductForm } from "@/components/admin/product-form";
 import { loadAdminCatalogue } from "@/features/catalogue/server";
 
@@ -8,7 +7,6 @@ export const metadata = {
 };
 
 export default async function AdminNewProductPage() {
-  await connection();
   const catResult = await loadAdminCatalogue();
 
   if (!catResult.ok) {

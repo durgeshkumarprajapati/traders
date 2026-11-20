@@ -1,4 +1,3 @@
-import { connection } from "next/server";
 import { ProductListView } from "@/components/admin/product-list-view";
 import { loadAdminCatalogue } from "@/features/catalogue/server";
 
@@ -8,7 +7,6 @@ export const metadata = {
 };
 
 export default async function AdminProductsPage() {
-  await connection();
   const catResult = await loadAdminCatalogue();
 
   if (!catResult.ok) {
