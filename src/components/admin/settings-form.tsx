@@ -177,12 +177,14 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
       {/* Header */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-border pb-gutter-md">
         <div>
-          <h1 className="text-display-sm font-bold text-on-surface">Business Settings</h1>
+          <h1 className="text-headline-lg-mobile font-bold md:text-headline-lg text-on-surface">
+            Business Settings
+          </h1>
           <p className="text-body-md text-on-surface-variant">
             Configure contact details, operational hours, delivery area, and brand statements.
           </p>
         </div>
-        <Button type="submit" variant="primary" disabled={isPending}>
+        <Button type="submit" variant="primary" className="w-full sm:w-auto" disabled={isPending}>
           {isPending ? (
             <>
               <Spinner className="size-4 mr-2" /> Saving...
@@ -531,7 +533,7 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
             </div>
           ))}
         </CardBody>
-        <CardFooter className="flex items-center justify-between border-t border-border px-6 py-4 bg-surface-muted/30">
+        <CardFooter className="flex flex-col-reverse gap-3 border-t border-border bg-surface-muted/30 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <span className="text-body-xs text-on-surface-variant">
             Changes persist directly to Google Sheets BusinessSettings worksheet.
           </span>

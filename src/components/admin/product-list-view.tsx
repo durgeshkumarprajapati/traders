@@ -131,7 +131,9 @@ export function ProductListView({ products, categories, brands }: ProductListVie
       {/* Header & Actions */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-border pb-gutter-md">
         <div>
-          <h1 className="text-display-sm font-bold text-on-surface">Products</h1>
+          <h1 className="text-headline-lg-mobile font-bold md:text-headline-lg text-on-surface">
+            Products
+          </h1>
           <p className="text-body-md text-on-surface-variant">
             Manage material inventory, prices, units, and catalogue availability.
           </p>
@@ -223,10 +225,10 @@ export function ProductListView({ products, categories, brands }: ProductListVie
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-border/60">
-          <div className="flex items-center gap-2">
+          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
             <span className="text-body-xs text-on-surface-variant font-medium">Status:</span>
             <Select
-              className="h-8 text-xs w-36"
+              className="h-10 w-full sm:h-8 sm:w-36"
               aria-label="Filter by Active Status"
               value={activeFilter}
               onChange={(e) => {
@@ -239,9 +241,9 @@ export function ProductListView({ products, categories, brands }: ProductListVie
               <option value="inactive">Inactive Only</option>
             </Select>
 
-            <span className="text-body-xs text-on-surface-variant font-medium ml-2">Sort:</span>
+            <span className="text-body-xs text-on-surface-variant font-medium sm:ml-2">Sort:</span>
             <Select
-              className="h-8 text-xs w-44"
+              className="h-10 w-full sm:h-8 sm:w-44"
               aria-label="Sort products"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
@@ -254,7 +256,7 @@ export function ProductListView({ products, categories, brands }: ProductListVie
             </Select>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <span className="text-body-xs text-on-surface-variant">
               Showing <strong>{filteredProducts.length}</strong> of {products.length} products
             </span>
@@ -266,7 +268,7 @@ export function ProductListView({ products, categories, brands }: ProductListVie
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 text-xs text-primary"
+                className="text-primary sm:h-8"
                 onClick={handleResetFilters}
               >
                 Reset filters
@@ -279,8 +281,8 @@ export function ProductListView({ products, categories, brands }: ProductListVie
       {/* Product Table */}
       <div className="rounded-md border border-border bg-surface overflow-hidden">
         {paginatedProducts.length > 0 ? (
-          <div className="overflow-x-auto">
-            <Table>
+          <div>
+            <Table stacked>
               <THead>
                 <Tr>
                   <Th>Material / SKU</Th>
@@ -303,38 +305,40 @@ export function ProductListView({ products, categories, brands }: ProductListVie
                     <Tr key={p.id}>
                       <Td>
                         <div className="font-semibold text-on-surface">{p.name}</div>
-                        <div className="flex items-center gap-2 mt-0.5">
+                        <div className="mt-0.5 flex flex-wrap items-center gap-2">
                           <span className="text-body-xs text-on-surface-variant font-mono">
                             {p.slug}
                           </span>
                           {p.sku && (
-                            <span className="text-[10px] font-mono bg-surface-muted px-1.5 py-0.5 rounded border border-border font-medium">
+                            <span className="text-label-md font-mono bg-surface-muted px-1.5 py-0.5 rounded border border-border font-medium">
                               SKU: {p.sku}
                             </span>
                           )}
                           {p.isFeatured && (
-                            <Badge
-                              tone="warning"
-                              appearance="solid"
-                              className="text-[10px] px-1 py-0"
-                            >
+                            <Badge tone="warning" appearance="solid" className="px-1 py-0">
                               Featured
                             </Badge>
                           )}
                         </div>
                       </Td>
-                      <Td className="text-body-sm">{catName}</Td>
-                      <Td className="text-body-sm">{brandName}</Td>
-                      <Td className="text-body-sm font-semibold">
+                      <Td label="Category" className="text-body-sm">
+                        {catName}
+                      </Td>
+                      <Td label="Brand" className="text-body-sm">
+                        {brandName}
+                      </Td>
+                      <Td label="Listed rate" className="text-body-sm font-semibold">
                         {formatPrice(p.price) ?? (
                           <span className="text-on-surface-variant font-normal">On request</span>
                         )}
                       </Td>
-                      <Td className="text-body-sm">{unitLabel(p.unit)}</Td>
-                      <Td>
+                      <Td label="Unit" className="text-body-sm">
+                        {unitLabel(p.unit)}
+                      </Td>
+                      <Td label="Stock status">
                         <StockBadge status={p.stockStatus} />
                       </Td>
-                      <Td>
+                      <Td label="Status">
                         {p.isActive ? (
                           <Badge tone="success" appearance="solid" className="text-xs">
                             Active
@@ -345,11 +349,14 @@ export function ProductListView({ products, categories, brands }: ProductListVie
                           </Badge>
                         )}
                       </Td>
-                      <Td className="text-body-xs text-on-surface-variant whitespace-nowrap">
+                      <Td
+                        label="Last updated"
+                        className="text-body-xs text-on-surface-variant md:whitespace-nowrap"
+                      >
                         {formatUpdated(p.updatedAt) ?? "—"}
                       </Td>
-                      <Td className="text-right whitespace-nowrap">
-                        <div className="flex items-center justify-end gap-1">
+                      <Td className="md:text-right md:whitespace-nowrap">
+                        <div className="flex flex-wrap items-center gap-1 md:justify-end">
                           <ButtonLink
                             href={`/admin/products/${p.id}/edit`}
                             variant="ghost"
@@ -402,7 +409,7 @@ export function ProductListView({ products, categories, brands }: ProductListVie
 
         {/* Pagination controls */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-border px-4 py-3 bg-surface-muted/30">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border bg-surface-muted/30 px-4 py-3">
             <span className="text-body-xs text-on-surface-variant">
               Page {page} of {totalPages}
             </span>

@@ -98,3 +98,11 @@ Accessibility note for inline `sr-only` text: put the separating space **outside
 | `ProductForm` (`src/components/admin`)          | Add/edit form with auto slug derivation, SKU checks, positive price validation, and canonical unit selector                                          | Enforces custom unit label when `CUSTOM` code is selected; optimistic locking via `expectedUpdatedAt`.               |
 | `CategoriesBrandsView` (`src/components/admin`) | Consolidated category and brand management view with tabs, creation/edit modals, and active product dependency protection                            | Prevents deactivating categories/brands that active products reference.                                              |
 | `SettingsForm` (`src/components/admin`)         | Comprehensive settings editor for profile, contacts, operations, announcement banner, social links, and 6 Why Choose Us pairs                        | Enforces complete pairs (title + description) for Why Choose Us cards; saves directly to `BusinessSettings` sheet.   |
+
+## Responsive additions (final responsive phase)
+
+- **`<Table stacked>`** (`src/components/ui/table.tsx`): below `md` each row becomes a labelled card (no hidden data, no horizontal scroll). Give every `Td` a `label` (the column name shown above its value); the primary cell and the actions cell may omit it. Roles (`table/rowgroup/row/columnheader/cell`) are added so semantics survive `display: block`. Without `stacked` a table scrolls inside its own wrapper (use only for genuinely tabular data, e.g. the specification list).
+- **`AdminMobileNav`** (`src/components/admin/admin-mobile-nav.tsx`): sticky top bar + drawer shown below `lg`; the permanent sidebar is `hidden lg:flex`. `AdminAccount` (user + sign-out) is shared by both.
+- **Touch targets:** `Button`, `Input`, `Select`, tabs, checkbox/radio use `pointer-coarse:` variants to reach 44px on touch devices; mouse/desktop sizes are unchanged. Form controls use 16px text below `md` (prevents iOS focus-zoom).
+- **Dialogs/drawers:** `Modal` is `w-[calc(100%-2rem)] max-h-[calc(100dvh-2rem)]` and scrolls; `Drawer` is full-width up to 28rem; page scroll is locked while any `<dialog>` is open (`html:has(dialog[open])` in `globals.css`).
+- **Toasts** are inset `16px` from both edges and respect the bottom safe-area inset.

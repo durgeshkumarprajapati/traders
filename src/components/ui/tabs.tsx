@@ -65,7 +65,7 @@ export function Tabs({
               onClick={() => setActive(t.id)}
               onKeyDown={(e) => onKeyDown(e, i)}
               className={cn(
-                "-mb-px inline-flex items-center gap-2 border-b-2 px-1 py-gutter-sm text-label-lg whitespace-nowrap transition-colors [&>svg]:size-4",
+                "-mb-px inline-flex shrink-0 items-center gap-2 border-b-2 px-1 py-gutter-sm pointer-coarse:min-h-11 text-label-lg whitespace-nowrap transition-colors [&>svg]:size-4",
                 selected
                   ? "border-primary text-primary"
                   : "border-transparent text-on-surface-variant hover:text-on-surface",

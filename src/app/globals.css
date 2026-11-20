@@ -5,6 +5,14 @@
 @layer base {
   html {
     color-scheme: light;
+    /* Anchor targets are not hidden behind the sticky header. */
+    scroll-padding-top: 6.5rem;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  /* Lock page scroll behind an open modal / drawer (native <dialog> does not do this). */
+  html:has(dialog[open]) {
+    overflow: hidden;
   }
   body {
     background: var(--color-surface);
@@ -12,6 +20,15 @@
     font-family: var(--font-sans);
     font-size: var(--text-body-md);
     line-height: var(--text-body-md--line-height);
+    /* Long words, URLs and emails wrap instead of widening the page. */
+    overflow-wrap: break-word;
+  }
+  /* Unclassed body copy is 16px on phones (comfortable reading); 14px from `md`. */
+  @media (max-width: 767.98px) {
+    body {
+      font-size: var(--text-body-lg);
+      line-height: var(--text-body-lg--line-height);
+    }
   }
   :focus-visible {
     outline: 2px solid var(--color-primary);

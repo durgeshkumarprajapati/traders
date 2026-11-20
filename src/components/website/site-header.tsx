@@ -96,20 +96,20 @@ export function SiteHeader({ settings }: { settings: BusinessSettings }) {
       </div>
 
       {/* Main Header Bar */}
-      <PageContainer className="flex h-20 items-center justify-between gap-gutter-md">
+      <PageContainer className="flex h-16 items-center justify-between gap-gutter-sm sm:h-20 sm:gap-gutter-md">
         {/* Brand Identity / Logo */}
         <Link
           href="/"
-          className="flex items-center gap-3 shrink-0 group focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+          className="group flex min-w-0 items-center gap-3 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
           <div className="size-10 rounded-DEFAULT bg-primary text-secondary flex items-center justify-center font-bold shadow-xs relative overflow-hidden shrink-0 border border-primary/20">
             <Building2 aria-hidden className="size-6 text-secondary" />
           </div>
-          <div className="flex flex-col">
-            <span className="text-headline-sm font-bold tracking-tight text-primary leading-tight group-hover:text-primary/90 transition-colors">
+          <div className="flex min-w-0 flex-col">
+            <span className="truncate text-title-lg font-bold tracking-tight text-primary leading-tight transition-colors group-hover:text-primary/90 sm:text-headline-sm">
               {settings.name}
             </span>
-            <span className="text-label-sm text-on-surface-variant truncate max-w-[220px] sm:max-w-xs font-normal">
+            <span className="hidden truncate text-label-sm font-normal text-on-surface-variant sm:block sm:max-w-xs">
               {settings.tagline || "Building Materials & Hardware Supplier"}
             </span>
           </div>
@@ -136,7 +136,7 @@ export function SiteHeader({ settings }: { settings: BusinessSettings }) {
         </nav>
 
         {/* Streamlined Header Actions */}
-        <div className="flex items-center gap-2.5 sm:gap-3">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           {/* Enquiry List / Cart Button */}
           <EnquiryListLink className="flex items-center gap-1.5 font-medium text-body-sm px-3 py-2 border border-border rounded-DEFAULT hover:bg-surface-muted transition-colors">
             <span className="hidden sm:inline font-label text-label-md">Enquiry List</span>
@@ -158,9 +158,9 @@ export function SiteHeader({ settings }: { settings: BusinessSettings }) {
           {/* Quick Quote Primary CTA Button */}
           <Link
             href="/bulk-enquiry"
-            className="inline-flex items-center justify-center gap-2 h-10 px-4 sm:px-5 bg-primary text-on-primary font-label text-label-md font-semibold rounded-DEFAULT hover:bg-primary/90 transition-colors shadow-xs"
+            className="hidden items-center justify-center gap-2 h-10 px-4 sm:inline-flex sm:px-5 pointer-coarse:h-11 bg-primary text-on-primary font-label text-label-md font-semibold rounded-DEFAULT hover:bg-primary/90 transition-colors shadow-xs"
           >
-            <ClipboardList aria-hidden className="size-4 text-secondary hidden sm:inline" />
+            <ClipboardList aria-hidden className="size-4 text-secondary" />
             <span>Quick Quote</span>
           </Link>
 

@@ -38,7 +38,7 @@ export function ProductCard({
       </div>
       <CardBody className="flex flex-1 flex-col justify-between p-5">
         <div>
-          <div className="mb-1 flex items-center justify-between text-body-sm text-on-surface-variant">
+          <div className="mb-1 flex flex-wrap items-center justify-between gap-x-2 text-body-sm text-on-surface-variant">
             <span>{brand?.name ?? category?.name}</span>
             {product.sku && <span className="text-label-sm">SKU: {product.sku}</span>}
           </div>

@@ -147,7 +147,7 @@ export function ProductForm({ initialData, categories, brands }: ProductFormProp
   return (
     <form onSubmit={handleSubmit} className="max-w-4xl space-y-gutter-lg pb-section-lg">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-border pb-gutter-md">
+      <div className="flex flex-wrap items-center justify-between gap-gutter-md border-b border-border pb-gutter-md">
         <div>
           <Link
             href="/admin/products"
@@ -155,7 +155,7 @@ export function ProductForm({ initialData, categories, brands }: ProductFormProp
           >
             <ArrowLeft className="size-4" aria-hidden /> Back to products
           </Link>
-          <h1 className="text-display-sm font-bold text-on-surface">
+          <h1 className="text-headline-lg-mobile font-bold md:text-headline-lg text-on-surface">
             {isEditing ? `Edit Product: ${initialData?.name ?? ""}` : "Add New Material"}
           </h1>
           <p className="text-body-md text-on-surface-variant">
@@ -384,11 +384,11 @@ export function ProductForm({ initialData, categories, brands }: ProductFormProp
             />
           </div>
         </CardBody>
-        <CardFooter className="flex items-center justify-between border-t border-border px-6 py-4 bg-surface-muted/30">
-          <ButtonLink href="/admin/products" variant="outline">
+        <CardFooter className="flex flex-col-reverse gap-3 border-t border-border bg-surface-muted/30 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <ButtonLink href="/admin/products" variant="outline" className="w-full sm:w-auto">
             Cancel
           </ButtonLink>
-          <Button type="submit" variant="primary" disabled={isPending}>
+          <Button type="submit" variant="primary" className="w-full sm:w-auto" disabled={isPending}>
             {isPending ? (
               <>
                 <Spinner className="size-4 mr-2" /> Saving...

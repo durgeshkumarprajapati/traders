@@ -68,7 +68,9 @@ export function EnquiryListView({
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-headline-xl font-bold text-on-surface">Customer Enquiries</h1>
+          <h1 className="text-headline-lg-mobile font-bold md:text-headline-xl text-on-surface">
+            Customer Enquiries
+          </h1>
           <p className="mt-1 text-body-md text-on-surface-variant">
             Review commercial quotation requests and general customer enquiries submitted through
             the website.
@@ -180,8 +182,8 @@ export function EnquiryListView({
       {/* Enquiries Table */}
       <Card>
         <CardBody className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
+          <div>
+            <Table stacked>
               <THead>
                 <Tr>
                   <Th>Reference</Th>
@@ -224,7 +226,7 @@ export function EnquiryListView({
                 ) : (
                   enquiries.map((enquiry) => (
                     <Tr key={enquiry.id} className="hover:bg-surface-muted/50 transition-colors">
-                      <Td className="font-mono font-medium text-primary">
+                      <Td label="Reference" className="font-mono font-medium text-primary">
                         <Link
                           href={`/admin/enquiries/${enquiry.id}`}
                           className="hover:underline focus-visible:outline-2 focus-visible:outline-secondary"
@@ -232,19 +234,19 @@ export function EnquiryListView({
                           {enquiry.reference}
                         </Link>
                       </Td>
-                      <Td>
+                      <Td label="Customer">
                         <div className="font-medium text-on-surface">{enquiry.customerName}</div>
                         <div className="flex items-center gap-1 text-body-xs text-on-surface-variant">
                           <Phone aria-hidden="true" className="size-3" />
                           <a
                             href={`tel:${enquiry.mobile}`}
-                            className="hover:text-primary hover:underline"
+                            className="inline-flex min-h-8 items-center hover:text-primary hover:underline pointer-coarse:min-h-11"
                           >
                             {enquiry.mobile}
                           </a>
                         </div>
                       </Td>
-                      <Td>
+                      <Td label="Type">
                         <Badge
                           tone={enquiry.type === "BULK" ? "primary" : "neutral"}
                           appearance="outline"
@@ -252,23 +254,26 @@ export function EnquiryListView({
                           {enquiry.type === "BULK" ? "Bulk Order" : "General"}
                         </Badge>
                       </Td>
-                      <Td className="text-body-sm text-on-surface">
+                      <Td label="Materials" className="text-body-sm text-on-surface">
                         {enquiry.type === "BULK" ? (
                           <span className="font-medium">{enquiry.itemCount} items</span>
                         ) : (
                           <span className="text-on-surface-variant italic">Direct message</span>
                         )}
                       </Td>
-                      <Td className="text-body-sm text-on-surface-variant whitespace-nowrap">
+                      <Td
+                        label="Date & time"
+                        className="text-body-sm text-on-surface-variant md:whitespace-nowrap"
+                      >
                         {new Date(enquiry.createdAt).toLocaleString("en-IN", {
                           dateStyle: "medium",
                           timeStyle: "short",
                         })}
                       </Td>
-                      <Td>
+                      <Td label="Status">
                         <EnquiryStatusBadge status={enquiry.status} />
                       </Td>
-                      <Td className="text-right">
+                      <Td className="md:text-right">
                         <ButtonLink
                           size="sm"
                           variant="outline"
@@ -287,7 +292,7 @@ export function EnquiryListView({
 
           {/* Pagination Controls */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between border-t border-border px-4 py-3 sm:px-6">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-4 py-3 sm:px-6">
               <Button
                 size="sm"
                 variant="outline"

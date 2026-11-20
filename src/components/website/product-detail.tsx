@@ -164,7 +164,10 @@ export async function ProductDetail({ params }: { params: Params }) {
             <TBody>
               {product.specifications.map((s) => (
                 <Tr key={s.label}>
-                  <Th scope="row" className="w-1/3 bg-surface-muted">
+                  <Th
+                    scope="row"
+                    className="w-2/5 bg-surface-muted align-top whitespace-normal sm:w-1/3"
+                  >
                     {s.label}
                   </Th>
                   <Td>{s.value}</Td>

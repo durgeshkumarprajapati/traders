@@ -245,9 +245,9 @@ export function BulkEnquiryForm({
                   return (
                     <li
                       key={i.productId}
-                      className="flex flex-wrap items-center justify-between gap-gutter-md py-gutter-md"
+                      className="relative flex flex-col gap-gutter-sm py-gutter-md sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-gutter-md"
                     >
-                      <div className="min-w-0 flex-1 basis-56">
+                      <div className="min-w-0 pr-12 sm:flex-1 sm:basis-56 sm:pr-0">
                         {c ? (
                           <>
                             <Link
@@ -291,6 +291,7 @@ export function BulkEnquiryForm({
                         type="button"
                         variant="ghost"
                         size="icon"
+                        className="absolute top-gutter-sm right-0 sm:static"
                         aria-label={`Remove ${c?.name ?? "unavailable product"}`}
                         onClick={() => enquiryList.remove(i.productId)}
                       >

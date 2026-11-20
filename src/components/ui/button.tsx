@@ -17,10 +17,11 @@ export const buttonVariants = cva(
         link: "h-auto px-0 text-primary underline-offset-4 hover:underline",
       },
       size: {
-        sm: "h-8 px-3",
-        md: "h-10 px-4",
+        // Touch devices (pointer: coarse) get >=44px targets; mouse/desktop sizes are unchanged.
+        sm: "h-8 px-3 pointer-coarse:h-11",
+        md: "h-10 px-4 pointer-coarse:h-11",
         lg: "h-12 px-7",
-        icon: "size-10 p-0",
+        icon: "size-10 p-0 pointer-coarse:size-11",
       },
     },
     defaultVariants: { variant: "primary", size: "md" },

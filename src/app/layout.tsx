@@ -1,9 +1,12 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { SkipLink } from "@/components/common/skip-link";
 import { robotsMetadata } from "@/config/indexing";
 import { publicEnv } from "@/lib/env/public";
 import "./globals.css";
+
+/** Explicit viewport: device width, 1x scale; pinch-zoom is NOT disabled (accessibility / 200% zoom). */
+export const viewport: Viewport = { width: "device-width", initialScale: 1 };
 
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
 

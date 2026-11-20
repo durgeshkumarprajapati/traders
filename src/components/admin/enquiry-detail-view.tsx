@@ -180,7 +180,7 @@ export function EnquiryDetailView({ enquiry: initialEnquiry }: EnquiryDetailView
             Back to Enquiries
           </ButtonLink>
           <div className="mt-2 flex flex-wrap items-center gap-3">
-            <h1 className="text-headline-xl font-bold font-mono text-primary">
+            <h1 className="text-headline-lg-mobile font-bold md:text-headline-xl font-mono text-primary">
               {enquiry.reference}
             </h1>
             <EnquiryStatusBadge status={enquiry.status} />
@@ -458,8 +458,8 @@ export function EnquiryDetailView({ enquiry: initialEnquiry }: EnquiryDetailView
             </span>
           </CardHeader>
           <CardBody className="p-0">
-            <div className="overflow-x-auto">
-              <Table>
+            <div>
+              <Table stacked>
                 <THead>
                   <Tr>
                     <Th className="w-12">#</Th>
@@ -481,28 +481,37 @@ export function EnquiryDetailView({ enquiry: initialEnquiry }: EnquiryDetailView
 
                     return (
                       <Tr key={item.id}>
-                        <Td className="text-body-xs text-on-surface-variant font-mono">
+                        <Td
+                          label="Item #"
+                          className="text-body-xs text-on-surface-variant font-mono"
+                        >
                           {item.position}
                         </Td>
                         <Td className="font-semibold text-on-surface">{item.productName}</Td>
-                        <Td className="text-body-sm text-on-surface-variant">
+                        <Td label="Brand" className="text-body-sm text-on-surface-variant">
                           {item.brandName || "—"}
                         </Td>
-                        <Td className="font-mono text-body-xs text-on-surface-variant">
+                        <Td label="SKU" className="font-mono text-body-xs text-on-surface-variant">
                           {item.sku || "—"}
                         </Td>
-                        <Td className="text-right font-medium text-on-surface">
+                        <Td label="Quantity" className="text-right font-medium text-on-surface">
                           {item.quantity} {item.unitLabel}
                         </Td>
-                        <Td className="text-right text-body-sm text-on-surface-variant">
+                        <Td
+                          label="Rate at submission"
+                          className="text-right text-body-sm text-on-surface-variant"
+                        >
                           {item.listedPrice !== null
                             ? formatPrice(item.listedPrice)
                             : "Rate on request"}
                         </Td>
-                        <Td className="text-right font-semibold text-on-surface">
+                        <Td
+                          label="Indicative total"
+                          className="text-right font-semibold text-on-surface"
+                        >
                           {lineTotal !== null ? formatPrice(lineTotal) : "—"}
                         </Td>
-                        <Td>
+                        <Td label="Stock status">
                           <StockBadge status={item.stockStatus} />
                         </Td>
                       </Tr>
@@ -602,7 +611,7 @@ export function EnquiryDetailView({ enquiry: initialEnquiry }: EnquiryDetailView
                   key={note.id}
                   className="rounded-lg border border-border bg-surface-muted/30 p-4 space-y-1.5"
                 >
-                  <div className="flex items-center justify-between text-body-xs">
+                  <div className="flex flex-wrap items-center justify-between gap-x-2 text-body-xs">
                     <span className="font-semibold text-primary">
                       {note.authorName || note.authorEmail || "Administrator"}
                     </span>

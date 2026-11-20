@@ -54,14 +54,14 @@ function DialogShell({
       className={cn(
         "bg-surface p-0 text-on-surface shadow-overlay backdrop:bg-on-surface/50",
         drawer
-          ? "fixed inset-y-0 right-0 left-auto m-0 h-dvh max-h-none w-full max-w-md border-l border-border"
-          : "m-auto w-full max-w-lg rounded-md border border-border",
+          ? "fixed inset-y-0 right-0 left-auto m-0 h-dvh max-h-none w-full max-w-[min(100%,28rem)] border-l border-border"
+          : "m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-lg overflow-y-auto rounded-md border border-border",
         className,
       )}
     >
       <div className={cn("flex flex-col", drawer && "h-full")}>
-        <header className="flex items-start justify-between gap-gutter-md border-b border-border p-gutter-md">
-          <div>
+        <header className="sticky top-0 z-10 flex items-start justify-between gap-gutter-md border-b border-border bg-surface p-gutter-md">
+          <div className="min-w-0 [overflow-wrap:anywhere]">
             <h2 id={titleId} className="text-headline-sm">
               {title}
             </h2>
@@ -74,7 +74,7 @@ function DialogShell({
           <Button
             variant="ghost"
             size="icon"
-            className="-m-2 size-8"
+            className="-m-1 size-10 pointer-coarse:size-11"
             aria-label="Close"
             onClick={onClose}
           >
@@ -82,10 +82,18 @@ function DialogShell({
           </Button>
         </header>
         {children && (
-          <div className={cn("p-gutter-md", drawer && "flex-1 overflow-y-auto")}>{children}</div>
+          <div
+            className={cn(
+              "p-gutter-md",
+              drawer &&
+                "min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[max(1rem,env(safe-area-inset-bottom))]",
+            )}
+          >
+            {children}
+          </div>
         )}
         {footer && (
-          <footer className="flex justify-end gap-gutter-sm border-t border-border p-gutter-md">
+          <footer className="flex flex-wrap justify-end gap-gutter-sm border-t border-border p-gutter-md">
             {footer}
           </footer>
         )}

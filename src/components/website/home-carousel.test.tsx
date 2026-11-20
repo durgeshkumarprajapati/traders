@@ -87,6 +87,16 @@ describe("HomeCarousel Component", () => {
     expect(screen.getByText(DEFAULT_CAROUSEL_SLIDES[0].title)).toBeInTheDocument();
   });
 
+  it("ignores mostly-vertical touch gestures so page scrolling never changes the slide", () => {
+    render(<HomeCarousel />);
+    const carousel = screen.getByRole("region", {
+      name: /Homepage Building Materials Highlights/i,
+    });
+    fireEvent.touchStart(carousel, { touches: [{ clientX: 200, clientY: 100 }] });
+    fireEvent.touchEnd(carousel, { changedTouches: [{ clientX: 150, clientY: 400 }] });
+    expect(screen.getByText(DEFAULT_CAROUSEL_SLIDES[0].title)).toBeInTheDocument();
+  });
+
   it("renders graceful fallback when images are not available on disk", () => {
     const slidesWithoutImages = [
       {

@@ -26,7 +26,9 @@ export function DashboardView({ data }: { data: AdminDashboardData }) {
       {/* Top Header */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-border pb-gutter-md">
         <div>
-          <h1 className="text-display-sm font-bold text-on-surface">Dashboard</h1>
+          <h1 className="text-headline-lg-mobile font-bold md:text-headline-lg text-on-surface">
+            Dashboard
+          </h1>
           <p className="text-body-md text-on-surface-variant">
             Operational overview and live status for Sagar Traders.
           </p>
@@ -194,7 +196,7 @@ export function DashboardView({ data }: { data: AdminDashboardData }) {
         {/* Recent Enquiries (2 Cols) */}
         <div className="lg:col-span-2 space-y-gutter-md">
           <Card className="border border-border bg-surface">
-            <CardHeader className="flex flex-row items-center justify-between border-b border-border px-5 py-4">
+            <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 border-b border-border px-5 py-4">
               <div>
                 <CardTitle className="text-title-lg">Recent Customer Enquiries</CardTitle>
                 <p className="text-body-sm text-on-surface-variant mt-0.5">
@@ -207,7 +209,7 @@ export function DashboardView({ data }: { data: AdminDashboardData }) {
             </CardHeader>
             <CardBody className="p-0">
               {enquiries && enquiries.recent.length > 0 ? (
-                <Table>
+                <Table stacked>
                   <THead>
                     <Tr>
                       <Th>Ref</Th>
@@ -221,12 +223,14 @@ export function DashboardView({ data }: { data: AdminDashboardData }) {
                   <TBody>
                     {enquiries.recent.map((e) => (
                       <Tr key={e.id}>
-                        <Td className="font-mono text-body-xs font-semibold">{e.reference}</Td>
-                        <Td>
+                        <Td label="Reference" className="font-mono text-body-xs font-semibold">
+                          {e.reference}
+                        </Td>
+                        <Td label="Customer">
                           <div className="font-medium text-on-surface">{e.customerName}</div>
                           <div className="text-body-xs text-on-surface-variant">{e.mobile}</div>
                         </Td>
-                        <Td>
+                        <Td label="Type">
                           <Badge
                             tone={e.type === "BULK" ? "primary" : "neutral"}
                             appearance="outline"
@@ -235,16 +239,16 @@ export function DashboardView({ data }: { data: AdminDashboardData }) {
                             {e.type}
                           </Badge>
                         </Td>
-                        <Td>
+                        <Td label="Status">
                           <EnquiryStatusBadge status={e.status} />
                         </Td>
-                        <Td className="text-body-xs text-on-surface-variant">
+                        <Td label="Received" className="text-body-xs text-on-surface-variant">
                           {formatUpdated(e.createdAt) ?? "Recent"}
                         </Td>
                         <Td>
                           <Link
                             href={`/admin/enquiries/${e.id}`}
-                            className="text-label-sm font-medium text-primary hover:underline"
+                            className="inline-flex min-h-8 items-center text-label-sm font-medium text-primary hover:underline pointer-coarse:min-h-11"
                           >
                             Details
                           </Link>
@@ -348,7 +352,7 @@ export function DashboardView({ data }: { data: AdminDashboardData }) {
       {/* Catalogue Data Issues / Quality Health */}
       {catalogue && (
         <Card className="border border-border bg-surface">
-          <CardHeader className="border-b border-border px-5 py-4 flex flex-row items-center justify-between">
+          <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 border-b border-border px-5 py-4">
             <div className="flex items-center gap-2">
               {catalogue.issues.length > 0 ? (
                 <AlertTriangle className="size-5 text-warning" aria-hidden />

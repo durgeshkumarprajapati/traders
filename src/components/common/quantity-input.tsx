@@ -43,7 +43,7 @@ export function QuantityInput({
         type="button"
         variant="outline"
         size="icon"
-        className="size-10"
+        className="size-10 pointer-coarse:size-11"
         aria-label={`Decrease ${label}`}
         onClick={() => step(-1)}
         disabled={value <= 1}
@@ -65,13 +65,13 @@ export function QuantityInput({
           if (e.target.value !== "" && Number.isFinite(n) && n > 0 && n <= MAX) onChange(n);
         }}
         onBlur={() => setText(String(value))}
-        className={cn(fieldClass, "h-10 w-24 px-2 text-center")}
+        className={cn(fieldClass, "h-10 w-24 px-2 text-center pointer-coarse:h-11")}
       />
       <Button
         type="button"
         variant="outline"
         size="icon"
-        className="size-10"
+        className="size-10 pointer-coarse:size-11"
         aria-label={`Increase ${label}`}
         onClick={() => step(1)}
       >

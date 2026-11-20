@@ -161,7 +161,7 @@ export function RatesSection({
         rates vary with haulage distance, volume thresholds, and applicable GST taxes.
       </div>
 
-      <Table aria-describedby="rates-disclaimer">
+      <Table stacked aria-describedby="rates-disclaimer">
         <caption className="sr-only">Indicative rates by product</caption>
         <THead>
           <Tr>
@@ -179,25 +179,25 @@ export function RatesSection({
         <TBody>
           {rows.map((p) => (
             <Tr key={p.id} interactive>
-              <Td>
+              <Td label="Material">
                 <Link
-                  className="font-medium hover:text-primary hover:underline"
+                  className="inline-flex min-h-8 items-center font-medium hover:text-primary hover:underline pointer-coarse:min-h-11"
                   href={`/products/${p.slug}`}
                 >
                   {p.name}
                 </Link>
               </Td>
-              <Td>{brands.find((b) => b.id === p.brandId)?.name ?? "—"}</Td>
-              <Td className="tabular-nums font-semibold text-primary">
+              <Td label="Brand">{brands.find((b) => b.id === p.brandId)?.name ?? "—"}</Td>
+              <Td label="Indicative rate" className="tabular-nums font-semibold text-primary">
                 {formatPrice(p.price) ?? (
                   <span className="font-normal text-on-surface-variant">Rate on request</span>
                 )}
               </Td>
-              <Td>{unitLabel(p.unit)}</Td>
-              <Td>
+              <Td label="Unit">{unitLabel(p.unit)}</Td>
+              <Td label="Availability">
                 <StockBadge status={p.stockStatus} />
               </Td>
-              <Td className="tabular-nums text-on-surface-variant">
+              <Td label="Last updated" className="tabular-nums text-on-surface-variant">
                 {formatUpdated(p.updatedAt) ?? "—"}
               </Td>
               <Td>
@@ -318,7 +318,7 @@ export function BulkEnquiryCtaSection({ settings }: { settings: BusinessSettings
               message={generalEnquiryMessage(settings.name)}
               size="lg"
               variant="outline"
-              className="border-on-primary/30 text-on-primary hover:bg-on-primary/10"
+              className="border-on-primary/60 bg-transparent text-on-primary hover:bg-on-primary/10"
             >
               WhatsApp Desk
             </WhatsAppButton>

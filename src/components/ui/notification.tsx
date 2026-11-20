@@ -46,7 +46,7 @@ export function Notification({
       {...props}
     >
       <Icon aria-hidden className={cn("mt-0.5 size-5 shrink-0", text)} />
-      <div className="flex-1 text-body-md">
+      <div className="min-w-0 flex-1 text-body-md [overflow-wrap:anywhere]">
         {title && <p className="text-title-md">{title}</p>}
         {children && (
           <div className={cn(title && "mt-0.5 text-on-surface-variant")}>{children}</div>
@@ -56,7 +56,7 @@ export function Notification({
         <Button
           variant="ghost"
           size="icon"
-          className="-m-1 size-7"
+          className="-m-1 size-8 pointer-coarse:size-11"
           aria-label="Dismiss"
           onClick={onDismiss}
         >
@@ -89,7 +89,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
       <div
         aria-live="polite"
-        className="fixed right-gutter-md bottom-gutter-md z-50 flex w-full max-w-sm flex-col gap-gutter-sm"
+        className="pointer-events-none fixed right-gutter-md bottom-[max(1rem,env(safe-area-inset-bottom))] left-gutter-md z-50 ml-auto flex max-w-sm flex-col gap-gutter-sm [&>*]:pointer-events-auto"
       >
         {toasts.map((t) => (
           <Notification

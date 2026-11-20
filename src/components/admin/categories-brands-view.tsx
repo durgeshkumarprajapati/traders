@@ -305,7 +305,7 @@ export function CategoriesBrandsView({ categories, brands, products }: Categorie
       icon: <Layers className="size-4" aria-hidden />,
       content: (
         <div className="space-y-4 pt-4">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center">
             <div className="w-full sm:w-72">
               <Input
                 type="text"
@@ -321,7 +321,7 @@ export function CategoriesBrandsView({ categories, brands, products }: Categorie
           </div>
 
           <div className="rounded-md border border-border bg-surface overflow-hidden">
-            <Table>
+            <Table stacked>
               <THead>
                 <Tr>
                   <Th>Order</Th>
@@ -337,10 +337,10 @@ export function CategoriesBrandsView({ categories, brands, products }: Categorie
                   const activeProdCount = categoryProductCount.get(c.id) ?? 0;
                   return (
                     <Tr key={c.id}>
-                      <Td className="font-mono text-body-xs font-semibold">
+                      <Td label="Order" className="font-mono text-body-xs font-semibold">
                         {c.displayOrder ?? "—"}
                       </Td>
-                      <Td>
+                      <Td label="Category">
                         <div className="font-semibold text-on-surface">{c.name}</div>
                         {c.description && (
                           <div className="text-body-xs text-on-surface-variant line-clamp-1">
@@ -348,11 +348,13 @@ export function CategoriesBrandsView({ categories, brands, products }: Categorie
                           </div>
                         )}
                       </Td>
-                      <Td className="font-mono text-body-xs text-on-surface-variant">{c.slug}</Td>
-                      <Td>
+                      <Td label="Slug" className="font-mono text-body-xs text-on-surface-variant">
+                        {c.slug}
+                      </Td>
+                      <Td label="Active products">
                         <span className="font-semibold text-on-surface">{activeProdCount}</span>
                       </Td>
-                      <Td>
+                      <Td label="Status">
                         {c.isActive ? (
                           <Badge tone="success" appearance="solid" className="text-xs">
                             Active
@@ -363,8 +365,8 @@ export function CategoriesBrandsView({ categories, brands, products }: Categorie
                           </Badge>
                         )}
                       </Td>
-                      <Td className="text-right">
-                        <div className="flex items-center justify-end gap-1">
+                      <Td className="md:text-right">
+                        <div className="flex flex-wrap items-center gap-1 md:justify-end">
                           <Button
                             variant="ghost"
                             size="sm"
@@ -416,7 +418,7 @@ export function CategoriesBrandsView({ categories, brands, products }: Categorie
       icon: <Tag className="size-4" aria-hidden />,
       content: (
         <div className="space-y-4 pt-4">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center">
             <div className="w-full sm:w-72">
               <Input
                 type="text"
@@ -432,7 +434,7 @@ export function CategoriesBrandsView({ categories, brands, products }: Categorie
           </div>
 
           <div className="rounded-md border border-border bg-surface overflow-hidden">
-            <Table>
+            <Table stacked>
               <THead>
                 <Tr>
                   <Th>Brand Name</Th>
@@ -447,7 +449,7 @@ export function CategoriesBrandsView({ categories, brands, products }: Categorie
                   const activeProdCount = brandProductCount.get(b.id) ?? 0;
                   return (
                     <Tr key={b.id}>
-                      <Td>
+                      <Td label="Brand">
                         <div className="font-semibold text-on-surface">{b.name}</div>
                         {b.description && (
                           <div className="text-body-xs text-on-surface-variant line-clamp-1">
@@ -455,11 +457,13 @@ export function CategoriesBrandsView({ categories, brands, products }: Categorie
                           </div>
                         )}
                       </Td>
-                      <Td className="font-mono text-body-xs text-on-surface-variant">{b.slug}</Td>
-                      <Td>
+                      <Td label="Slug" className="font-mono text-body-xs text-on-surface-variant">
+                        {b.slug}
+                      </Td>
+                      <Td label="Active products">
                         <span className="font-semibold text-on-surface">{activeProdCount}</span>
                       </Td>
-                      <Td>
+                      <Td label="Status">
                         {b.isActive ? (
                           <Badge tone="success" appearance="solid" className="text-xs">
                             Active
@@ -470,8 +474,8 @@ export function CategoriesBrandsView({ categories, brands, products }: Categorie
                           </Badge>
                         )}
                       </Td>
-                      <Td className="text-right">
-                        <div className="flex items-center justify-end gap-1">
+                      <Td className="md:text-right">
+                        <div className="flex flex-wrap items-center gap-1 md:justify-end">
                           <Button
                             variant="ghost"
                             size="sm"
@@ -521,7 +525,9 @@ export function CategoriesBrandsView({ categories, brands, products }: Categorie
     <div className="space-y-gutter-md">
       {/* Header */}
       <div className="border-b border-border pb-gutter-md">
-        <h1 className="text-display-sm font-bold text-on-surface">Categories & Brands</h1>
+        <h1 className="text-headline-lg-mobile font-bold md:text-headline-lg text-on-surface">
+          Categories & Brands
+        </h1>
         <p className="text-body-md text-on-surface-variant">
           Manage product taxonomy, manufacturers, display order, and active catalog relationships.
         </p>

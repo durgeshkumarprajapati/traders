@@ -5,7 +5,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 export const fieldClass =
-  "block w-full rounded border border-border bg-surface px-3 text-body-md text-on-surface placeholder:text-on-surface-variant transition-colors hover:border-on-surface-variant focus-visible:border-primary focus-visible:outline-1 focus-visible:outline-offset-0 disabled:cursor-not-allowed disabled:bg-surface-muted aria-invalid:border-error";
+  "block w-full rounded border border-border bg-surface px-3 text-body-lg md:text-body-md text-on-surface placeholder:text-on-surface-variant transition-colors hover:border-on-surface-variant focus-visible:border-primary focus-visible:outline-1 focus-visible:outline-offset-0 disabled:cursor-not-allowed disabled:bg-surface-muted aria-invalid:border-error";
 
 type InputProps = ComponentProps<"input"> & {
   /** Leading icon (decorative). */
@@ -28,7 +28,13 @@ export function Input({ icon, type = "text", className, ...props }: InputProps) 
       )}
       <input
         type={isPassword && shown ? "text" : type}
-        className={cn(fieldClass, "h-10", icon && "pl-10", isPassword && "pr-11", className)}
+        className={cn(
+          fieldClass,
+          "h-10 pointer-coarse:h-11",
+          icon && "pl-10",
+          isPassword && "pr-11",
+          className,
+        )}
         {...props}
       />
       {isPassword && (
@@ -37,7 +43,7 @@ export function Input({ icon, type = "text", className, ...props }: InputProps) 
           onClick={() => setShown((s) => !s)}
           aria-label={shown ? "Hide password" : "Show password"}
           aria-pressed={shown}
-          className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r text-on-surface-variant hover:text-on-surface"
+          className="absolute inset-y-0 right-0 flex w-11 min-w-11 items-center justify-center rounded-r text-on-surface-variant hover:text-on-surface"
         >
           {shown ? (
             <EyeOff aria-hidden className="size-4" />
@@ -57,14 +63,14 @@ export function Textarea({ className, ...props }: ComponentProps<"textarea">) {
 /** Native select, styled. (Searchable select is not designed — see docs/COMPONENT_USAGE.md.) */
 export function Select({ className, children, ...props }: ComponentProps<"select">) {
   return (
-    <select className={cn(fieldClass, "h-10 pr-8", className)} {...props}>
+    <select className={cn(fieldClass, "h-10 pr-8 pointer-coarse:h-11", className)} {...props}>
       {children}
     </select>
   );
 }
 
 const choiceClass =
-  "size-4 shrink-0 accent-primary border-border focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50";
+  "size-4 pointer-coarse:size-5 shrink-0 accent-primary border-border focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50";
 
 export function Checkbox({
   label,
@@ -72,7 +78,12 @@ export function Checkbox({
   ...props
 }: Omit<ComponentProps<"input">, "type"> & { label: ReactNode }) {
   return (
-    <label className={cn("inline-flex items-center gap-gutter-sm text-body-md", className)}>
+    <label
+      className={cn(
+        "inline-flex min-h-6 items-center gap-gutter-sm py-1 text-body-md pointer-coarse:min-h-11",
+        className,
+      )}
+    >
       <input type="checkbox" className={choiceClass} {...props} />
       {label}
     </label>
@@ -85,7 +96,12 @@ export function Radio({
   ...props
 }: Omit<ComponentProps<"input">, "type"> & { label: ReactNode }) {
   return (
-    <label className={cn("inline-flex items-center gap-gutter-sm text-body-md", className)}>
+    <label
+      className={cn(
+        "inline-flex min-h-6 items-center gap-gutter-sm py-1 text-body-md pointer-coarse:min-h-11",
+        className,
+      )}
+    >
       <input type="radio" className={choiceClass} {...props} />
       {label}
     </label>

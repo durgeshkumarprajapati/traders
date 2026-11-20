@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Menu } from "lucide-react";
 import { NavLink } from "@/components/common/nav-link";
-import { Button } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { Drawer } from "@/components/ui/modal";
 import { websiteNav } from "@/config/navigation";
 import type { ReactNode } from "react";
@@ -25,13 +25,21 @@ export function MobileNav({ actions }: { actions?: ReactNode }) {
         <Menu aria-hidden className="size-5" />
       </Button>
       <Drawer open={open} onClose={() => setOpen(false)} title="Menu">
+        <ButtonLink
+          href="/bulk-enquiry"
+          size="lg"
+          className="mb-gutter-md w-full"
+          onClick={() => setOpen(false)}
+        >
+          Get a quick quote
+        </ButtonLink>
         <nav aria-label="Mobile" className="flex flex-col gap-gutter-xs text-title-md">
           {websiteNav.map((i) => (
             <NavLink
               key={i.href}
               href={i.href}
               exact={i.href === "/"}
-              className="rounded px-3 py-3 hover:bg-surface-muted"
+              className="flex min-h-12 items-center rounded px-3 py-3 hover:bg-surface-muted"
               onClick={() => setOpen(false)}
             >
               {i.label}

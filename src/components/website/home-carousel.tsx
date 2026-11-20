@@ -97,7 +97,7 @@ export function HomeCarousel({
 }: HomeCarouselProps) {
   const [current, setCurrent] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
   const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
 
   const effectiveSlides = slides;
@@ -150,18 +150,19 @@ export function HomeCarousel({
 
   // Touch swipe handling for mobile
   const handleTouchStart = (e: TouchEvent<HTMLDivElement>) => {
-    setTouchStartX(e.touches[0].clientX);
+    setTouchStart({ x: e.touches[0].clientX, y: e.touches[0].clientY || 0 });
   };
 
   const handleTouchEnd = (e: TouchEvent<HTMLDivElement>) => {
-    if (touchStartX === null) return;
-    const touchEndX = e.changedTouches[0].clientX;
-    const diff = touchStartX - touchEndX;
-    if (Math.abs(diff) > 40) {
+    if (touchStart === null) return;
+    const diff = touchStart.x - e.changedTouches[0].clientX;
+    const vertical = Math.abs(touchStart.y - e.changedTouches[0].clientY) || 0;
+    // Only a clearly horizontal swipe changes the slide, so vertical page scrolling never does.
+    if (Math.abs(diff) > 40 && Math.abs(diff) > vertical) {
       if (diff > 0) next();
       else prev();
     }
-    setTouchStartX(null);
+    setTouchStart(null);
   };
 
   const hasImage = Boolean(currentSlide.imageSrc && !failedImages[currentSlide.id]);
@@ -213,15 +214,19 @@ export function HomeCarousel({
                   aria-hidden="true"
                 />
                 <input
-                  type="text"
+                  type="search"
                   name="q"
-                  placeholder="Search cement, 12mm TMT steel, AAC blocks, sand, or brand..."
-                  className="w-full border-0 bg-transparent py-2 pl-10 pr-3 text-body-md text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-0"
+                  aria-label="Search products"
+                  enterKeyHint="search"
+                  autoComplete="off"
+                  maxLength={100}
+                  placeholder="Search cement, TMT steel, AAC blocks, sand, or brand..."
+                  className="h-11 w-full min-w-0 border-0 bg-transparent py-2 pl-10 pr-3 text-body-lg text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-0 md:text-body-md"
                 />
               </div>
               <button
                 type="submit"
-                className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-md bg-primary px-5 font-label text-label-lg text-on-primary shadow-xs transition-colors hover:bg-primary/90"
+                className="inline-flex h-11 w-full shrink-0 items-center justify-center gap-2 rounded-md bg-primary px-5 sm:h-10 sm:w-auto font-label text-label-lg text-on-primary shadow-xs transition-colors hover:bg-primary/90"
               >
                 <span>Find Materials</span>
                 <ArrowRight className="size-4" aria-hidden="true" />
@@ -233,32 +238,32 @@ export function HomeCarousel({
               <span className="text-label-sm font-medium text-on-surface-variant">Popular:</span>
               <Link
                 href="/products?category=steel-tmt"
-                className="rounded-md border border-border bg-surface px-2.5 py-1 text-label-sm text-on-surface transition-colors hover:border-primary hover:text-primary"
+                className="inline-flex min-h-9 items-center rounded-md border border-border bg-surface px-3 py-1 text-label-md text-on-surface transition-colors hover:border-primary hover:text-primary pointer-coarse:min-h-11"
               >
                 Fe 550D TMT Bars
               </Link>
               <Link
                 href="/products?category=cement"
-                className="rounded-md border border-border bg-surface px-2.5 py-1 text-label-sm text-on-surface transition-colors hover:border-primary hover:text-primary"
+                className="inline-flex min-h-9 items-center rounded-md border border-border bg-surface px-3 py-1 text-label-md text-on-surface transition-colors hover:border-primary hover:text-primary pointer-coarse:min-h-11"
               >
                 PPC Grade Cement
               </Link>
               <Link
                 href="/products?category=bricks-blocks"
-                className="rounded-md border border-border bg-surface px-2.5 py-1 text-label-sm text-on-surface transition-colors hover:border-primary hover:text-primary"
+                className="inline-flex min-h-9 items-center rounded-md border border-border bg-surface px-3 py-1 text-label-md text-on-surface transition-colors hover:border-primary hover:text-primary pointer-coarse:min-h-11"
               >
                 AAC Blocks
               </Link>
               <Link
                 href="/products?category=sand"
-                className="rounded-md border border-border bg-surface px-2.5 py-1 text-label-sm text-on-surface transition-colors hover:border-primary hover:text-primary"
+                className="inline-flex min-h-9 items-center rounded-md border border-border bg-surface px-3 py-1 text-label-md text-on-surface transition-colors hover:border-primary hover:text-primary pointer-coarse:min-h-11"
               >
                 River Sand
               </Link>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-wrap items-center gap-3 pt-1">
+            <div className="flex flex-col gap-3 pt-1 min-[420px]:flex-row min-[420px]:flex-wrap min-[420px]:items-center">
               <ButtonLink
                 href="/bulk-enquiry"
                 size="lg"
@@ -278,17 +283,23 @@ export function HomeCarousel({
             </div>
 
             {/* Trust Metrics Strip */}
-            <div className="grid grid-cols-3 gap-4 border-t border-border pt-6">
+            <div className="grid grid-cols-3 gap-3 border-t border-border pt-6 sm:gap-4">
               <div>
-                <p className="text-headline-md font-bold text-primary">Direct Yard</p>
+                <p className="text-title-md font-bold text-primary sm:text-headline-md">
+                  Direct Yard
+                </p>
                 <p className="text-body-sm text-on-surface-variant">Commercial Loading</p>
               </div>
               <div>
-                <p className="text-headline-md font-bold text-primary">Quality Tested</p>
+                <p className="text-title-md font-bold text-primary sm:text-headline-md">
+                  Quality Tested
+                </p>
                 <p className="text-body-sm text-on-surface-variant">Standard Stock</p>
               </div>
               <div>
-                <p className="text-headline-md font-bold text-primary">Direct Freight</p>
+                <p className="text-title-md font-bold text-primary sm:text-headline-md">
+                  Direct Freight
+                </p>
                 <p className="text-body-sm text-on-surface-variant">Site Truck Dispatch</p>
               </div>
             </div>
@@ -316,7 +327,7 @@ export function HomeCarousel({
                         aria-label={`Go to slide ${idx + 1} of ${total}: ${s.badge}`}
                         onClick={() => goTo(idx)}
                         className={cn(
-                          "truncate px-2 py-2.5 text-center text-label-sm font-medium transition-colors",
+                          "min-h-11 truncate px-2 py-2.5 text-center text-label-md font-medium transition-colors",
                           isSelected
                             ? "border-b-2 border-primary bg-surface font-semibold text-primary"
                             : "text-on-surface-variant hover:text-on-surface",
@@ -330,7 +341,7 @@ export function HomeCarousel({
               )}
 
               {/* Spotlight Slide Container */}
-              <div className="relative flex h-72 items-center justify-center overflow-hidden bg-surface-muted">
+              <div className="relative flex h-52 touch-pan-y items-center justify-center overflow-hidden bg-surface-muted sm:h-72">
                 {hasImage ? (
                   <Image
                     src={currentSlide.imageSrc!}
@@ -364,7 +375,7 @@ export function HomeCarousel({
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between border-t border-border pt-3">
+                <div className="flex flex-col gap-3 border-t border-border pt-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <span className="block text-label-sm text-on-surface-variant">
                       Indicative Rate
@@ -383,7 +394,7 @@ export function HomeCarousel({
                       type="button"
                       onClick={prev}
                       aria-label="Previous slide"
-                      className="flex size-9 items-center justify-center rounded-md border border-border text-on-surface transition-colors hover:bg-surface-muted"
+                      className="flex size-11 shrink-0 items-center justify-center rounded-md border border-border text-on-surface transition-colors hover:bg-surface-muted sm:size-9 pointer-coarse:size-11"
                     >
                       <ChevronLeft className="size-5" />
                     </button>
@@ -391,7 +402,7 @@ export function HomeCarousel({
                       type="button"
                       onClick={next}
                       aria-label="Next slide"
-                      className="flex size-9 items-center justify-center rounded-md border border-border text-on-surface transition-colors hover:bg-surface-muted"
+                      className="flex size-11 shrink-0 items-center justify-center rounded-md border border-border text-on-surface transition-colors hover:bg-surface-muted sm:size-9 pointer-coarse:size-11"
                     >
                       <ChevronRight className="size-5" />
                     </button>
@@ -399,7 +410,7 @@ export function HomeCarousel({
                       href={currentSlide.primaryCta.href}
                       size="sm"
                       variant="primary"
-                      className="h-9 px-3.5"
+                      className="h-11 min-w-0 flex-1 px-3.5 sm:h-9 sm:flex-none"
                     >
                       {currentSlide.primaryCta.label}
                     </ButtonLink>
