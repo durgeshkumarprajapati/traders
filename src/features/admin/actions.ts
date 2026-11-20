@@ -1,5 +1,6 @@
 "use server";
 
+import { ALLOWED_STATUS_TRANSITIONS, ENQUIRY_STATUSES, type EnquiryStatus } from "./types";
 import { revalidatePath, revalidateTag, updateTag } from "next/cache";
 import { SHEETS_CACHE_TAG } from "@/features/catalogue/constants";
 import {
@@ -286,6 +287,120 @@ export async function updateBusinessSettingsAction(
       } catch (err) {
         handleWriteError(err, "Failed to update business settings.");
       }
+    },
+    clientOverride,
+  );
+}
+
+// ── Enquiry Mutations ──────────────────────────────────────────────────────────────────────────
+
+export async function updateEnquiryStatusAction(
+  enquiryId: string,
+  newStatus: EnquiryStatus,
+  clientOverride?: SupabaseClient,
+): Promise<AdminActionResult<{ id: string; status: EnquiryStatus }>> {
+  return withAdminAction(
+    "updateEnquiryStatus",
+    async (_admin, client) => {
+      if (!ENQUIRY_STATUSES.includes(newStatus)) {
+        throw new AppError("VALIDATION", `Invalid status: ${newStatus}`);
+      }
+
+      // Fetch current status to validate transition
+      const { data: current, error: fetchError } = await client
+        .from("enquiries")
+        .select("status")
+        .eq("id", enquiryId)
+        .maybeSingle();
+
+      if (fetchError || !current) {
+        throw new AppError("NOT_FOUND", "Enquiry not found.");
+      }
+
+      const currentStatus = current.status as EnquiryStatus;
+      if (currentStatus !== newStatus) {
+        const allowed = ALLOWED_STATUS_TRANSITIONS[currentStatus] ?? [];
+        if (!allowed.includes(newStatus)) {
+          throw new AppError(
+            "VALIDATION",
+            `Cannot transition enquiry status from ${currentStatus} to ${newStatus}. Allowed transitions: ${allowed.join(", ") || "none"}.`,
+          );
+        }
+      }
+
+      const { error: updateError } = await client
+        .from("enquiries")
+        .update({ status: newStatus, updated_at: new Date().toISOString() })
+        .eq("id", enquiryId);
+
+      if (updateError) {
+        throw new AppError("INTERNAL", `Failed to update enquiry status: ${updateError.message}`);
+      }
+
+      revalidatePath("/admin/enquiries");
+      revalidatePath(`/admin/enquiries/${enquiryId}`);
+      revalidatePath("/admin/dashboard");
+
+      return { id: enquiryId, status: newStatus };
+    },
+    clientOverride,
+  );
+}
+
+export async function addEnquiryNoteAction(
+  enquiryId: string,
+  body: string,
+  clientOverride?: SupabaseClient,
+): Promise<AdminActionResult<{ id: string; body: string }>> {
+  return withAdminAction(
+    "addEnquiryNote",
+    async (admin, client) => {
+      const cleanBody = body.trim();
+      if (!cleanBody || cleanBody.length > 2000) {
+        throw new AppError("VALIDATION", "Note content must be between 1 and 2000 characters.");
+      }
+
+      const { data, error } = await client
+        .from("enquiry_notes")
+        .insert({
+          enquiry_id: enquiryId,
+          author_id: admin.id,
+          body: cleanBody,
+        })
+        .select("id, body")
+        .single();
+
+      if (error || !data) {
+        throw new AppError("INTERNAL", `Failed to add internal note: ${error?.message}`);
+      }
+
+      revalidatePath(`/admin/enquiries/${enquiryId}`);
+      return { id: data.id, body: data.body };
+    },
+    clientOverride,
+  );
+}
+
+export async function retryNotificationAction(
+  outboxId: string,
+  clientOverride?: SupabaseClient,
+): Promise<AdminActionResult<{ retried: boolean; reason?: string }>> {
+  return withAdminAction(
+    "retryNotification",
+    async (_admin, client) => {
+      const { data, error } = await client.rpc("retry_notification", {
+        p_outbox_id: outboxId,
+      });
+
+      if (error) {
+        throw new AppError("INTERNAL", `Failed to retry notification: ${error.message}`);
+      }
+
+      revalidatePath("/admin/enquiries");
+      return {
+        retried: Boolean(data?.retried),
+        reason: data?.reason,
+      };
     },
     clientOverride,
   );

@@ -132,11 +132,23 @@ export async function requireAdminSession(client?: SupabaseClient): Promise<Admi
  */
 export async function withAdminAction<T>(
   actionName: string,
-  fn: (admin: AdminContext) => Promise<T>,
+  fn: (admin: AdminContext, client: SupabaseClient) => Promise<T>,
   clientOverride?: SupabaseClient,
 ): Promise<AdminActionResult<T>> {
   try {
-    const admin = await getAuthenticatedAdmin(clientOverride);
+    let client = clientOverride;
+    if (!client) {
+      try {
+        client = await createSupabaseServerClient();
+      } catch {
+        return {
+          ok: false,
+          code: "UNAUTHORIZED",
+          message: "Administrator authentication required.",
+        };
+      }
+    }
+    const admin = await getAuthenticatedAdmin(client);
     if (!admin) {
       return {
         ok: false,
@@ -144,7 +156,7 @@ export async function withAdminAction<T>(
         message: "Administrator authentication required.",
       };
     }
-    const data = await fn(admin);
+    const data = await fn(admin, client);
     return { ok: true, data };
   } catch (err) {
     if (err instanceof AppError) {

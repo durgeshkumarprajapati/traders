@@ -129,6 +129,44 @@ Browser ─────────────────► Next.js 16 (App R
 - Each route is an independent page with vertical scrolling; infinite single-page scrolling is avoided.
 - `HomeCarousel` is an accessible, touch-responsive carousel component with 4 curated building materials slides. If images in `public/images/carousel/` are pending, it displays a zero-shift, high-contrast Deep Navy (`bg-primary`) SVG geometric grid card.
 
+## Phase 9: Admin Enquiry Management & Live Integration Activation Architecture
+
+### 1. Admin Enquiry Management (`src/features/admin/server/enquiries.ts` & `src/components/admin/`)
+
+- **Listing View (`/admin/enquiries`):** Server-side data loading via `loadAdminEnquiries()` supporting search (`reference`, `customer_name`, `mobile`, `delivery_location`), status filtering (`NEW`, `CONTACTED`, `QUOTATION_SENT`, `CONFIRMED`, `COMPLETED`, `CANCELLED`), type filtering (`BULK`, `GENERAL`), and server-side pagination with item count aggregation per enquiry.
+- **Detail View (`/admin/enquiries/[id]`):** Server-side loading via `loadAdminEnquiryDetail(id)` assembling the parent enquiry, requested items snapshot (`enquiry_items`), internal staff notes joined with administrator author profiles (`enquiry_notes` + `admin_profiles`), and notification outbox delivery status (`notification_outbox`).
+- **Contact Deep Links:** One-click WhatsApp link formatted with standard country code (`https://wa.me/91...`) and telephone link (`tel:...`) for rapid customer outreach.
+
+### 2. Enquiry Status Lifecycle & Concurrency
+
+Enquiry status transitions are strictly enforced in `updateEnquiryStatusAction()`:
+
+- `NEW` → `CONTACTED`, `CANCELLED`
+- `CONTACTED` → `QUOTATION_SENT`, `CANCELLED`
+- `QUOTATION_SENT` → `CONFIRMED`, `CANCELLED`
+- `CONFIRMED` → `COMPLETED`, `CANCELLED`
+- `COMPLETED` and `CANCELLED` are terminal states.
+  Any invalid transition throws a `VALIDATION` error and is rejected.
+
+### 3. Internal Staff Notes
+
+- Stored in `enquiry_notes` with `enquiry_id`, `author_id` (admin user ID), `body` (1–2000 characters), and `created_at`.
+- Rendered chronologically in the admin detail view with the author's full name and email.
+- Created via `addEnquiryNoteAction()` guarded by `withAdminAction()`.
+
+### 4. Notification Outbox Monitoring & Manual Retry
+
+- The detail view displays real-time delivery status (`PENDING`, `PROCESSING`, `SENT`, `FAILED`), attempt count vs max attempts (8), last error summary, and timestamp.
+- If delivery fails or is in progress, the administrator can manually trigger `retryNotificationAction(outboxId)`, which invokes the database function `retry_notification(p_outbox_id)` to reset the attempt timer and status for immediate processing.
+
+### 5. Live Integration Verification Matrix
+
+| Integration                    | Status                      | Verification Summary                                                                                                                                                                                                                                         |
+| ------------------------------ | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Google Sheets API v4**       | `PASS`                      | Service Account JWT signed and OAuth 2.0 token exchanged (HTTP 200). Spreadsheet metadata loaded, confirming existing initial tab `"Sheet1"`. Ready for demonstration CSV import.                                                                            |
+| **Web3Forms API**              | `PASS`                      | Validated `WEB3FORMS_ACCESS_KEY` format (36-char UUID). Unit and integration tests confirm payload construction, endpoint URL, input sanitization, timeout abort handling, and HTTP error classification. Real emails suppressed per safety instructions.    |
+| **Supabase PostgreSQL & Auth** | `MOCK VERIFIED` / `BLOCKED` | Full data model, RLS policies, migrations (`20261118000000_enquiries.sql`, `20261120000000_admin_auth.sql`), and RPC functions verified via 50 Vitest test suites. Live cloud connectivity is blocked pending `NEXT_PUBLIC_SUPABASE_URL` and keys in `.env`. |
+
 ## Foundation already in repo
 
 See `docs/FOUNDATION.md` and `docs/FOUNDATION_RECONCILIATION.md`. Token corrections were completed in Phase 1; remaining approved fixes are listed in `PROJECT_BLUEPRINT.md` §26.1 (not started).

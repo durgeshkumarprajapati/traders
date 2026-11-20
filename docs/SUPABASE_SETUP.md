@@ -120,3 +120,22 @@ Once `is_active` is set to `false`, the user is immediately denied access on all
 6. **Direct API request protection:**
    - Make a direct `GET` request using curl: `curl -i http://localhost:3000/api/admin/session`
    - Expect HTTP status `401 Unauthorized` with JSON `{ "error": { "code": "UNAUTHORIZED", ... } }`.
+
+---
+
+## 5. Phase 9 Enquiry Management & Outbox RPC
+
+Phase 9 interacts with the following Supabase structures established in Phase 6:
+
+1. **`enquiries` & `enquiry_items`:**
+   - Populated on customer submission (`BULK` or `GENERAL`).
+   - Admin listing queries utilize `range()`, `count: "exact"`, and `.or()` filters.
+   - Status updates are performed via `updateEnquiryStatusAction()`.
+
+2. **`enquiry_notes`:**
+   - Staff notes inserted with `author_id` set to the authenticated admin's user ID.
+   - Joined with `admin_profiles:author_id(email, full_name)` to render author metadata.
+
+3. **`notification_outbox` & `retry_notification`:**
+   - Outbox records store delivery state (`PENDING`, `PROCESSING`, `SENT`, `FAILED`), retry count, and errors.
+   - The PostgreSQL stored function `public.retry_notification(p_outbox_id uuid)` safely resets a failed/stuck outbox notification to `PENDING` with `next_attempt_at = now()`, ready for processing.

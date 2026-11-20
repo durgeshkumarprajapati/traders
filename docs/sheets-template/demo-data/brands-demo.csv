@@ -1,0 +1,7 @@
+brand_id,brand_name,slug,logo_url,description,is_active
+brand-buildpro,BuildPro Materials,buildpro,,"Premium regional manufacturer of cementitious compounds and structural aggregates.",TRUE
+brand-durasteel,DuraSteel India,durasteel,,"Certified primary manufacturer of high-ductility Fe 550D reinforcement steel bars.",TRUE
+brand-primemasonry,Prime Masonry,prime-masonry,,"Industrial manufacturer of precision AAC autoclaved aerated concrete blocks and modular bricks.",TRUE
+brand-flowtech,FlowTech Pipes,flowtech,,"Engineered heavy-duty UPVC and CPVC plumbing systems and industrial drainage fittings.",TRUE
+brand-ecobind,EcoBind Chemicals,ecobind,,"Advanced construction chemicals, integral waterproofing compounds, and structural adhesives.",TRUE
+brand-generic,Generic / Unbranded,generic,,"Standard bulk commodity materials supplied directly from verified regional quarries and kilns.",TRUE

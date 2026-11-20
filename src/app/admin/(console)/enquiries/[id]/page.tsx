@@ -1,13 +1,25 @@
-import { PlaceholderPage, placeholderMetadata } from "@/components/common/placeholder-page";
+import { notFound } from "next/navigation";
+import { connection } from "next/server";
+import { EnquiryDetailView } from "@/components/admin/enquiry-detail-view";
+import { loadAdminEnquiryDetail } from "@/features/admin/server/enquiries";
 
-export const metadata = placeholderMetadata("Enquiry details");
+export const metadata = {
+  title: "Enquiry Details | Sagar Traders Admin",
+  robots: { index: false, follow: false },
+};
 
-export default function Page() {
-  return (
-    <PlaceholderPage
-      title="Enquiry details"
-      description="Enquiry detail, notes and notification status."
-      phase="Phase 9"
-    />
-  );
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default async function AdminEnquiryDetailPage({ params }: PageProps) {
+  await connection();
+  const { id } = await params;
+
+  const enquiry = await loadAdminEnquiryDetail(id);
+  if (!enquiry) {
+    notFound();
+  }
+
+  return <EnquiryDetailView enquiry={enquiry} />;
 }

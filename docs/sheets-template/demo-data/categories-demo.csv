@@ -1,0 +1,7 @@
+category_id,category_name,slug,description,image_url,display_order,is_active
+cat-cement,Cement,cement,"Ordinary Portland and Portland Pozzolana cement grades for all structural foundation and construction needs.",,1,TRUE
+cat-steel,Steel & TMT,steel-tmt,"High-yield strength Fe 550D and Fe 500D TMT reinforcement steel bars and structural binding wire.",,2,TRUE
+cat-bricks,Bricks & Blocks,bricks-blocks,"Standard kiln-burnt red clay bricks, AAC lightweight aerated concrete blocks, and high-strength fly ash bricks.",,3,TRUE
+cat-sand,Sand & Aggregates,sand-aggregates,"Washed river sand, manufactured M-sand, plastering sand, and graded blue metal crushed stone aggregates.",,4,TRUE
+cat-hardware,Hardware & Plumbing,hardware-plumbing,"CPVC/UPVC water supply pipes, drainage fittings, masonry binding wire, and construction hardware essentials.",,5,TRUE
+cat-other,Other Materials,other-materials,"Waterproofing chemical compounds, tile adhesives, construction joint mortars, and auxiliary building supplies.",,6,TRUE

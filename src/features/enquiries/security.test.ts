@@ -51,6 +51,7 @@ describe("Phase 6 credential boundaries", () => {
       .sort();
     expect(owners).toEqual([
       "features/admin/server/dashboard.ts",
+      "features/admin/server/enquiries.ts",
       "features/auth/actions.ts",
       "features/enquiries/server/deps.ts",
       "features/enquiries/server/email-template.ts",

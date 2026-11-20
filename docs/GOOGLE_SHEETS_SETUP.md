@@ -58,6 +58,16 @@ Reads are cached in the platform's shared cache (`use cache: remote`): refreshed
 - Sheets has no transactions or unique constraints: avoid editing the same row manually while an admin is saving it.
 - **Backups:** use _File → Version history_ (name a version before bulk edits) and periodically _File → Download → .xlsx_ to a safe place. Restoring a version in Sheets is the rollback for data mistakes; the app picks it up within the cache window.
 
+## 6. Demonstration Data (`docs/sheets-template/demo-data/`)
+
+To quickly bootstrap a full product catalog with realistic construction materials, copy-ready CSV files are available in `docs/sheets-template/demo-data/`:
+
+- `categories-demo.csv`: 6 core building categories (Cement, Bricks & Blocks, Steel & TMT, Sand & Aggregates, Hardware & Plumbing, Other Materials).
+- `brands-demo.csv`: 6 generic, unbranded manufacturer labels (`BuildPro`, `DuraSteel`, `PrimeMasonry`, etc. without unverified dealership claims).
+- `products-demo.csv`: 22 realistic items with valid prices, units, stock statuses, and valid JSON specifications.
+- `business-settings-demo.csv`: Store settings, contact information, delivery coverage, and 6 Why Choose Us value points.
+- `README.md`: Step-by-step import instructions, website verification checklist, and non-destructive removal/archival instructions.
+
 ## 6. "Why Choose Us" content (BusinessSettings)
 
 The homepage "Why Choose Us" section is read from `BusinessSettings` using up to **six** title/description pairs:
