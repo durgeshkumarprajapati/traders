@@ -24,6 +24,13 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   poweredByHeader: false,
+  allowedDevOrigins: [
+    "*.trycloudflare.com",
+    "**.trycloudflare.com",
+    "*.loca.lt",
+    "*.ngrok-free.app",
+    "*.ngrok.io",
+  ],
   images: { remotePatterns: [{ protocol: "https", hostname: "res.cloudinary.com" }] },
   async redirects() {
     // Categories and Brands are one page with two tabs (see docs/PROJECT_BLUEPRINT.md §8).
