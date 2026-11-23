@@ -52,6 +52,7 @@ export function BulkEnquiryForm({
     reference: string | null;
     mode?: "PERSISTED" | "EMAIL_FALLBACK";
     message?: string;
+    trackingUrl?: string | null;
   } | null>(null);
   const [focusTick, setFocusTick] = useState(0);
   const formRef = useRef<HTMLFormElement>(null);
@@ -105,7 +106,12 @@ export function BulkEnquiryForm({
     setErrors({});
     submit({ ...values, website: get("website") }, (r) => {
       if (r.ok) {
-        setSubmissionResult({ reference: r.reference, mode: r.mode, message: r.message });
+        setSubmissionResult({
+          reference: r.reference,
+          mode: r.mode,
+          message: r.message,
+          trackingUrl: r.trackingUrl,
+        });
         enquiryList.clear();
         formRef.current?.reset();
       } else if (r.code === "VALIDATION") {
@@ -145,6 +151,7 @@ export function BulkEnquiryForm({
             reference={submissionResult.reference}
             mode={submissionResult.mode}
             message={submissionResult.message}
+            trackingUrl={submissionResult.trackingUrl}
           >
             {submissionResult.reference && (
               <WhatsAppButton

@@ -3,6 +3,7 @@
 import { ALLOWED_STATUS_TRANSITIONS, ENQUIRY_STATUSES, type EnquiryStatus } from "./types";
 import { revalidatePath, revalidateTag, updateTag } from "next/cache";
 import { SHEETS_CACHE_TAG } from "@/features/catalogue/constants";
+import { generateTrackingToken, hashTrackingToken } from "@/features/enquiries/server/tracking";
 import {
   brandInputSchema,
   brandPatchSchema,
@@ -337,11 +338,92 @@ export async function updateEnquiryStatusAction(
         throw new AppError("INTERNAL", `Failed to update enquiry status: ${updateError.message}`);
       }
 
+      if (currentStatus !== newStatus) {
+        await client.from("enquiry_status_history").insert({
+          enquiry_id: enquiryId,
+          previous_status: currentStatus,
+          new_status: newStatus,
+          changed_by: _admin.id,
+          description: `Status changed from ${currentStatus} to ${newStatus}`,
+        });
+      }
+
       revalidatePath("/admin/enquiries");
       revalidatePath(`/admin/enquiries/${enquiryId}`);
       revalidatePath("/admin/dashboard");
 
       return { id: enquiryId, status: newStatus };
+    },
+    clientOverride,
+  );
+}
+
+export async function rotateTrackingTokenAction(
+  enquiryId: string,
+  clientOverride?: SupabaseClient,
+): Promise<AdminActionResult<{ token: string; trackingUrl: string }>> {
+  return withAdminAction(
+    "rotateTrackingToken",
+    async (_admin, client) => {
+      const { data: enquiry, error: fetchErr } = await client
+        .from("enquiries")
+        .select("id, reference")
+        .eq("id", enquiryId)
+        .maybeSingle();
+
+      if (fetchErr || !enquiry) {
+        throw new AppError("NOT_FOUND", "Enquiry not found.");
+      }
+
+      const newToken = generateTrackingToken();
+      const tokenHash = hashTrackingToken(newToken);
+      const expiresAt = new Date(Date.now() + 90 * 86400 * 1000).toISOString();
+
+      const { error: updateErr } = await client
+        .from("enquiries")
+        .update({
+          tracking_token_hash: tokenHash,
+          tracking_token_expires_at: expiresAt,
+          tracking_token_revoked_at: null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", enquiryId);
+
+      if (updateErr) {
+        throw new AppError("INTERNAL", `Failed to rotate tracking token: ${updateErr.message}`);
+      }
+
+      revalidatePath(`/admin/enquiries/${enquiryId}`);
+      return {
+        token: newToken,
+        trackingUrl: `/track-enquiry?ref=${encodeURIComponent(enquiry.reference)}&token=${encodeURIComponent(newToken)}`,
+      };
+    },
+    clientOverride,
+  );
+}
+
+export async function revokeTrackingTokenAction(
+  enquiryId: string,
+  clientOverride?: SupabaseClient,
+): Promise<AdminActionResult<{ revoked: true }>> {
+  return withAdminAction(
+    "revokeTrackingToken",
+    async (_admin, client) => {
+      const { error: updateErr } = await client
+        .from("enquiries")
+        .update({
+          tracking_token_revoked_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", enquiryId);
+
+      if (updateErr) {
+        throw new AppError("INTERNAL", `Failed to revoke tracking token: ${updateErr.message}`);
+      }
+
+      revalidatePath(`/admin/enquiries/${enquiryId}`);
+      return { revoked: true };
     },
     clientOverride,
   );

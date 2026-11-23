@@ -41,9 +41,8 @@ async function run(kind: "bulk" | "contact", input: unknown): Promise<EnquiryAct
     return { ok: false, code: "UNAVAILABLE", message: ENQUIRY_MESSAGES.unavailable };
   }
   const ctx = { ip: await clientIp() };
-  return kind === "bulk"
-    ? submitBulkEnquiry(input, ctx, deps)
-    : submitContactEnquiry(input, ctx, deps);
+  if (kind === "bulk") return submitBulkEnquiry(input, ctx, deps);
+  return submitContactEnquiry(input, ctx, deps);
 }
 
 export async function submitBulkEnquiryAction(input: unknown): Promise<EnquiryActionResult> {

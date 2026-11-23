@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { AnnouncementSlot, FooterSlot, HeaderSlot } from "@/components/website/site-chrome";
 import { SiteFooter } from "@/components/website/site-footer";
 import { SiteHeader } from "@/components/website/site-header";
+import { OfflineBanner, PwaInstallPrompt, PwaRegister } from "@/components/website/pwa-components";
 import { emptyBusinessSettings } from "@/features/settings/business-settings";
 
 /**
@@ -13,6 +14,8 @@ export default function WebsiteLayout({ children }: LayoutProps<"/">) {
   const empty = emptyBusinessSettings();
   return (
     <>
+      <PwaRegister />
+      <OfflineBanner />
       <Suspense fallback={null}>
         <AnnouncementSlot />
       </Suspense>
@@ -25,6 +28,7 @@ export default function WebsiteLayout({ children }: LayoutProps<"/">) {
       <Suspense fallback={<SiteFooter settings={empty} categories={[]} />}>
         <FooterSlot />
       </Suspense>
+      <PwaInstallPrompt />
     </>
   );
 }

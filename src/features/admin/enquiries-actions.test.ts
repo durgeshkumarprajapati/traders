@@ -90,6 +90,12 @@ function createMockSupabase(options?: MockSupabaseOptions) {
         };
       }
 
+      if (table === "enquiry_status_history") {
+        return {
+          insert: vi.fn().mockResolvedValue({ error: null }),
+        };
+      }
+
       return {};
     }),
     rpc: vi.fn(() =>

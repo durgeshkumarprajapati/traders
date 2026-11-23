@@ -16,6 +16,8 @@ export const RATE_LIMITS = {
   ip: { limit: 8, windowSeconds: 600 },
   /** One person rarely needs more than a few enquiries an hour: 3 per hour per mobile number. */
   mobile: { limit: 3, windowSeconds: 3600 },
+  /** Rate limit tracking lookups to prevent brute-forcing: 20 attempts per 10 minutes per IP. */
+  tracking: { limit: 20, windowSeconds: 600 },
 } as const;
 
 export function hashIdentifier(kind: "ip" | "mobile", value: string, secret: string): string {
@@ -49,5 +51,21 @@ export async function enforceRateLimits(
   const mobile = await hit(rpc, hashIdentifier("mobile", who.mobile, secret), RATE_LIMITS.mobile);
   if (!mobile.allowed)
     return { allowed: false, retryAfterSeconds: Math.max(mobile.retry_after_seconds, 1) };
+  return { allowed: true };
+}
+
+export async function enforceTrackingRateLimit(
+  rpc: Rpc,
+  secret: string,
+  ip: string | null,
+): Promise<RateLimitDecision> {
+  const res = await hit(
+    rpc,
+    hashIdentifier("ip", `tracking:${ip ?? "unknown"}`, secret),
+    RATE_LIMITS.tracking,
+  );
+  if (!res.allowed) {
+    return { allowed: false, retryAfterSeconds: Math.max(res.retry_after_seconds, 1) };
+  }
   return { allowed: true };
 }

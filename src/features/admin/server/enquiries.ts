@@ -116,19 +116,23 @@ export async function loadAdminEnquiries(
       return { enquiries: [], totalCount, page, pageSize, totalPages };
     }
 
-    // Query item counts for these enquiries in one batch
+    // Query item counts and callback statuses for these enquiries in batch
     const enquiryIds = rows.map((r: { id: string }) => r.id);
-    const { data: itemRows } = await supabase
-      .from("enquiry_items")
-      .select("enquiry_id")
-      .in("enquiry_id", enquiryIds);
+    const [itemRowsRes, callbackRowsRes] = await Promise.all([
+      supabase.from("enquiry_items").select("enquiry_id").in("enquiry_id", enquiryIds),
+      supabase.from("enquiry_callbacks").select("enquiry_id").in("enquiry_id", enquiryIds),
+    ]);
 
     const countMap: Record<string, number> = {};
-    if (itemRows) {
-      for (const item of itemRows) {
+    if (itemRowsRes.data) {
+      for (const item of itemRowsRes.data) {
         countMap[item.enquiry_id] = (countMap[item.enquiry_id] ?? 0) + 1;
       }
     }
+
+    const callbackSet = new Set(
+      (callbackRowsRes.data ?? []).map((c: { enquiry_id: string }) => c.enquiry_id),
+    );
 
     const enquiries: AdminEnquiryListItem[] = (rows as unknown as EnquiryDbRow[]).map((r) => ({
       id: r.id,
@@ -143,6 +147,7 @@ export async function loadAdminEnquiries(
       createdAt: r.created_at,
       updatedAt: r.updated_at,
       itemCount: countMap[r.id] ?? 0,
+      isCallback: callbackSet.has(r.id),
     }));
 
     return { enquiries, totalCount, page, pageSize, totalPages };
@@ -170,7 +175,7 @@ export async function loadAdminEnquiryDetail(id: string): Promise<AdminEnquiryDe
       return null;
     }
 
-    const [itemsRes, notesRes, outboxRes] = await Promise.all([
+    const [itemsRes, notesRes, outboxRes, historyRes, callbackRes] = await Promise.all([
       supabase
         .from("enquiry_items")
         .select("*")
@@ -186,6 +191,16 @@ export async function loadAdminEnquiryDetail(id: string): Promise<AdminEnquiryDe
       supabase
         .from("notification_outbox")
         .select("id, status, attempt_count, max_attempts, last_error, sent_at, next_attempt_at")
+        .eq("enquiry_id", id)
+        .maybeSingle(),
+      supabase
+        .from("enquiry_status_history")
+        .select("id, previous_status, new_status, description, created_at")
+        .eq("enquiry_id", id)
+        .order("created_at", { ascending: true }),
+      supabase
+        .from("enquiry_callbacks")
+        .select("preferred_date, preferred_time_window, reason")
         .eq("enquiry_id", id)
         .maybeSingle(),
     ]);
@@ -236,6 +251,30 @@ export async function loadAdminEnquiryDetail(id: string): Promise<AdminEnquiryDe
         }
       : null;
 
+    const statusHistory = (historyRes.data ?? []).map(
+      (h: {
+        id: string;
+        previous_status: string | null;
+        new_status: string;
+        description: string | null;
+        created_at: string;
+      }) => ({
+        id: h.id,
+        previousStatus: h.previous_status,
+        newStatus: h.new_status,
+        description: h.description,
+        createdAt: h.created_at,
+      }),
+    );
+
+    const callbackDetails = callbackRes.data
+      ? {
+          preferredDate: callbackRes.data.preferred_date ?? null,
+          preferredTimeWindow: callbackRes.data.preferred_time_window ?? null,
+          reason: callbackRes.data.reason ?? null,
+        }
+      : null;
+
     return {
       id: enquiry.id,
       reference: enquiry.reference,
@@ -251,6 +290,11 @@ export async function loadAdminEnquiryDetail(id: string): Promise<AdminEnquiryDe
       items,
       notes,
       outbox,
+      trackingTokenHash: enquiry.tracking_token_hash ?? null,
+      trackingTokenExpiresAt: enquiry.tracking_token_expires_at ?? null,
+      trackingTokenRevokedAt: enquiry.tracking_token_revoked_at ?? null,
+      callbackDetails,
+      statusHistory,
     };
   } catch (error: unknown) {
     const errorMsg = error instanceof Error ? error.message : String(error);

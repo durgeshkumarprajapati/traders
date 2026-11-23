@@ -1,12 +1,17 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { SkipLink } from "@/components/common/skip-link";
+import { brandColors } from "@/config/brand";
 import { robotsMetadata } from "@/config/indexing";
 import { publicEnv } from "@/lib/env/public";
 import "./globals.css";
 
 /** Explicit viewport: device width, 1x scale; pinch-zoom is NOT disabled (accessibility / 200% zoom). */
-export const viewport: Viewport = { width: "device-width", initialScale: 1 };
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: brandColors.primary,
+};
 
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
 
@@ -20,6 +25,14 @@ export const metadata: Metadata = {
     "Quality building materials and construction supplies. Browse indicative rates and request quotations online.",
   alternates: {
     canonical: "/",
+  },
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/icons/icon-192.png" }],
   },
   openGraph: {
     type: "website",

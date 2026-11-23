@@ -38,7 +38,7 @@ function FilterForm({
             type="search"
             name="q"
             defaultValue={params.q}
-            placeholder="Name, brand or SKU"
+            placeholder="Search name, vernacular terms (sariya, eent, reti), brand, SKU"
             maxLength={100}
             {...p}
           />
@@ -78,6 +78,25 @@ function FilterForm({
             value={s}
             label={stockStatusLabel(s)}
             defaultChecked={params.stock.includes(s)}
+          />
+        ))}
+      </fieldset>
+      <fieldset className="space-y-gutter-sm">
+        <legend className="mb-gutter-sm text-label-lg">Unit of Measurement</legend>
+        {[
+          { code: "BAG", label: "Bag" },
+          { code: "METRIC_TON", label: "Metric Ton" },
+          { code: "PIECE", label: "Piece" },
+          { code: "KG", label: "Kilogram (KG)" },
+          { code: "CUBIC_FEET", label: "Cubic Feet" },
+          { code: "BUNDLE", label: "Bundle" },
+        ].map((u) => (
+          <Checkbox
+            key={u.code}
+            name="unit"
+            value={u.code}
+            label={u.label}
+            defaultChecked={params.units?.includes(u.code)}
           />
         ))}
       </fieldset>

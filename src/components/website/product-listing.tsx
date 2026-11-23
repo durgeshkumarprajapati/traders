@@ -39,7 +39,10 @@ export async function ProductListing({
     Number(Boolean(params.q)) +
     Number(Boolean(params.category)) +
     params.brands.length +
-    params.stock.length;
+    params.stock.length +
+    params.units.length +
+    Number(params.minPrice !== null) +
+    Number(params.maxPrice !== null);
   const href = (page: number) => `/products${listingQuery(params, { page })}`;
   const brandById = new Map(data.brands.map((b) => [b.id, b]));
   const categoryById = new Map(data.categories.map((c) => [c.id, c]));

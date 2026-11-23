@@ -247,12 +247,19 @@ export function EnquiryListView({
                         </div>
                       </Td>
                       <Td label="Type">
-                        <Badge
-                          tone={enquiry.type === "BULK" ? "primary" : "neutral"}
-                          appearance="outline"
-                        >
-                          {enquiry.type === "BULK" ? "Bulk Order" : "General"}
-                        </Badge>
+                        <div className="flex flex-wrap items-center gap-1">
+                          <Badge
+                            tone={enquiry.type === "BULK" ? "primary" : "neutral"}
+                            appearance="outline"
+                          >
+                            {enquiry.type === "BULK" ? "Bulk Order" : "General"}
+                          </Badge>
+                          {enquiry.isCallback && (
+                            <Badge tone="warning" appearance="solid">
+                              Callback
+                            </Badge>
+                          )}
+                        </div>
                       </Td>
                       <Td label="Materials" className="text-body-sm text-on-surface">
                         {enquiry.type === "BULK" ? (

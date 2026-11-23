@@ -15,9 +15,11 @@ import {
   contactSubmissionSchema,
   toSubmissionFieldErrors,
 } from "../submission-schemas";
+import { callbackSubmissionSchema } from "../callback-schemas";
 import { buildEnquiryEmail, type EmailEnquiry, type EmailItem } from "./email-template";
 import { enforceRateLimits } from "./rate-limit";
 import { buildItemSnapshots, type ItemSnapshot } from "./snapshots";
+import { generateTrackingToken, hashTrackingToken } from "./tracking";
 
 /**
  * Public enquiry submission services (BULK and GENERAL only — there is no per-product enquiry type).
@@ -155,6 +157,7 @@ async function persistAndNotify(
   payload: Payload,
   itemCount: number,
   deps: SubmitDeps,
+  trackingToken?: string | null,
 ): Promise<EnquiryActionResult> {
   let result: z.infer<typeof created>;
   try {
@@ -193,7 +196,15 @@ async function persistAndNotify(
       logger.error("notification_after_failed", { reference: result.reference, error });
     }
   });
-  return { ok: true, reference: result.reference, mode: "PERSISTED" };
+  return {
+    ok: true,
+    reference: result.reference,
+    mode: "PERSISTED",
+    trackingToken: trackingToken ?? null,
+    trackingUrl: trackingToken
+      ? `/track-enquiry?ref=${encodeURIComponent(result.reference)}&token=${encodeURIComponent(trackingToken)}`
+      : null,
+  };
 }
 
 async function limited(
@@ -270,6 +281,9 @@ export async function submitBulkEnquiry(
     };
   }
 
+  const trackingToken = generateTrackingToken(v.idempotencyKey, deps.rateLimitSecret);
+  const tokenHash = hashTrackingToken(trackingToken);
+
   return persistAndNotify(
     "BULK",
     {
@@ -280,10 +294,12 @@ export async function submitBulkEnquiry(
       email: v.email,
       delivery_location: v.deliveryLocation,
       message: v.message,
+      tracking_token_hash: tokenHash,
       items: snap.snapshots,
     },
     snap.snapshots.length,
     deps,
+    trackingToken,
   );
 }
 
@@ -310,6 +326,9 @@ export async function submitContactEnquiry(
   const blocked = await limited(deps.rpc, deps.rateLimitSecret, ctx.ip, v.mobile, deps);
   if (blocked) return blocked;
 
+  const trackingToken = generateTrackingToken(v.idempotencyKey, deps.rateLimitSecret);
+  const tokenHash = hashTrackingToken(trackingToken);
+
   // GENERAL enquiries need no products and no catalogue access: a customer can always contact the business.
   return persistAndNotify(
     "GENERAL",
@@ -320,9 +339,63 @@ export async function submitContactEnquiry(
       mobile: v.mobile,
       email: v.email,
       message: v.message,
+      tracking_token_hash: tokenHash,
       items: [],
     },
     0,
     deps,
+    trackingToken,
+  );
+}
+
+export async function submitCallbackEnquiry(
+  input: unknown,
+  ctx: SubmitContext,
+  deps: SubmitDeps,
+): Promise<EnquiryActionResult> {
+  if (isHoneypotFilled(input)) {
+    logger.info("honeypot_triggered", { form: "callback" });
+    return { ok: true, reference: null };
+  }
+  const parsed = callbackSubmissionSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      code: "VALIDATION",
+      message: ENQUIRY_MESSAGES.validation,
+      fieldErrors: toSubmissionFieldErrors(parsed.error),
+    };
+  }
+  const v = parsed.data;
+
+  const blocked = await limited(deps.rpc, deps.rateLimitSecret, ctx.ip, v.mobile, deps);
+  if (blocked) return blocked;
+
+  const trackingToken = generateTrackingToken(v.idempotencyKey, deps.rateLimitSecret);
+  const tokenHash = hashTrackingToken(trackingToken);
+
+  const message = v.reason
+    ? `Callback request (${v.preferredTimeWindow}): ${v.reason}`
+    : `Callback request requested for ${v.preferredDate || "earliest convenience"} (${v.preferredTimeWindow})`;
+
+  return persistAndNotify(
+    "GENERAL",
+    {
+      idempotency_key: v.idempotencyKey,
+      type: "GENERAL",
+      name: v.name,
+      mobile: v.mobile,
+      message,
+      tracking_token_hash: tokenHash,
+      callback: {
+        preferred_date: v.preferredDate || null,
+        preferred_time_window: v.preferredTimeWindow,
+        reason: v.reason || null,
+      },
+      items: [],
+    },
+    0,
+    deps,
+    trackingToken,
   );
 }

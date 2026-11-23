@@ -56,6 +56,13 @@ describe("loadAdminEnquiries", () => {
             })),
           };
         }
+        if (table === "enquiry_callbacks") {
+          return {
+            select: vi.fn(() => ({
+              in: vi.fn(() => Promise.resolve({ data: [], error: null })),
+            })),
+          };
+        }
         return {};
       }),
     } as unknown as SupabaseClient;
@@ -183,6 +190,24 @@ describe("loadAdminEnquiryDetail", () => {
             select: vi.fn(() => ({
               eq: vi.fn(() => ({
                 maybeSingle: vi.fn(() => Promise.resolve({ data: mockOutbox, error: null })),
+              })),
+            })),
+          };
+        }
+        if (table === "enquiry_status_history") {
+          return {
+            select: vi.fn(() => ({
+              eq: vi.fn(() => ({
+                order: vi.fn(() => Promise.resolve({ data: [], error: null })),
+              })),
+            })),
+          };
+        }
+        if (table === "enquiry_callbacks") {
+          return {
+            select: vi.fn(() => ({
+              eq: vi.fn(() => ({
+                maybeSingle: vi.fn(() => Promise.resolve({ data: null, error: null })),
               })),
             })),
           };

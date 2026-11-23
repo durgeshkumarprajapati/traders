@@ -80,6 +80,9 @@ describe("parseListingParams", () => {
       category: null,
       brands: [],
       stock: [],
+      units: [],
+      minPrice: null,
+      maxPrice: null,
       sort: "featured",
       page: 1,
     });
@@ -167,6 +170,45 @@ describe("filterAndSort", () => {
       "c",
       "b",
     ]);
+  });
+  it("filters by canonical unit codes", () => {
+    const bagOnly = filterAndSort(data, { ...base, units: ["BAG"] });
+    expect(bagOnly.length).toBeGreaterThan(0);
+    expect(bagOnly.every((p) => p.unit.code === "BAG")).toBe(true);
+  });
+  it("filters by price range when prices are present", () => {
+    const pricedData = {
+      ...data,
+      products: [
+        { ...FIXTURE_PRODUCTS[0], id: "p1", price: 100 },
+        { ...FIXTURE_PRODUCTS[1], id: "p2", price: 250 },
+        { ...FIXTURE_PRODUCTS[2], id: "p3", price: 500 },
+      ],
+    };
+    const range = filterAndSort(pricedData, { ...base, minPrice: 150, maxPrice: 300 });
+    expect(range.map((p) => p.id)).toEqual(["p2"]);
+  });
+  it("matches products via vernacular synonyms", () => {
+    // e.g. "sariya" matches steel / tmt rebars
+    const steelData = {
+      ...data,
+      products: [
+        {
+          ...FIXTURE_PRODUCTS[0],
+          id: "s1",
+          name: "Fe 550D TMT Rebar 12mm",
+          description: "High strength steel bar",
+        },
+        {
+          ...FIXTURE_PRODUCTS[1],
+          id: "c1",
+          name: "PPC Cement 50kg",
+          description: "Portland cement",
+        },
+      ],
+    };
+    const result = filterAndSort(steelData, { ...base, q: "sariya" });
+    expect(result.map((p) => p.id)).toEqual(["s1"]);
   });
   it("sorts by recent update with unknown dates last", () => {
     const ts: Product[] = [

@@ -15,9 +15,17 @@ const authMigration = readFileSync(
   join(root, "supabase/migrations/20261120000000_admin_auth.sql"),
   "utf8",
 );
+const customerFeaturesMigration = readFileSync(
+  join(root, "supabase/migrations/20261123000000_customer_features.sql"),
+  "utf8",
+);
 const stub = readFileSync(join(root, "supabase/tests/00_stub.sql"), "utf8");
 const sqlTests = readFileSync(join(root, "supabase/tests/01_enquiries.sql"), "utf8");
 const authSqlTests = readFileSync(join(root, "supabase/tests/02_admin_auth.sql"), "utf8");
+const customerFeaturesSqlTests = readFileSync(
+  join(root, "supabase/tests/03_customer_features.sql"),
+  "utf8",
+);
 
 describe("migration (static checks — always run)", () => {
   const tables = [...migration.matchAll(/create table public\.(\w+)/g)].map((m) => m[1]);
@@ -182,6 +190,49 @@ describe("Phase 7 admin_auth migration (static checks — always run)", () => {
   });
 });
 
+describe("Customer Features migration (static checks — always run)", () => {
+  it("creates status history, callbacks, quotations, and quotation_items tables", () => {
+    expect(customerFeaturesMigration).toContain("create table public.enquiry_status_history");
+    expect(customerFeaturesMigration).toContain("create table public.enquiry_callbacks");
+    expect(customerFeaturesMigration).toContain("create table public.quotations");
+    expect(customerFeaturesMigration).toContain("create table public.quotation_items");
+  });
+
+  it("enables RLS on all customer feature tables", () => {
+    for (const t of [
+      "enquiry_status_history",
+      "enquiry_callbacks",
+      "quotations",
+      "quotation_items",
+    ]) {
+      expect(customerFeaturesMigration).toContain(
+        `alter table public.${t} enable row level security`,
+      );
+    }
+  });
+
+  it("locks get_tracked_enquiry and get_tracked_quotation functions to service_role", () => {
+    expect(customerFeaturesMigration).toMatch(
+      /create function public\.get_tracked_enquiry\([^)]*\)[^$]*security definer/g,
+    );
+    expect(customerFeaturesMigration).toMatch(
+      /create function public\.get_tracked_quotation\([^)]*\)[^$]*security definer/g,
+    );
+    expect(customerFeaturesMigration).toContain(
+      "grant execute on function public.get_tracked_enquiry(text, text), public.get_tracked_quotation(text) to service_role",
+    );
+    expect(customerFeaturesMigration).toContain(
+      "revoke all on function public.get_tracked_enquiry(text, text), public.get_tracked_quotation(text) from public, anon, authenticated",
+    );
+  });
+
+  it("contains no credentials or secrets", () => {
+    expect(customerFeaturesMigration + customerFeaturesSqlTests).not.toMatch(
+      /eyJ[A-Za-z0-9_-]{20,}|BEGIN PRIVATE KEY|service_role_key\s*=/i,
+    );
+  });
+});
+
 function findPostgres(): string | null {
   const dirs = [
     "/usr/lib/postgresql/17/bin",
@@ -216,7 +267,16 @@ describe.skipIf(!bin)("migration on real PostgreSQL (single-user mode)", () => {
       join(bin!, "postgres"),
       ["--single", "-j", "-D", join(dir, "data"), "postgres"],
       {
-        input: [stub, migration, sqlTests, authMigration, authSqlTests].join("\n\n") + "\n\n",
+        input:
+          [
+            stub,
+            migration,
+            sqlTests,
+            authMigration,
+            authSqlTests,
+            customerFeaturesMigration,
+            customerFeaturesSqlTests,
+          ].join("\n\n") + "\n\n",
         encoding: "utf8",
         maxBuffer: 64 * 1024 * 1024,
       },
@@ -233,5 +293,6 @@ describe.skipIf(!bin)("migration on real PostgreSQL (single-user mode)", () => {
     expect(errors).toEqual([]);
     expect(output).toContain('marker = "SQL_TESTS_PASSED"');
     expect(output).toContain('marker = "ADMIN_AUTH_SQL_TESTS_PASSED"');
+    expect(output).toContain('marker = "CUSTOMER_FEATURES_SQL_TESTS_PASSED"');
   });
 });

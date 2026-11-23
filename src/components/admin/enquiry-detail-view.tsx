@@ -28,6 +28,8 @@ import { Table, TBody, Td, Th, THead, Tr } from "@/components/ui/table";
 import {
   addEnquiryNoteAction,
   retryNotificationAction,
+  revokeTrackingTokenAction,
+  rotateTrackingTokenAction,
   updateEnquiryStatusAction,
 } from "@/features/admin/actions";
 import {
@@ -36,6 +38,7 @@ import {
   type AdminEnquiryNote,
 } from "@/features/admin/types";
 import { formatPrice } from "@/features/products/format";
+import { QuotationManager } from "./quotation-manager";
 
 interface EnquiryDetailViewProps {
   enquiry: AdminEnquiryDetail;
@@ -68,6 +71,65 @@ export function EnquiryDetailView({ enquiry: initialEnquiry }: EnquiryDetailView
     tone: "success" | "error";
     message: string;
   } | null>(null);
+
+  // Tracking link state
+  const [generatedUrl, setGeneratedUrl] = useState<string | null>(null);
+  const [trackingStatus, setTrackingStatus] = useState<"ACTIVE" | "REVOKED" | "NONE">(
+    initialEnquiry.trackingTokenRevokedAt
+      ? "REVOKED"
+      : initialEnquiry.trackingTokenHash
+        ? "ACTIVE"
+        : "NONE",
+  );
+  const [linkCopied, setLinkCopied] = useState(false);
+  const [isTrackingPending, startTrackingTransition] = useTransition();
+  const [trackingMessage, setTrackingMessage] = useState<{
+    tone: "success" | "error";
+    text: string;
+  } | null>(null);
+
+  const handleGenerateOrRotateToken = () => {
+    setTrackingMessage(null);
+    startTrackingTransition(async () => {
+      const res = await rotateTrackingTokenAction(enquiry.id);
+      if (res.ok) {
+        const fullUrl = `${window.location.origin}${res.data.trackingUrl}`;
+        setGeneratedUrl(fullUrl);
+        setTrackingStatus("ACTIVE");
+        setTrackingMessage({ tone: "success", text: "New tracking link generated successfully." });
+      } else {
+        setTrackingMessage({
+          tone: "error",
+          text: res.message || "Failed to generate tracking link.",
+        });
+      }
+    });
+  };
+
+  const handleRevokeToken = () => {
+    setTrackingMessage(null);
+    startTrackingTransition(async () => {
+      const res = await revokeTrackingTokenAction(enquiry.id);
+      if (res.ok) {
+        setTrackingStatus("REVOKED");
+        setGeneratedUrl(null);
+        setTrackingMessage({ tone: "success", text: "Tracking link revoked." });
+      } else {
+        setTrackingMessage({
+          tone: "error",
+          text: res.message || "Failed to revoke tracking link.",
+        });
+      }
+    });
+  };
+
+  const handleCopyTrackingLink = () => {
+    if (!generatedUrl) return;
+    navigator.clipboard.writeText(generatedUrl).then(() => {
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 3000);
+    });
+  };
 
   // Allowed transitions from current enquiry status
   const allowedNextStatuses = useMemo(() => {
@@ -301,6 +363,31 @@ export function EnquiryDetailView({ enquiry: initialEnquiry }: EnquiryDetailView
                 </p>
               </div>
             )}
+
+            {enquiry.callbackDetails && (
+              <div className="border-t border-border pt-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Badge tone="warning" appearance="solid">
+                    Callback Requested
+                  </Badge>
+                  <span className="text-body-sm font-semibold text-primary">
+                    Preferred Window: {enquiry.callbackDetails.preferredTimeWindow || "ANYTIME"}
+                  </span>
+                </div>
+                <div className="rounded border border-warning/30 bg-warning/5 p-3 text-body-sm space-y-1">
+                  {enquiry.callbackDetails.preferredDate && (
+                    <p className="text-on-surface">
+                      <strong>Preferred Date:</strong> {enquiry.callbackDetails.preferredDate}
+                    </p>
+                  )}
+                  {enquiry.callbackDetails.reason && (
+                    <p className="text-on-surface">
+                      <strong>Requirement:</strong> {enquiry.callbackDetails.reason}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
           </CardBody>
         </Card>
 
@@ -365,6 +452,70 @@ export function EnquiryDetailView({ enquiry: initialEnquiry }: EnquiryDetailView
                   NEW → CONTACTED → QUOTATION_SENT → CONFIRMED → COMPLETED (or CANCELLED at any
                   stage).
                 </p>
+              </div>
+            </CardBody>
+          </Card>
+
+          {/* Customer Self-Service Tracking Link */}
+          <Card>
+            <CardHeader className="border-b border-border p-4 sm:p-6">
+              <CardTitle className="text-title-md flex items-center justify-between">
+                <span>Customer Tracking Link</span>
+                {trackingStatus === "REVOKED" ? (
+                  <Badge tone="error">Revoked</Badge>
+                ) : trackingStatus === "ACTIVE" ? (
+                  <Badge tone="success">Active</Badge>
+                ) : (
+                  <Badge tone="neutral">Not Generated</Badge>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardBody className="p-4 sm:p-6 space-y-3 text-body-sm">
+              <p className="text-on-surface-variant">
+                Allows customer to track live status and view quotations without login.
+              </p>
+              {trackingMessage && (
+                <Notification tone={trackingMessage.tone}>{trackingMessage.text}</Notification>
+              )}
+              {generatedUrl && (
+                <div className="p-2.5 rounded bg-surface-muted border border-border break-all font-mono text-body-sm">
+                  {generatedUrl}
+                </div>
+              )}
+              <div className="flex flex-wrap gap-2 pt-1">
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="sm"
+                  onClick={handleGenerateOrRotateToken}
+                  disabled={isTrackingPending}
+                >
+                  <RefreshCw
+                    className={`size-3.5 mr-1 ${isTrackingPending ? "animate-spin" : ""}`}
+                  />
+                  {enquiry.trackingTokenHash ? "Rotate New Link" : "Generate Link"}
+                </Button>
+                {generatedUrl && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCopyTrackingLink}
+                  >
+                    {linkCopied ? "Link Copied!" : "Copy Link"}
+                  </Button>
+                )}
+                {enquiry.trackingTokenHash && trackingStatus === "ACTIVE" && (
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleRevokeToken}
+                    disabled={isTrackingPending}
+                  >
+                    Revoke Link
+                  </Button>
+                )}
               </div>
             </CardBody>
           </Card>
@@ -546,6 +697,9 @@ export function EnquiryDetailView({ enquiry: initialEnquiry }: EnquiryDetailView
           </CardBody>
         </Card>
       )}
+
+      {/* Digital Quotation Management */}
+      <QuotationManager enquiry={enquiry} />
 
       {/* Internal Staff Notes (Admin Only) */}
       <Card>

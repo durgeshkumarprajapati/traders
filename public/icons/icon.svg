@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" fill="none">
+  <!-- Full-Bleed Maskable Background (No rounded corners, safe for any OS mask) -->
+  <rect width="512" height="512" fill="#17365D"/>
+
+  <!-- Architectural Emblem Scaled Safely Within 66% Center Safe Zone -->
+  <g transform="translate(136, 136) scale(0.75)">
+    <path d="M160 20L44 88V152L160 84L276 152V88L160 20Z" fill="#FFFFFF"/>
+    <path d="M160 20L276 88V130L160 62V20Z" fill="#F5A623"/>
+
+    <rect x="64" y="168" width="44" height="128" rx="6" fill="#FFFFFF"/>
+    <rect x="138" y="132" width="44" height="164" rx="6" fill="#F5A623"/>
+    <rect x="212" y="168" width="44" height="128" rx="6" fill="#FFFFFF"/>
+
+    <rect x="44" y="280" width="232" height="24" rx="6" fill="#FFFFFF"/>
+    <rect x="138" y="280" width="138" height="24" rx="6" fill="#F5A623"/>
+  </g>
+</svg>

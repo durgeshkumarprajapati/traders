@@ -43,6 +43,7 @@ export interface AdminEnquiryListItem {
   createdAt: string;
   updatedAt: string;
   itemCount: number;
+  isCallback?: boolean;
 }
 
 export interface AdminEnquiryItem {
@@ -94,6 +95,21 @@ export interface AdminEnquiryDetail {
   items: AdminEnquiryItem[];
   notes: AdminEnquiryNote[];
   outbox: AdminNotificationOutboxStatus | null;
+  trackingTokenHash?: string | null;
+  trackingTokenExpiresAt?: string | null;
+  trackingTokenRevokedAt?: string | null;
+  callbackDetails?: {
+    preferredDate: string | null;
+    preferredTimeWindow: string | null;
+    reason: string | null;
+  } | null;
+  statusHistory?: Array<{
+    id: string;
+    previousStatus: string | null;
+    newStatus: string;
+    description: string | null;
+    createdAt: string;
+  }>;
 }
 
 export interface AdminEnquiryListResult {

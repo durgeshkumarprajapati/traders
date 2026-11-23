@@ -25,6 +25,7 @@ export function ContactForm() {
     reference: string | null;
     mode?: "PERSISTED" | "EMAIL_FALLBACK";
     message?: string;
+    trackingUrl?: string | null;
   } | null>(null);
   const [focusTick, setFocusTick] = useState(0);
   const { submit, pending } = useEnquirySubmit(submitContactEnquiryAction);
@@ -57,7 +58,12 @@ export function ContactForm() {
     setFormMessage(null);
     submit({ ...values, website: get("website") }, (r) => {
       if (r.ok) {
-        setSubmissionResult({ reference: r.reference, mode: r.mode, message: r.message });
+        setSubmissionResult({
+          reference: r.reference,
+          mode: r.mode,
+          message: r.message,
+          trackingUrl: r.trackingUrl,
+        });
         formRef.current?.reset();
       } else {
         setErrors(r.code === "VALIDATION" ? r.fieldErrors : {});
@@ -87,6 +93,7 @@ export function ContactForm() {
           reference={submissionResult.reference}
           mode={submissionResult.mode}
           message={submissionResult.message}
+          trackingUrl={submissionResult.trackingUrl}
         />
       )}
       <FormErrorSummary ref={summary} messages={messages} />

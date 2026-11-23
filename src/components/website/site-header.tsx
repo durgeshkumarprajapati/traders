@@ -7,6 +7,7 @@ import { websiteNav } from "@/config/navigation";
 import type { BusinessSettings } from "@/features/settings/business-settings";
 import { generalEnquiryMessage } from "@/lib/whatsapp";
 import { CallButton, WhatsAppButton } from "./contact-actions";
+import { RequestCallbackButton } from "./callback-modal";
 import { EnquiryListLink } from "./enquiry-list-link";
 import { MobileNav } from "./mobile-nav";
 
@@ -31,6 +32,9 @@ export function SiteHeader({ settings }: { settings: BusinessSettings }) {
           WhatsApp enquiry
         </WhatsAppButton>
       )}
+      <RequestCallbackButton size="lg" variant="outline">
+        Request callback
+      </RequestCallbackButton>
     </>
   );
 
@@ -83,6 +87,14 @@ export function SiteHeader({ settings }: { settings: BusinessSettings }) {
                 </WhatsAppButton>
               </>
             )}
+            <span className="text-on-primary/60">|</span>
+            <RequestCallbackButton
+              variant="ghost"
+              size="sm"
+              className="h-6 px-1 text-label-md font-medium text-secondary hover:text-secondary hover:bg-primary/50"
+            >
+              Callback
+            </RequestCallbackButton>
             <span className="text-on-primary/60">|</span>
             <Link
               href="/admin/login"

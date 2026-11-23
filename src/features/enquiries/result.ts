@@ -6,6 +6,8 @@ export type EnquiryActionResult =
       reference: string | null;
       mode?: "PERSISTED" | "EMAIL_FALLBACK";
       message?: string;
+      trackingToken?: string | null;
+      trackingUrl?: string | null;
     }
   | { ok: false; code: "VALIDATION"; message: string; fieldErrors: Record<string, string> }
   | { ok: false; code: "RATE_LIMITED"; message: string; retryAfterSeconds: number }
