@@ -18,6 +18,8 @@ export const ENQUIRY_MESSAGES = {
   validation: "Please check the highlighted fields and try again.",
   unavailable:
     "We could not save your enquiry right now. Please try again in a few minutes, or contact us directly.",
+  offline:
+    "You are offline. Enquiries can only be sent while you are online. Your details are kept — reconnect and try again.",
   invalidProducts:
     "Some products are no longer available. Remove them from your list and try again.",
 } as const;

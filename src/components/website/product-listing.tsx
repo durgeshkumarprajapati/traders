@@ -3,6 +3,7 @@ import { ButtonLink } from "@/components/ui/button";
 import { EmptyState, Skeleton } from "@/components/ui/feedback";
 import { Pagination } from "@/components/ui/navigation-aids";
 import { loadCatalogue } from "@/features/catalogue/server";
+import { availableUnitOptions } from "@/features/products/units";
 import { PRICE_DISCLAIMER } from "@/features/products/format";
 import {
   filterAndSort,
@@ -42,7 +43,8 @@ export async function ProductListing({
     params.stock.length +
     params.units.length +
     Number(params.minPrice !== null) +
-    Number(params.maxPrice !== null);
+    Number(params.maxPrice !== null) +
+    Number((params.price ?? "any") !== "any");
   const href = (page: number) => `/products${listingQuery(params, { page })}`;
   const brandById = new Map(data.brands.map((b) => [b.id, b]));
   const categoryById = new Map(data.categories.map((c) => [c.id, c]));
@@ -53,6 +55,7 @@ export async function ProductListing({
         <ProductFilters
           categories={data.categories}
           brands={data.brands}
+          units={availableUnitOptions(data.products)}
           params={params}
           activeCount={activeCount}
         />

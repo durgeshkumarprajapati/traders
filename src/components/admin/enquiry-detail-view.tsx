@@ -38,13 +38,18 @@ import {
   type AdminEnquiryNote,
 } from "@/features/admin/types";
 import { formatPrice } from "@/features/products/format";
+import type { QuotationRecord } from "@/features/quotations/types";
 import { QuotationManager } from "./quotation-manager";
 
 interface EnquiryDetailViewProps {
   enquiry: AdminEnquiryDetail;
+  quotations?: QuotationRecord[];
 }
 
-export function EnquiryDetailView({ enquiry: initialEnquiry }: EnquiryDetailViewProps) {
+export function EnquiryDetailView({
+  enquiry: initialEnquiry,
+  quotations = [],
+}: EnquiryDetailViewProps) {
   const router = useRouter();
   const [enquiry, setEnquiry] = useState(initialEnquiry);
 
@@ -74,12 +79,16 @@ export function EnquiryDetailView({ enquiry: initialEnquiry }: EnquiryDetailView
 
   // Tracking link state
   const [generatedUrl, setGeneratedUrl] = useState<string | null>(null);
-  const [trackingStatus, setTrackingStatus] = useState<"ACTIVE" | "REVOKED" | "NONE">(
-    initialEnquiry.trackingTokenRevokedAt
-      ? "REVOKED"
-      : initialEnquiry.trackingTokenHash
-        ? "ACTIVE"
-        : "NONE",
+  const [trackingStatus, setTrackingStatus] = useState<"ACTIVE" | "REVOKED" | "EXPIRED" | "NONE">(
+    () =>
+      initialEnquiry.trackingTokenRevokedAt
+        ? "REVOKED"
+        : !initialEnquiry.hasTrackingToken
+          ? "NONE"
+          : initialEnquiry.trackingTokenExpiresAt &&
+              new Date(initialEnquiry.trackingTokenExpiresAt).getTime() <= Date.now()
+            ? "EXPIRED"
+            : "ACTIVE",
   );
   const [linkCopied, setLinkCopied] = useState(false);
   const [isTrackingPending, startTrackingTransition] = useTransition();
@@ -463,6 +472,8 @@ export function EnquiryDetailView({ enquiry: initialEnquiry }: EnquiryDetailView
                 <span>Customer Tracking Link</span>
                 {trackingStatus === "REVOKED" ? (
                   <Badge tone="error">Revoked</Badge>
+                ) : trackingStatus === "EXPIRED" ? (
+                  <Badge tone="warning">Expired</Badge>
                 ) : trackingStatus === "ACTIVE" ? (
                   <Badge tone="success">Active</Badge>
                 ) : (
@@ -477,6 +488,42 @@ export function EnquiryDetailView({ enquiry: initialEnquiry }: EnquiryDetailView
               {trackingMessage && (
                 <Notification tone={trackingMessage.tone}>{trackingMessage.text}</Notification>
               )}
+              {enquiry.hasTrackingToken && (
+                <dl className="grid grid-cols-1 gap-1 rounded border border-border bg-surface-muted p-2.5 text-body-sm">
+                  {enquiry.trackingTokenExpiresAt && (
+                    <div className="flex justify-between gap-2">
+                      <dt className="text-on-surface-variant">
+                        {trackingStatus === "EXPIRED" ? "Expired on" : "Expires on"}
+                      </dt>
+                      <dd className="font-medium">
+                        {new Date(enquiry.trackingTokenExpiresAt).toLocaleDateString("en-IN", {
+                          dateStyle: "medium",
+                        })}
+                      </dd>
+                    </div>
+                  )}
+                  <div className="flex justify-between gap-2">
+                    <dt className="text-on-surface-variant">Verified customer views</dt>
+                    <dd className="font-medium">{enquiry.trackingViewCount ?? 0}</dd>
+                  </div>
+                  {enquiry.trackingLastViewedAt && (
+                    <div className="flex justify-between gap-2">
+                      <dt className="text-on-surface-variant">Last viewed</dt>
+                      <dd className="font-medium">
+                        {new Date(enquiry.trackingLastViewedAt).toLocaleString("en-IN", {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        })}
+                      </dd>
+                    </div>
+                  )}
+                </dl>
+              )}
+              <p className="text-on-surface-variant">
+                The link itself is shown only when generated (only a hash is stored). Rotate to
+                create a new link; rotating or revoking disables the old one. Links expire after 90
+                days.
+              </p>
               {generatedUrl && (
                 <div className="p-2.5 rounded bg-surface-muted border border-border break-all font-mono text-body-sm">
                   {generatedUrl}
@@ -493,7 +540,7 @@ export function EnquiryDetailView({ enquiry: initialEnquiry }: EnquiryDetailView
                   <RefreshCw
                     className={`size-3.5 mr-1 ${isTrackingPending ? "animate-spin" : ""}`}
                   />
-                  {enquiry.trackingTokenHash ? "Rotate New Link" : "Generate Link"}
+                  {enquiry.hasTrackingToken ? "Rotate New Link" : "Generate Link"}
                 </Button>
                 {generatedUrl && (
                   <Button
@@ -505,7 +552,7 @@ export function EnquiryDetailView({ enquiry: initialEnquiry }: EnquiryDetailView
                     {linkCopied ? "Link Copied!" : "Copy Link"}
                   </Button>
                 )}
-                {enquiry.trackingTokenHash && trackingStatus === "ACTIVE" && (
+                {enquiry.hasTrackingToken && trackingStatus === "ACTIVE" && (
                   <Button
                     type="button"
                     variant="destructive"
@@ -699,7 +746,7 @@ export function EnquiryDetailView({ enquiry: initialEnquiry }: EnquiryDetailView
       )}
 
       {/* Digital Quotation Management */}
-      <QuotationManager enquiry={enquiry} />
+      <QuotationManager enquiry={enquiry} quotations={quotations} />
 
       {/* Internal Staff Notes (Admin Only) */}
       <Card>

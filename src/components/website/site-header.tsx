@@ -22,6 +22,7 @@ const linkClass =
  */
 export function SiteHeader({ settings }: { settings: BusinessSettings }) {
   const whatsappMessage = generalEnquiryMessage(settings.name);
+  const callbackContact = { phone: settings.phone, whatsappNumber: settings.whatsappNumber };
   const mobileActions = (
     <>
       <CallButton phone={settings.phone} size="lg">
@@ -32,7 +33,7 @@ export function SiteHeader({ settings }: { settings: BusinessSettings }) {
           WhatsApp enquiry
         </WhatsAppButton>
       )}
-      <RequestCallbackButton size="lg" variant="outline">
+      <RequestCallbackButton size="lg" variant="outline" contact={callbackContact}>
         Request callback
       </RequestCallbackButton>
     </>
@@ -89,6 +90,7 @@ export function SiteHeader({ settings }: { settings: BusinessSettings }) {
             )}
             <span className="text-on-primary/60">|</span>
             <RequestCallbackButton
+              contact={callbackContact}
               variant="ghost"
               size="sm"
               className="h-6 px-1 text-label-md font-medium text-secondary hover:text-secondary hover:bg-primary/50"

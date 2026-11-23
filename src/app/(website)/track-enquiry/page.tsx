@@ -13,14 +13,12 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/track-enquiry",
   },
+  // Private, per-customer page: never indexed (also enforced by the X-Robots-Tag header in next.config.ts).
+  robots: { index: false, follow: false },
 };
 
-interface TrackEnquiryPageProps {
-  searchParams: Promise<{ ref?: string; token?: string }>;
-}
-
-export default async function TrackEnquiryPage({ searchParams }: TrackEnquiryPageProps) {
-  const params = await searchParams;
+/** The tracking credentials arrive in the URL fragment and are read in the browser, never by the server. */
+export default async function TrackEnquiryPage() {
   const load = await loadCatalogue();
   const whatsappNumber = load.ok ? load.settings.whatsappNumber : undefined;
   const businessPhone = load.ok ? load.settings.phone : undefined;
@@ -43,8 +41,6 @@ export default async function TrackEnquiryPage({ searchParams }: TrackEnquiryPag
         }
       >
         <TrackEnquiryView
-          initialReference={params.ref ?? ""}
-          initialToken={params.token ?? ""}
           whatsappNumber={whatsappNumber ?? undefined}
           businessPhone={businessPhone ?? undefined}
         />

@@ -95,7 +95,10 @@ export interface AdminEnquiryDetail {
   items: AdminEnquiryItem[];
   notes: AdminEnquiryNote[];
   outbox: AdminNotificationOutboxStatus | null;
-  trackingTokenHash?: string | null;
+  /** Whether a customer tracking link exists. The hash itself is never sent to the browser. */
+  hasTrackingToken?: boolean;
+  trackingViewCount?: number;
+  trackingLastViewedAt?: string | null;
   trackingTokenExpiresAt?: string | null;
   trackingTokenRevokedAt?: string | null;
   callbackDetails?: {

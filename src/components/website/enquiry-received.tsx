@@ -64,7 +64,11 @@ export function EnquiryReceived({
               <div className="rounded-lg border border-success/30 bg-surface p-3 text-body-sm">
                 <p className="font-semibold text-primary">Track Your Enquiry Live</p>
                 <p className="mt-0.5 text-on-surface-variant">
-                  No login required. Track status updates and view quotations directly anytime.
+                  No login required. Track status updates and view quotations anytime.
+                </p>
+                <p className="mt-1 font-medium text-on-surface">
+                  Save this link now — for your security it is shown only once. Anyone who has it
+                  can view this enquiry.
                 </p>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   <ButtonLink href={trackingUrl} size="sm" variant="primary">

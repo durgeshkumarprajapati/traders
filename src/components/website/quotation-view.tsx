@@ -1,294 +1,266 @@
 "use client";
 
 import { useState } from "react";
-import { Download, Share2, Copy, Check, ArrowLeft } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Check, Copy, Download, Phone, Share2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button, ButtonAnchor, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Table, TBody, Td, Th, THead, Tr } from "@/components/ui/table";
+import { formatRupees } from "@/features/quotations/calculations";
 import type { CustomerTrackedQuotation } from "@/features/quotations/types";
 import { WhatsAppButton } from "./contact-actions";
 
-interface QuotationViewProps {
-  quotation: CustomerTrackedQuotation;
-  token: string;
-  whatsappNumber?: string;
-  businessPhone?: string;
+export interface QuotationBusiness {
+  name: string;
+  tagline?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  address?: string | null;
+  gstin?: string | null;
+  whatsappNumber?: string | null;
 }
 
+const fmtDate = (iso: string) =>
+  new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+
+/**
+ * Customer quotation. Every business fact (name, address, phone, GSTIN …) comes from Business Settings — nothing is
+ * hard-coded, and there are no payment/bank instructions because none exist in the configured data. Terms are exactly what
+ * the administrator entered for this quotation. Superseded and expired quotations are labelled, never presented as current.
+ */
 export function QuotationView({
   quotation,
   token,
-  whatsappNumber,
-  businessPhone,
-}: QuotationViewProps) {
+  business,
+}: {
+  quotation: CustomerTrackedQuotation;
+  token: string;
+  business: QuotationBusiness;
+}) {
   const [copied, setCopied] = useState(false);
 
-  function handleCopyLink() {
-    if (typeof window === "undefined") return;
-    const url = window.location.href;
-    navigator.clipboard.writeText(url).then(() => {
+  function copyLink() {
+    navigator.clipboard.writeText(window.location.href).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 3000);
     });
   }
 
-  const issueDateFormatted = quotation.issuedAt
-    ? new Date(quotation.issuedAt).toLocaleDateString("en-IN", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      })
-    : new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+  const shareText = `Quotation ${quotation.reference} (version ${quotation.version}) from ${business.name}. Total ${formatRupees(quotation.totalAmount)}.`;
+  const shareHref = () =>
+    `https://wa.me/?text=${encodeURIComponent(`${shareText}\n${typeof window !== "undefined" ? window.location.href : ""}`)}`;
 
-  const validUntilFormatted = quotation.validUntil
-    ? new Date(quotation.validUntil).toLocaleDateString("en-IN", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      })
-    : null;
-
-  const waShareMessage = `Hello, here is the formal quotation from Sagar Traders:\nRef: ${quotation.reference} (v${quotation.version})\nTotal: ₹${quotation.totalAmount.toLocaleString("en-IN")}\nLink: ${typeof window !== "undefined" ? window.location.href : ""}`;
+  const banner = !quotation.isLatest
+    ? "This is an earlier version. A newer version of this quotation has been issued — please use the latest version or contact us."
+    : quotation.isExpired
+      ? "This quotation has expired. Rates and availability must be re-confirmed — please contact us."
+      : null;
 
   return (
     <div className="space-y-gutter-lg pb-section-md">
-      {/* Top Action Bar */}
       <div className="flex flex-wrap items-center justify-between gap-gutter-sm rounded-lg border border-border bg-surface p-gutter-md">
-        <ButtonLink
-          href={`/track-enquiry?ref=${encodeURIComponent(quotation.enquiryReference)}&token=${encodeURIComponent(token)}`}
-          variant="outline"
-          size="sm"
-        >
-          <ArrowLeft className="size-4 mr-1" />
-          Track Enquiry Timeline
+        <ButtonLink href="/track-enquiry" variant="outline" size="sm">
+          <ArrowLeft aria-hidden className="mr-1 size-4" />
+          Track your enquiry
         </ButtonLink>
-
         <div className="flex flex-wrap items-center gap-2">
-          <ButtonAnchor
-            href={`/api/quotation/${token}/pdf`}
-            target="_blank"
-            rel="noopener noreferrer"
-            variant="primary"
-            size="sm"
-          >
-            <Download className="size-4 mr-1.5" />
+          <ButtonAnchor href={`/api/quotation/${token}/pdf`} variant="primary" size="sm">
+            <Download aria-hidden className="mr-1.5 size-4" />
             Download PDF
           </ButtonAnchor>
-
-          <Button type="button" variant="outline" size="sm" onClick={handleCopyLink}>
+          <Button type="button" variant="outline" size="sm" onClick={copyLink}>
             {copied ? (
               <>
-                <Check className="size-4 mr-1.5 text-success" />
-                Copied!
+                <Check aria-hidden className="mr-1.5 size-4 text-success" />
+                Copied
               </>
             ) : (
               <>
-                <Copy className="size-4 mr-1.5" />
-                Copy Link
+                <Copy aria-hidden className="mr-1.5 size-4" />
+                Copy link
               </>
             )}
           </Button>
-
-          {whatsappNumber && (
-            <WhatsAppButton
-              number={whatsappNumber}
-              message={waShareMessage}
-              size="sm"
-              variant="outline"
-            >
-              <Share2 className="size-4 mr-1.5" />
-              Share WhatsApp
-            </WhatsAppButton>
-          )}
+          <ButtonAnchor
+            href={shareHref()}
+            target="_blank"
+            rel="noopener noreferrer"
+            variant="outline"
+            size="sm"
+          >
+            <Share2 aria-hidden className="mr-1.5 size-4" />
+            Share on WhatsApp
+            <span className="sr-only"> (opens WhatsApp; you choose who to send it to)</span>
+          </ButtonAnchor>
         </div>
       </div>
 
-      {/* Main Quotation Document Card */}
-      <Card className="overflow-hidden border border-border shadow-xs">
-        {/* Navy Header Banner */}
+      {banner && (
+        <div
+          role="status"
+          className="flex items-start gap-3 rounded-lg border border-warning/40 bg-warning/10 p-gutter-md text-body-md"
+        >
+          <AlertTriangle aria-hidden className="mt-0.5 size-5 shrink-0 text-warning" />
+          <p>
+            <strong>{!quotation.isLatest ? "Superseded. " : "Expired. "}</strong>
+            {banner}
+          </p>
+        </div>
+      )}
+
+      <Card className="overflow-hidden border border-border">
         <div className="border-b-4 border-secondary bg-primary p-6 text-on-primary">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <h1 className="text-headline-md font-bold text-on-primary">SAGAR TRADERS</h1>
-              <p className="text-body-sm text-secondary font-medium mt-0.5">
-                Quality Building Materials & Direct Site Supplies
-              </p>
-              <p className="text-body-sm text-on-primary/80 mt-2">
-                Ring Road No. 2, Industrial Area, Raipur, CG - 492001
-              </p>
-            </div>
-
-            <div className="rounded bg-on-primary/10 p-3 sm:text-right">
-              <span className="text-label-sm font-semibold uppercase text-secondary">
-                Formal Commercial Quotation
-              </span>
-              <div className="text-title-lg font-mono font-bold text-on-primary mt-1">
-                {quotation.reference}
-              </div>
-              <div className="flex items-center gap-2 mt-1 sm:justify-end">
-                <Badge
-                  tone="neutral"
-                  appearance="outline"
-                  className="border-on-primary/30 text-on-primary"
-                >
-                  Version {quotation.version}
-                </Badge>
-                <span className="text-body-sm text-on-primary/80">Date: {issueDateFormatted}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Client & Enquiry Information */}
-        <div className="border-b border-border bg-surface-muted p-6">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <span className="text-label-sm font-semibold uppercase tracking-wider text-on-surface-variant">
-                Quotation Issued To
-              </span>
-              <p className="text-title-md font-bold text-on-surface mt-1">
-                {quotation.customerName}
-              </p>
-              {quotation.deliveryLocation && (
-                <p className="text-body-sm text-on-surface-variant mt-1">
-                  Site Delivery: <strong>{quotation.deliveryLocation}</strong>
-                </p>
+            <div className="min-w-0">
+              <h1 className="text-headline-md font-bold text-on-primary">{business.name}</h1>
+              {business.tagline && (
+                <p className="mt-0.5 text-body-sm font-medium text-secondary">{business.tagline}</p>
               )}
+              <div className="mt-2 space-y-0.5 text-body-sm text-on-primary/85 [overflow-wrap:anywhere]">
+                {business.address && <p className="whitespace-pre-line">{business.address}</p>}
+                {(business.phone || business.email) && (
+                  <p>
+                    {[
+                      business.phone && `Phone: ${business.phone}`,
+                      business.email && `Email: ${business.email}`,
+                    ]
+                      .filter(Boolean)
+                      .join("  ·  ")}
+                  </p>
+                )}
+                {business.gstin && <p>GSTIN: {business.gstin}</p>}
+              </div>
             </div>
-
-            <div className="sm:text-right">
-              <span className="text-label-sm font-semibold uppercase tracking-wider text-on-surface-variant">
-                Enquiry Information
-              </span>
-              <p className="text-body-sm text-on-surface mt-1">
-                Enquiry Reference: <strong>{quotation.enquiryReference}</strong>
+            <div className="shrink-0 rounded border border-on-primary/30 p-3 text-body-sm">
+              <p className="text-title-md font-bold">Quotation</p>
+              <p>
+                Ref: <strong>{quotation.reference}</strong>
               </p>
-              {validUntilFormatted && (
-                <p className="text-body-sm text-warning font-semibold mt-1">
-                  Valid Until: {validUntilFormatted}
+              <p>Version {quotation.version}</p>
+              <p>Enquiry: {quotation.enquiryReference}</p>
+              {quotation.issuedAt && <p>Date: {fmtDate(quotation.issuedAt)}</p>}
+              {quotation.validUntil && (
+                <p>
+                  {quotation.isExpired ? "Expired" : "Valid until"}: {fmtDate(quotation.validUntil)}
                 </p>
               )}
             </div>
           </div>
         </div>
 
-        {/* Itemized Table */}
-        <div className="p-6">
-          <h2 className="text-title-md font-bold text-primary mb-4">Itemized Supplies</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-body-sm">
-              <thead className="border-b border-border bg-surface-muted text-on-surface-variant">
-                <tr>
-                  <th className="py-2.5 px-3 w-10">#</th>
-                  <th className="py-2.5 px-3">Item Description</th>
-                  <th className="py-2.5 px-3">Brand</th>
-                  <th className="py-2.5 px-3 text-right">Quantity</th>
-                  <th className="py-2.5 px-3 text-right">Unit Rate</th>
-                  <th className="py-2.5 px-3 text-right">Total Amount</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {quotation.items.map((item) => (
-                  <tr key={item.position} className="hover:bg-surface-muted/40">
-                    <td className="py-3 px-3 text-on-surface-variant">{item.position}</td>
-                    <td className="py-3 px-3 font-medium text-on-surface">
-                      {item.productName}
-                      {item.notes && (
-                        <p className="text-body-sm text-on-surface-variant mt-0.5">{item.notes}</p>
-                      )}
-                    </td>
-                    <td className="py-3 px-3 text-on-surface-variant">{item.brandName || "—"}</td>
-                    <td className="py-3 px-3 text-right font-medium text-on-surface">
-                      {item.quantity} {item.unitLabel}
-                    </td>
-                    <td className="py-3 px-3 text-right text-on-surface font-mono">
-                      ₹{item.unitPrice.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                    </td>
-                    <td className="py-3 px-3 text-right font-bold text-on-surface font-mono">
-                      ₹{item.lineTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <div className="space-y-gutter-lg p-gutter-lg">
+          <div>
+            <p className="text-label-md text-on-surface-variant">Quotation for</p>
+            <p className="text-title-lg font-bold [overflow-wrap:anywhere]">
+              {quotation.customerName}
+            </p>
+            {quotation.deliveryLocation && (
+              <p className="text-body-md text-on-surface-variant [overflow-wrap:anywhere]">
+                Delivery site: {quotation.deliveryLocation}
+              </p>
+            )}
           </div>
 
-          {/* Totals & Bank Information Grid */}
-          <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2">
-            {/* Bank details for RTGS/NEFT */}
-            <div className="rounded-lg border border-border bg-surface-muted p-4 space-y-2 text-body-sm">
-              <p className="font-bold text-primary text-body-md">Payment / Bank Details</p>
-              <div className="space-y-1 text-on-surface">
-                <p>
-                  <strong>Beneficiary:</strong> Sagar Traders
-                </p>
-                <p>
-                  <strong>Bank:</strong> State Bank of India
-                </p>
-                <p>
-                  <strong>A/C No:</strong> 31234567890
-                </p>
-                <p>
-                  <strong>IFSC Code:</strong> SBIN0001234
-                </p>
-                <p>
-                  <strong>Branch:</strong> Raipur Main Branch
-                </p>
-              </div>
-            </div>
+          <Table stacked>
+            <caption className="sr-only">Quotation line items</caption>
+            <THead>
+              <Tr>
+                <Th>#</Th>
+                <Th>Item</Th>
+                <Th>Brand</Th>
+                <Th>Quantity</Th>
+                <Th className="text-right">Rate</Th>
+                <Th className="text-right">Amount</Th>
+              </Tr>
+            </THead>
+            <TBody>
+              {quotation.items.map((it) => (
+                <Tr key={it.position}>
+                  <Td label="#">{it.position}</Td>
+                  <Td label="Item">
+                    <span className="font-medium">{it.productName}</span>
+                    {it.notes && (
+                      <span className="block text-body-sm text-on-surface-variant">{it.notes}</span>
+                    )}
+                  </Td>
+                  <Td label="Brand">{it.brandName ?? "—"}</Td>
+                  <Td label="Quantity">
+                    {Number(it.quantity.toFixed(3))} {it.unitLabel}
+                  </Td>
+                  <Td label="Rate" className="md:text-right">
+                    {formatRupees(it.unitPrice)}
+                  </Td>
+                  <Td label="Amount" className="font-semibold md:text-right">
+                    {formatRupees(it.lineTotal)}
+                  </Td>
+                </Tr>
+              ))}
+            </TBody>
+          </Table>
 
-            {/* Financial Totals */}
-            <div className="rounded-lg border border-border bg-surface p-4 space-y-2">
-              <div className="flex justify-between text-body-sm text-on-surface">
-                <span>Subtotal:</span>
-                <span className="font-mono">
-                  ₹{quotation.subtotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                </span>
-              </div>
-              {quotation.discountAmount > 0 && (
-                <div className="flex justify-between text-body-sm text-success">
-                  <span>Discount:</span>
-                  <span className="font-mono">
-                    -₹
-                    {quotation.discountAmount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                  </span>
-                </div>
-              )}
-              {quotation.taxAmount > 0 && (
-                <div className="flex justify-between text-body-sm text-on-surface">
-                  <span>Taxes (GST):</span>
-                  <span className="font-mono">
-                    ₹{quotation.taxAmount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                  </span>
-                </div>
-              )}
-              <div className="border-t border-border pt-2 flex justify-between text-title-md font-bold text-primary">
-                <span>Grand Total:</span>
-                <span className="font-mono">
-                  ₹{quotation.totalAmount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                </span>
-              </div>
+          <dl className="ml-auto w-full max-w-xs space-y-1 rounded border border-border p-gutter-md text-body-md">
+            <div className="flex justify-between gap-4">
+              <dt>Subtotal</dt>
+              <dd>{formatRupees(quotation.subtotal)}</dd>
             </div>
-          </div>
+            {quotation.discountAmount > 0 && (
+              <div className="flex justify-between gap-4">
+                <dt>Discount</dt>
+                <dd>− {formatRupees(quotation.discountAmount)}</dd>
+              </div>
+            )}
+            {quotation.taxAmount > 0 && (
+              <div className="flex justify-between gap-4">
+                <dt>Tax</dt>
+                <dd>{formatRupees(quotation.taxAmount)}</dd>
+              </div>
+            )}
+            <div className="flex justify-between gap-4 border-t border-border pt-2 text-title-md font-bold text-primary">
+              <dt>Total</dt>
+              <dd>{formatRupees(quotation.totalAmount)}</dd>
+            </div>
+          </dl>
 
-          {/* Terms & Conditions */}
           {quotation.termsAndConditions && (
-            <div className="mt-8 border-t border-border pt-4">
-              <h3 className="text-body-sm font-bold text-on-surface uppercase tracking-wider mb-2">
-                Terms & Conditions
-              </h3>
-              <p className="text-body-sm text-on-surface-variant whitespace-pre-line leading-relaxed">
+            <section aria-labelledby="terms-heading">
+              <h2 id="terms-heading" className="text-title-md font-bold text-primary">
+                Terms &amp; conditions
+              </h2>
+              <p className="mt-1 whitespace-pre-line text-body-md text-on-surface-variant [overflow-wrap:anywhere]">
                 {quotation.termsAndConditions}
               </p>
-            </div>
+            </section>
           )}
+        </div>
+      </Card>
 
-          {/* Computer Generated Disclaimer */}
-          <div className="mt-8 border-t border-border pt-4 text-center text-body-sm text-on-surface-variant">
-            This is an official computer-generated quotation from Sagar Traders. For orders or
-            dispatched site delivery, please contact our dispatch team at{" "}
-            {businessPhone || "+91 91234 56789"}.
-          </div>
+      <Card className="flex flex-col gap-gutter-sm p-gutter-md sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-body-md">
+          <Badge tone="neutral" appearance="outline">
+            Questions?
+          </Badge>{" "}
+          Contact us about this quotation.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {business.phone && (
+            <ButtonAnchor
+              href={`tel:${business.phone.replace(/[^0-9+]/g, "")}`}
+              variant="outline"
+              size="sm"
+            >
+              <Phone aria-hidden className="mr-1.5 size-4" />
+              Call {business.phone}
+            </ButtonAnchor>
+          )}
+          <WhatsAppButton
+            hideIfUnavailable
+            number={business.whatsappNumber ?? null}
+            message={`Hello, I have a question about quotation ${quotation.reference} (version ${quotation.version}).`}
+            variant="outline"
+            size="sm"
+          >
+            WhatsApp us
+          </WhatsAppButton>
         </div>
       </Card>
     </div>

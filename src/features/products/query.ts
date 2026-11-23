@@ -14,6 +14,17 @@ export const SORT_LABELS: Record<SortOption, string> = {
   updated: "Recently updated",
 };
 
+/** Price availability filter: every product, only those with a listed rate, or only those with "rate on request". */
+export const PRICE_FILTERS = ["any", "listed", "request"] as const;
+export type PriceFilter = (typeof PRICE_FILTERS)[number];
+export const PRICE_FILTER_LABELS: Record<PriceFilter, string> = {
+  any: "All products",
+  listed: "Rate listed",
+  request: "Rate on request",
+};
+export const hasListedRate = (p: { price: number | null }) =>
+  typeof p.price === "number" && p.price > 0;
+
 export type ListingParams = {
   q: string;
   category: string | null;
@@ -22,6 +33,8 @@ export type ListingParams = {
   units: string[];
   minPrice: number | null;
   maxPrice: number | null;
+  /** Optional so existing callers keep working; absent means "any". */
+  price?: PriceFilter;
   sort: SortOption;
   page: number;
 };
@@ -42,6 +55,7 @@ export function parseListingParams(raw: RawParams): ListingParams {
   const page = z.coerce.number().int().min(1).max(1000).safeParse(first(raw.page));
   const minP = z.coerce.number().min(0).max(10_000_000).safeParse(first(raw.minPrice));
   const maxP = z.coerce.number().min(0).max(10_000_000).safeParse(first(raw.maxPrice));
+  const priceFilter = z.enum(PRICE_FILTERS).safeParse(first(raw.price));
 
   return {
     q,
@@ -57,6 +71,8 @@ export function parseListingParams(raw: RawParams): ListingParams {
     ),
     minPrice: minP.success ? minP.data : null,
     maxPrice: maxP.success ? maxP.data : null,
+    // Omitted when "any" so the default parameter set is unchanged.
+    ...(priceFilter.success && priceFilter.data !== "any" ? { price: priceFilter.data } : {}),
     sort: sort.success ? sort.data : "featured",
     page: page.success ? page.data : 1,
   };
@@ -80,6 +96,8 @@ export function filterAndSort(data: Catalogue, params: ListingParams): Product[]
     if (params.stock.length && (!p.stockStatus || !params.stock.includes(p.stockStatus)))
       return false;
     if (params.units.length && !params.units.includes(p.unit.code)) return false;
+    if (params.price === "listed" && !hasListedRate(p)) return false;
+    if (params.price === "request" && hasListedRate(p)) return false;
     if (params.minPrice !== null && (p.price === null || p.price < params.minPrice)) return false;
     if (params.maxPrice !== null && (p.price === null || p.price > params.maxPrice)) return false;
     return matchesSmartSearch(
@@ -154,6 +172,7 @@ export function listingQuery(
   p.units?.forEach((u) => sp.append("unit", u));
   if (p.minPrice !== null && p.minPrice !== undefined) sp.set("minPrice", String(p.minPrice));
   if (p.maxPrice !== null && p.maxPrice !== undefined) sp.set("maxPrice", String(p.maxPrice));
+  if (p.price && p.price !== "any") sp.set("price", p.price);
   if (p.sort && p.sort !== "featured") sp.set("sort", p.sort);
   if (p.page && p.page > 1) sp.set("page", String(p.page));
   const s = sp.toString();

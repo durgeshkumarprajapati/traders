@@ -1,130 +1,66 @@
-# Database Migrations Documentation
+# Database migrations
 
-**Project:** Sagar Traders  
-**Database:** PostgreSQL 15+ (Hosted on Supabase)  
-**Schema Level:** Production Grade  
-**Date:** 2026-11-23
+All migrations are **forward-only** and live in `supabase/migrations/`. Applied migrations are never edited; changes arrive as a new file.
 
----
+| File                                                 | Adds                                                                                                                                                                                                         |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `20261118000000_enquiries.sql`                       | `enquiries`, `enquiry_items`, `enquiry_notes`, `notification_outbox`, `notification_attempts`, `rate_limits`, `create_enquiry` and the outbox / rate-limit functions; RLS on, no policies, service-role only |
+| `20261120000000_admin_auth.sql`                      | `admin_profiles`, `is_admin()`, admin RLS policies                                                                                                                                                           |
+| `20261123000000_customer_features.sql`               | tracking-token columns on `enquiries`, `enquiry_status_history`, `enquiry_callbacks`, `quotations`, `quotation_items`, `get_tracked_enquiry`, `get_tracked_quotation`; `create_enquiry` extended             |
+| **`20261124000000_customer_features_hardening.sql`** | **this phase's corrections** — see below                                                                                                                                                                     |
 
-## 1. Migration History Overview
+## What `20261124000000` does
 
-| Migration File                         | Version/Timestamp | Description                                                                                                | Status                 |
-| -------------------------------------- | ----------------- | ---------------------------------------------------------------------------------------------------------- | ---------------------- |
-| `20261118000000_enquiries.sql`         | Phase 6           | Baseline enquiries, enquiry items, notification queue, and RLS policies                                    | Applied & Verified     |
-| `20261120000000_admin_auth.sql`        | Phase 7           | Administrator profiles, audit log, `is_admin()` security definer function, admin RLS                       | Applied & Verified     |
-| `20261123000000_customer_features.sql` | Customer Features | Enquiry tracking tokens & status timeline history, callback requests, digital quotations & items, sequence | Authoritative & Tested |
+1. **Random public enquiry reference** — `create_enquiry` (replaced with `create or replace`, same signature and grants) now generates `ENQ-XXXX-XXXX-XXXX` from `gen_random_uuid()` with a uniqueness retry. Existing rows are untouched.
+2. **Atomic admin quotation functions** — `create_quotation_draft`, `issue_quotation`, `rotate_quotation_token`, `revoke_quotation_token`. `SECURITY DEFINER`, fixed `search_path`, each begins with `if not public.is_admin() then raise …`; `EXECUTE` revoked from `public`/`anon`, granted to `authenticated`. Totals are computed in SQL.
+3. **Immutability triggers** on `quotations` and `quotation_items` (no change/delete/return-to-draft once issued).
+4. **Integrity constraints** (`NOT VALID`, so they apply to every new/updated row without rescanning or failing on any pre-existing row): `quotations_total_consistent`, `quotation_items_line_total_consistent`.
+5. **Audit counters**: `enquiries.tracking_view_count / tracking_last_viewed_at`, `quotations.view_count / last_viewed_at`.
+6. `get_tracked_enquiry` / `get_tracked_quotation` replaced (same grants: **service_role only**): the quotation lookup also accepts the enquiry token (latest issued version) and returns `is_latest` / `is_expired`.
+7. `set_updated_at()` no longer bumps `updated_at` when only the view counters change.
 
----
+## Row Level Security summary
 
-## 2. Migration `20261123000000_customer_features.sql` Details
+| Object                                                                       | anon                    | authenticated (non-admin)                                   | authenticated admin                   | service_role       |
+| ---------------------------------------------------------------------------- | ----------------------- | ----------------------------------------------------------- | ------------------------------------- | ------------------ |
+| Every enquiry / quotation / callback / history table                         | no privileges (revoked) | RLS: no matching policy → nothing                           | RLS policy `is_admin()` → full access | full (server only) |
+| `get_tracked_*`, `create_enquiry`, outbox / rate-limit functions             | no execute              | no execute                                                  | no execute                            | execute            |
+| `create_quotation_draft`, `issue_quotation`, `rotate/revoke_quotation_token` | no execute              | execute, but **refused** by the internal `is_admin()` check | allowed                               | not used           |
 
-### 2.1 Enquiry Tracking Columns on `public.enquiries`
+Customers have **no direct database access at all**: every public read or write goes through a Next.js Server Action / route handler that validates input, rate-limits, and calls one narrowly scoped function with the service-role key (server-only).
 
-- `tracking_token_hash`: `text unique` — SHA-256 hex digest of the raw 32-byte tracking token (`tr_...`). Never stores raw tokens.
-- `tracking_token_expires_at`: `timestamptz` — Expiration boundary (default 90 days from creation).
-- `tracking_token_revoked_at`: `timestamptz` — Revocation timestamp when manually rotated or invalidated by an administrator.
+## How to apply (owner) — NOT yet applied to any live database by the developer
 
-### 2.2 Status Timeline: `public.enquiry_status_history`
+1. Back up: Supabase Dashboard → Database → Backups (or `pg_dump`).
+2. Apply **in order**, skipping files already applied: SQL Editor → paste `20261124000000_customer_features_hardening.sql` → Run; **or** `supabase link --project-ref <ref>` then `supabase db push`.
+3. Verify (SQL Editor):
 
-Maintains an immutable audit trail of customer enquiry status transitions:
+```sql
+select proname from pg_proc where proname in ('create_quotation_draft','issue_quotation','rotate_quotation_token','revoke_quotation_token');            -- 4 rows
+select tgname from pg_trigger where tgname in ('quotations_immutable','quotation_items_immutable');                                                      -- 2 rows
+select has_function_privilege('anon','public.get_tracked_enquiry(text,text)','execute');                                                                 -- false
+select has_function_privilege('anon','public.create_quotation_draft(jsonb)','execute');                                                                  -- false
+select conname from pg_constraint where conname in ('quotations_total_consistent','quotation_items_line_total_consistent');                              -- 2 rows
+```
 
-- `id`: `uuid primary key default gen_random_uuid()`
-- `enquiry_id`: `uuid not null references public.enquiries (id) on delete cascade`
-- `previous_status`: `text check (previous_status is null or previous_status in ('NEW', 'CONTACTED', 'QUOTATION_SENT', 'CONFIRMED', 'COMPLETED', 'CANCELLED'))`
-- `new_status`: `text not null check (new_status in ('NEW', 'CONTACTED', 'QUOTATION_SENT', 'CONFIRMED', 'COMPLETED', 'CANCELLED'))`
-- `changed_by`: `uuid references auth.users (id) on delete set null`
-- `description`: `text check (description is null or char_length(description) <= 500)`
-- `created_at`: `timestamptz not null default now()`
-- Indexes: `(enquiry_id, created_at asc)`
+4. Create a test enquiry on the site: its reference should look like `ENQ-1A2B-3C4D-5E6F`.
 
-### 2.3 Callback Requests: `public.enquiry_callbacks`
+## Test evidence
 
-Structured 1-to-1 extension table for general enquiries requesting phone assistance:
+`src/lib/supabase/migration.test.ts` runs **all four migrations and the self-asserting SQL files** (`supabase/tests/0*.sql`) on a throwaway **PostgreSQL 16** (single-user mode) — random references, the admin gate, exact arithmetic, atomic rejection (no partial rows), issue / supersede with the real previous status, immutability (update / insert / delete / return-to-draft), token rotation and revocation, expiry, view auditing, `updated_at` preservation, and function privileges. **Limitation:** single-user mode runs as a superuser, so **RLS policy enforcement itself is not exercised** — only the privilege grants, the `is_admin()` function gate, triggers and constraints are. Verify RLS on the real project with the anon key (see `SUPABASE_SETUP.md`).
 
-- `id`: `uuid primary key default gen_random_uuid()`
-- `enquiry_id`: `uuid not null references public.enquiries (id) on delete cascade unique`
-- `preferred_date`: `date`
-- `preferred_time_window`: `text check (preferred_time_window is null or preferred_time_window in ('MORNING', 'AFTERNOON', 'EVENING', 'ANYTIME'))`
-- `reason`: `text check (reason is null or char_length(reason) <= 200)`
-- `created_at`: `timestamptz not null default now()`
-- Indexes: `(enquiry_id)`
+## Rollback / recovery
 
-### 2.4 Digital Quotations Sequence & Tables
+The migration only adds objects and replaces functions; no data is rewritten. To undo (only if no quotation has been issued under the new rules):
 
-#### Sequence: `public.quotation_reference_seq`
+```sql
+drop trigger if exists quotations_immutable on public.quotations;
+drop trigger if exists quotation_items_immutable on public.quotation_items;
+drop function if exists public.quotations_guard(), public.quotation_items_guard();
+drop function if exists public.create_quotation_draft(jsonb), public.issue_quotation(uuid, text, timestamptz),
+  public.rotate_quotation_token(uuid, text, timestamptz), public.revoke_quotation_token(uuid);
+alter table public.quotations drop constraint if exists quotations_total_consistent;
+alter table public.quotation_items drop constraint if exists quotation_items_line_total_consistent;
+```
 
-- `as bigint minvalue 1 start 1000`
-- Used to format human-readable quotation references: `QT-YYYY-XXXX`
-
-#### Table: `public.quotations`
-
-- `id`: `uuid primary key default gen_random_uuid()`
-- `reference`: `text not null unique`
-- `enquiry_id`: `uuid not null references public.enquiries (id) on delete cascade`
-- `version`: `integer not null default 1 check (version >= 1)`
-- `status`: `text not null default 'DRAFT' check (status in ('DRAFT', 'ISSUED', 'REVISED', 'EXPIRED', 'ACCEPTED', 'REJECTED'))`
-- `customer_name`: `text not null check (char_length(customer_name) between 2 and 100)`
-- `mobile`: `text not null check (mobile ~ '^[6-9][0-9]{9}$')`
-- `email`: `text check (email is null or (char_length(email) <= 254 and position('@' in email) > 1))`
-- `delivery_location`: `text check (delivery_location is null or char_length(delivery_location) between 3 and 300)`
-- `subtotal`: `numeric(14, 2) not null check (subtotal >= 0)`
-- `discount_amount`: `numeric(14, 2) not null default 0 check (discount_amount >= 0)`
-- `tax_amount`: `numeric(14, 2) not null default 0 check (tax_amount >= 0)`
-- `total_amount`: `numeric(14, 2) not null check (total_amount >= 0)`
-- `terms_and_conditions`: `text check (terms_and_conditions is null or char_length(terms_and_conditions) <= 3000)`
-- `valid_until`: `timestamptz`
-- `tracking_token_hash`: `text unique`
-- `tracking_token_expires_at`: `timestamptz`
-- `tracking_token_revoked_at`: `timestamptz`
-- `created_by`: `uuid references auth.users (id) on delete set null`
-- `created_at`: `timestamptz not null default now()`
-- `updated_at`: `timestamptz not null default now()`
-- `issued_at`: `timestamptz`
-- Constraints: `unique (enquiry_id, version)`
-- Indexes: `(enquiry_id, version desc)`, `(reference)`, `(tracking_token_hash)`
-
-#### Table: `public.quotation_items`
-
-- `id`: `uuid primary key default gen_random_uuid()`
-- `quotation_id`: `uuid not null references public.quotations (id) on delete cascade`
-- `position`: `smallint not null check (position >= 1)`
-- `product_id`: `text check (product_id is null or char_length(product_id) between 1 and 64)`
-- `sku`: `text check (sku is null or char_length(sku) <= 64)`
-- `product_name`: `text not null check (char_length(product_name) between 1 and 200)`
-- `brand_name`: `text check (brand_name is null or char_length(brand_name) <= 100)`
-- `unit_code`: `text not null check (unit_code in ('BAG', 'PIECE', 'KG', 'TON', 'METRIC_TON', 'CUBIC_FEET', 'CUBIC_METER', 'BUNDLE', 'BOX', 'METER', 'BRASS', 'BLOCK', 'CUSTOM'))`
-- `unit_label`: `text not null check (char_length(unit_label) between 1 and 40)`
-- `quantity`: `numeric(12, 3) not null check (quantity > 0 and quantity <= 1000000)`
-- `unit_price`: `numeric(14, 2) not null check (unit_price >= 0)`
-- `line_total`: `numeric(14, 2) not null check (line_total >= 0)`
-- `notes`: `text check (notes is null or char_length(notes) <= 500)`
-- `created_at`: `timestamptz not null default now()`
-- Constraints: `unique (quotation_id, position)`
-- Indexes: `(quotation_id)`
-
----
-
-## 3. Security and RLS Model
-
-1. **Default Deny**: `revoke all on table public.enquiry_status_history, public.enquiry_callbacks, public.quotations, public.quotation_items from public, anon, authenticated;`
-2. **Row Level Security**: Explicitly enabled on all tables:
-   - `alter table public.enquiry_status_history enable row level security;`
-   - `alter table public.enquiry_callbacks enable row level security;`
-   - `alter table public.quotations enable row level security;`
-   - `alter table public.quotation_items enable row level security;`
-3. **Admin Policies**: Full CRUD access restricted exclusively to verified administrators via `is_admin()`:
-   - `admin_all_enquiry_status_history`
-   - `admin_all_enquiry_callbacks`
-   - `admin_all_quotations`
-   - `admin_all_quotation_items`
-4. **Service Role (Server Backend)**: Supabase Service Role client bypasses RLS for trusted cryptographic token resolution, timeline status lookups, and callback creation during enquiry submission. Public browser clients have zero direct access to these tables.
-
----
-
-## 4. Verification Harness Testing
-
-Tested against PostgreSQL single-user mode via `src/lib/supabase/migration.test.ts`:
-
-- All 18 migration unit tests passed.
-- Complete SQL syntax, constraints, foreign keys, triggers, and indices validated without warnings.
+Then re-run the `create or replace function` statements for `create_enquiry`, `get_tracked_enquiry`, `get_tracked_quotation` and `set_updated_at` from the earlier migration files to restore their previous definitions. The added columns are harmless and may stay. The application code of this phase requires the migration: **deploy the migration first, then the code.**

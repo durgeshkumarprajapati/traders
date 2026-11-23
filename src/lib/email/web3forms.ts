@@ -102,7 +102,7 @@ export function explainEmailFailure(result: Extract<EmailResult, { ok: false }>)
   if (result.kind === "TIMEOUT" || result.kind === "NETWORK")
     return "The server could not reach Web3Forms (timeout or network error). This is usually temporary: run the test again, and check the host's outbound network access.";
   if (result.status === 401 || result.status === 403)
-    return "Web3Forms refused the request. Check that WEB3FORMS_ACCESS_KEY is correct, active and its recipient email is verified. Web3Forms may also restrict server-side (API) submissions on its free plan — confirm this with Web3Forms; a paid plan or a different email provider may be required.";
+    return "Web3Forms refused the request. Check that WEB3FORMS_ACCESS_KEY is correct, active and its recipient email is verified. Web3Forms' own documentation states that server-side usage requires a paid plan plus whitelisting the server's IP addresses (Vercel's outbound IPs are not fixed), so this provider may not work from this application; a transactional email provider built for server-side sending is the usual fix.";
   if (result.status === 429)
     return "Web3Forms is rate limiting this key. Wait and retry; enquiries are kept and retried automatically.";
   if (result.status !== null && result.status >= 500)

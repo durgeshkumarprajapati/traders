@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { EnquiryDetailView } from "@/components/admin/enquiry-detail-view";
 import { loadAdminEnquiryDetail } from "@/features/admin/server/enquiries";
+import { getAdminQuotationsForEnquiry } from "@/features/quotations/server/quotations";
 
 export const metadata = {
   title: "Enquiry Details | Sagar Traders Admin",
@@ -14,10 +15,13 @@ interface PageProps {
 export default async function AdminEnquiryDetailPage({ params }: PageProps) {
   const { id } = await params;
 
-  const enquiry = await loadAdminEnquiryDetail(id);
+  const [enquiry, quotations] = await Promise.all([
+    loadAdminEnquiryDetail(id),
+    getAdminQuotationsForEnquiry(id),
+  ]);
   if (!enquiry) {
     notFound();
   }
 
-  return <EnquiryDetailView enquiry={enquiry} />;
+  return <EnquiryDetailView enquiry={enquiry} quotations={quotations} />;
 }

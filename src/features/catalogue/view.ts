@@ -88,10 +88,27 @@ export function findProductBySlug(c: ViewCatalogue, slug: string): Product | und
   return c.products.find((p) => p.slug === slug);
 }
 
+/**
+ * Related products for a detail page — catalogue data only, nothing invented. Same category (never the product itself);
+ * ranked by the same brand first, then by how many specification label/value pairs they share; ties keep catalogue order
+ * so the result is deterministic. The catalogue passed in contains active products only.
+ */
 export function relatedProducts(c: ViewCatalogue, product: Product, limit = 4): Product[] {
+  const spec = (p: Product) =>
+    new Set(p.specifications.map((s) => `${s.label}:${s.value}`.toLowerCase()));
+  const mine = spec(product);
   return c.products
-    .filter((p) => p.categoryId === product.categoryId && p.id !== product.id)
-    .slice(0, limit);
+    .map((p, index) => ({ p, index }))
+    .filter(({ p }) => p.categoryId === product.categoryId && p.id !== product.id)
+    .map(({ p, index }) => {
+      let shared = 0;
+      for (const key of spec(p)) if (mine.has(key)) shared++;
+      const sameBrand = product.brandId !== null && p.brandId === product.brandId ? 2 : 0;
+      return { p, index, score: sameBrand + Math.min(shared, 2) };
+    })
+    .sort((x, y) => y.score - x.score || x.index - y.index)
+    .slice(0, limit)
+    .map(({ p }) => p);
 }
 
 /** Server-side construction of the bulk-enquiry picker entries (real unit labels, real availability). */

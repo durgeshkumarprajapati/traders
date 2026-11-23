@@ -11,6 +11,8 @@ export const QUOTATION_STATUSES = [
 
 export type QuotationStatus = (typeof QUOTATION_STATUSES)[number];
 
+export type QuotationLinkState = "NONE" | "ACTIVE" | "EXPIRED" | "REVOKED";
+
 export interface QuotationItemInput {
   productId?: string | null;
   sku?: string | null;
@@ -47,9 +49,11 @@ export interface QuotationRecord {
   totalAmount: number;
   termsAndConditions: string | null;
   validUntil: string | null;
-  trackingTokenHash: string | null;
-  trackingTokenExpiresAt: string | null;
-  trackingTokenRevokedAt: string | null;
+  /** State of the customer access link. The token itself is never stored (only its hash) and never sent to the browser. */
+  linkState: QuotationLinkState;
+  linkExpiresAt: string | null;
+  viewCount: number;
+  lastViewedAt: string | null;
   createdBy: string | null;
   createdAt: string;
   updatedAt: string;
@@ -62,6 +66,10 @@ export interface CustomerTrackedQuotation {
   enquiryReference: string;
   version: number;
   status: QuotationStatus;
+  /** False when a newer version has been issued: this one is shown as superseded. */
+  isLatest: boolean;
+  /** True once the validity date has passed; the quotation is then informational only. */
+  isExpired: boolean;
   customerName: string;
   deliveryLocation: string | null;
   subtotal: number;

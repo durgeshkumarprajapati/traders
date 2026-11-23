@@ -12,7 +12,9 @@ describe("Progressive Web App (PWA) configuration", () => {
     expect(m.display).toBe("standalone");
     expect(m.background_color).toBe("#FFFFFF");
     expect(m.theme_color).toBe("#17365D");
-    expect(m.orientation).toBe("portrait-primary");
+    expect(m.orientation).toBeUndefined(); // no portrait lock (accessibility)
+    expect(m.scope).toBe("/");
+    expect(m.id).toBe("/");
 
     expect(m.icons).toBeDefined();
     expect(m.icons?.length).toBeGreaterThanOrEqual(3);
@@ -43,7 +45,7 @@ describe("Progressive Web App (PWA) configuration", () => {
     expect(swContent).toContain("/track-enquiry");
     expect(swContent).toContain("/quotation");
     expect(swContent).toContain("token");
-    expect(swContent).toContain("isStrictNetworkOnly");
+    expect(swContent).toContain("mustBypass"); // the single gate every request passes through
 
     // Offline fallback handling
     expect(swContent).toContain("/offline");

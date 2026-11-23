@@ -117,9 +117,10 @@ describe("Phase 6 credential boundaries", () => {
     expect(t.match(/^export\s/gm)).toHaveLength(2); // no other export kinds
   });
 
-  it("only the catalogue-product route, sweeper route, admin session route, health route, quotation PDF route and Server Actions are public entry points", () => {
+  it("only the catalogue-product, sweeper, email-test, admin session, admin quotation PDF, health and customer quotation PDF routes (plus Server Actions) are entry points", () => {
     const api = nonTest.map(rel).filter((r) => /^app\/api\//.test(r));
     expect(api.sort()).toEqual([
+      "app/api/admin/quotations/[id]/pdf/route.ts", // administrator session required
       "app/api/admin/session/route.ts",
       "app/api/catalogue/product/route.ts",
       "app/api/health/route.ts",

@@ -10,16 +10,16 @@ export const CONSTRUCTION_SYNONYMS: Record<string, readonly string[]> = {
   saria: ["tmt", "steel", "rebar"],
   "dhalai sariya": ["tmt", "steel", "rebar", "10mm", "12mm"],
   chhad: ["tmt", "steel", "rebar"],
-  loha: ["steel", "tmt", "iron", "wire"],
-  tmt: ["steel", "rebar", "bar", "sariya"],
+  loha: ["iron", "steel"],
+  tmt: ["steel", "rebar", "sariya"],
   rebar: ["tmt", "steel", "sariya"],
   "binding wire": ["wire", "binding", "taar", "loha"],
   taar: ["wire", "binding wire"],
 
   // Cement & Concrete
-  cement: ["ppc", "opc", "dhalai", "concrete", "mortar", "bind"],
-  "dhalai cement": ["ppc", "opc", "cement", "concrete"],
-  "chhat cement": ["ppc", "cement", "dhalai"],
+  cement: ["ppc", "opc", "psc"],
+  "dhalai cement": ["ppc", "opc", "cement"],
+  "chhat cement": ["ppc", "opc", "cement"],
   "chhat dhalai": ["cement", "tmt", "sariya"],
   ppc: ["cement", "portland pozzolana"],
   opc: ["cement", "ordinary portland"],
@@ -46,7 +46,7 @@ export const CONSTRUCTION_SYNONYMS: Record<string, readonly string[]> = {
   dust: ["stone dust", "crushed stone", "m-sand"],
 
   // Plumbing, Pipes & Fittings
-  nal: ["pipe", "plumbing", "pvc", "cpvc"],
+  nal: ["pipe", "plumbing"],
   nalli: ["pipe", "plumbing"],
   pipe: ["pvc", "cpvc", "upvc", "plumbing", "conduit"],
   pvc: ["pipe", "conduit", "plumbing"],
@@ -60,9 +60,9 @@ export const CONSTRUCTION_SYNONYMS: Record<string, readonly string[]> = {
   dampproof: ["waterproofing", "sealant", "liquid"],
 
   // Wall Care, Putty & Paint
-  putty: ["wall putty", "white cement", "skim coat", "basecoat"],
-  "wall putty": ["putty", "white cement", "polymer"],
-  "white cement": ["putty", "portland", "decorative"],
+  putty: ["wall putty", "skim coat"],
+  "wall putty": ["putty", "skim coat"],
+  "white cement": ["cement"],
   paint: ["primer", "emulsion", "distemper"],
   primer: ["paint", "wall primer"],
 
@@ -73,30 +73,33 @@ export const CONSTRUCTION_SYNONYMS: Record<string, readonly string[]> = {
 };
 
 /**
+ * Prototype-safe lookup: a plain object would return Object.prototype members for queries such as "constructor" or
+ * "__proto__" (which are not iterable and would crash the search page).
+ */
+const SYNONYM_MAP: ReadonlyMap<string, readonly string[]> = new Map(
+  Object.entries(CONSTRUCTION_SYNONYMS),
+);
+
+export function synonymsFor(term: string): readonly string[] {
+  return SYNONYM_MAP.get(term) ?? [];
+}
+
+/** Multi-word dictionary keys, longest first, so a longer phrase wins over a shorter one it contains. */
+export const SYNONYM_PHRASES: readonly string[] = [...SYNONYM_MAP.keys()]
+  .filter((k) => k.includes(" "))
+  .sort((a, b) => b.length - a.length);
+
+/**
  * Expands a search query string with related synonym tokens.
- * Returns an array of search token groups where any term in a group satisfying a match contributes.
+ * Returns the typed words plus the dictionary expansions for them (informational; matching lives in smart-search.ts).
  */
 export function getSynonymTokens(query: string): string[] {
   const clean = query.trim().toLowerCase();
   if (!clean) return [];
-
   const tokens = clean.split(/\s+/).filter(Boolean);
   const expanded = new Set<string>(tokens);
-
-  // Check multi-word phrases first
-  for (const [phrase, syns] of Object.entries(CONSTRUCTION_SYNONYMS)) {
-    if (phrase.includes(" ") && clean.includes(phrase)) {
-      for (const s of syns) expanded.add(s);
-    }
-  }
-
-  // Check single-word tokens
-  for (const token of tokens) {
-    const syns = CONSTRUCTION_SYNONYMS[token];
-    if (syns) {
-      for (const s of syns) expanded.add(s);
-    }
-  }
-
+  for (const phrase of SYNONYM_PHRASES)
+    if (clean.includes(phrase)) for (const x of synonymsFor(phrase)) expanded.add(x);
+  for (const token of tokens) for (const x of synonymsFor(token)) expanded.add(x);
   return Array.from(expanded);
 }

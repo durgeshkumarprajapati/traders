@@ -7,7 +7,11 @@ import { Input } from "@/components/ui/form-controls";
 import { Notification } from "@/components/ui/notification";
 import { EnquiryStatusBadge, type EnquiryStatus } from "@/components/ui/status-badge";
 import { trackEnquiryAction } from "@/features/enquiries/tracking-actions";
-import type { TrackedEnquiry } from "@/features/enquiries/tracking-types";
+import {
+  parseTrackingParams,
+  trackingPath,
+  type TrackedEnquiry,
+} from "@/features/enquiries/tracking-types";
 import { WhatsAppButton } from "./contact-actions";
 
 interface TrackEnquiryViewProps {
@@ -68,22 +72,34 @@ export function TrackEnquiryView({
     });
   }
 
+  // The link carries its credentials in the URL FRAGMENT (never sent to the server). Old links used a query string:
+  // those are accepted once and immediately rewritten to the fragment form so the token leaves the address bar's query.
   useEffect(() => {
-    if (initialReference.trim() && initialToken.trim()) {
-      let cancelled = false;
-      trackEnquiryAction(initialReference, initialToken).then((res) => {
-        if (cancelled) return;
-        if (res.ok) {
-          setEnquiry(res.data);
-        } else {
-          setEnquiry(null);
-          setErrorMessage(res.message);
-        }
-      });
-      return () => {
-        cancelled = true;
-      };
+    const found =
+      parseTrackingParams(window.location.hash) ??
+      parseTrackingParams(window.location.search) ??
+      (initialReference.trim() && initialToken.trim()
+        ? { ref: initialReference.trim(), token: initialToken.trim() }
+        : null);
+    if (!found) return;
+    if (window.location.search) {
+      window.history.replaceState(null, "", trackingPath(found.ref, found.token));
     }
+    let cancelled = false;
+    trackEnquiryAction(found.ref, found.token).then((res) => {
+      if (cancelled) return;
+      setReference(found.ref);
+      setToken(found.token);
+      if (res.ok) {
+        setEnquiry(res.data);
+      } else {
+        setEnquiry(null);
+        setErrorMessage(res.message);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [initialReference, initialToken]);
 
   function handleSubmit(e: React.FormEvent) {
@@ -97,7 +113,7 @@ export function TrackEnquiryView({
 
   function handleCopyLink() {
     if (typeof window === "undefined" || !enquiry) return;
-    const url = `${window.location.origin}/track-enquiry?ref=${encodeURIComponent(enquiry.reference)}&token=${encodeURIComponent(token)}`;
+    const url = `${window.location.origin}${trackingPath(enquiry.reference, token)}`;
     navigator.clipboard.writeText(url).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 3000);
@@ -324,9 +340,12 @@ export function TrackEnquiryView({
                         minimumFractionDigits: 2,
                       })}
                     </strong>
+                    {enquiry.latestQuotation.isExpired && (
+                      <span className="text-error ml-2 font-semibold">· Expired</span>
+                    )}
                     {enquiry.latestQuotation.validUntil && (
                       <span className="text-on-surface-variant ml-2">
-                        · Valid until{" "}
+                        · {enquiry.latestQuotation.isExpired ? "Was valid until" : "Valid until"}{" "}
                         {new Date(enquiry.latestQuotation.validUntil).toLocaleDateString("en-IN")}
                       </span>
                     )}

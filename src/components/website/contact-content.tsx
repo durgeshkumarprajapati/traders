@@ -27,7 +27,11 @@ export async function ContactContent() {
                 Request a callback from our sales desk at a date and time window that suits you
                 best.
               </p>
-              <RequestCallbackButton variant="primary" size="md">
+              <RequestCallbackButton
+                variant="primary"
+                size="md"
+                contact={{ phone: settings.phone, whatsappNumber: settings.whatsappNumber }}
+              >
                 Request a Callback
               </RequestCallbackButton>
             </CardBody>

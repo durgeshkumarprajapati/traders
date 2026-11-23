@@ -19,6 +19,14 @@ const customerFeaturesMigration = readFileSync(
   join(root, "supabase/migrations/20261123000000_customer_features.sql"),
   "utf8",
 );
+const hardeningMigration = readFileSync(
+  join(root, "supabase/migrations/20261124000000_customer_features_hardening.sql"),
+  "utf8",
+);
+const hardeningSqlTests = readFileSync(
+  join(root, "supabase/tests/04_customer_features_hardening.sql"),
+  "utf8",
+);
 const stub = readFileSync(join(root, "supabase/tests/00_stub.sql"), "utf8");
 const sqlTests = readFileSync(join(root, "supabase/tests/01_enquiries.sql"), "utf8");
 const authSqlTests = readFileSync(join(root, "supabase/tests/02_admin_auth.sql"), "utf8");
@@ -190,6 +198,92 @@ describe("Phase 7 admin_auth migration (static checks — always run)", () => {
   });
 });
 
+describe("Customer features hardening migration (static checks — always run)", () => {
+  const m = hardeningMigration;
+
+  it("is forward-only: it never drops or recreates earlier tables, and only adds columns / constraints / functions / triggers", () => {
+    expect(m).not.toMatch(/drop\s+(table|column|policy|trigger)\b/i);
+    expect(m).not.toMatch(/create\s+table\b/i);
+    expect(m).not.toMatch(/alter\s+table[^;]*\bdrop\b/i);
+    expect(m).not.toMatch(/\b(delete\s+from|truncate)\b/i);
+  });
+
+  it("enquiry references are random, not a counter", () => {
+    const fn = m.slice(
+      m.indexOf("create or replace function public.create_enquiry"),
+      m.indexOf("-- ── 2."),
+    );
+    expect(fn).toContain("gen_random_uuid()");
+    expect(fn).not.toContain("enquiry_reference_seq");
+  });
+
+  it("issued quotations are immutable at the database level (content, line items, deletion, return to draft)", () => {
+    expect(m).toContain(
+      "create trigger quotations_immutable before update or delete on public.quotations",
+    );
+    expect(m).toContain(
+      "create trigger quotation_items_immutable before insert or update or delete on public.quotation_items",
+    );
+    expect(m).toContain("cannot be changed; create a revision instead");
+    expect(m).toContain("cannot return to draft");
+  });
+
+  it("the four admin functions check is_admin() themselves, are SECURITY DEFINER with a fixed search_path, and are NOT callable by anon/public", () => {
+    for (const fn of [
+      "create_quotation_draft",
+      "issue_quotation",
+      "rotate_quotation_token",
+      "revoke_quotation_token",
+    ]) {
+      const body = m.slice(
+        m.indexOf(`create function public.${fn}(`),
+        m.indexOf("end $$;", m.indexOf(`create function public.${fn}(`)),
+      );
+      expect(body, fn).toContain("security definer set search_path = public, pg_temp");
+      expect(body, fn).toContain("if not public.is_admin()");
+    }
+    expect(m).toMatch(
+      /revoke all on function public\.create_quotation_draft\(jsonb\)[^;]*from public, anon;/,
+    );
+    expect(m).toMatch(
+      /grant execute on function public\.create_quotation_draft\(jsonb\)[^;]*to authenticated;/,
+    );
+    expect(m).not.toMatch(/grant\s+[^;]*\bto\s+(anon|public)\b/i);
+  });
+
+  it("customer-facing lookups stay service_role only (the migration re-grants nothing to anon/authenticated)", () => {
+    for (const fn of ["get_tracked_enquiry", "get_tracked_quotation"]) {
+      expect(m, fn).toMatch(new RegExp(`create or replace function public\\.${fn}\\(`));
+      expect(m).not.toMatch(
+        new RegExp(`grant[^;]*${fn}[^;]*to[^;]*(anon|authenticated|public)`, "i"),
+      );
+    }
+  });
+
+  it("never stores a raw access token: only hashes are accepted and checked as 64 hex characters", () => {
+    expect(m).toContain("p_token_hash !~ '^[0-9a-f]{64}$'");
+    expect(m).not.toMatch(/raw_token|plain_token|token text|access_token/i);
+  });
+
+  it("totals are computed in SQL with exact numeric arithmetic, never taken from the caller", () => {
+    expect(m).toMatch(/round\(\(e->>'quantity'\)::numeric \* \(e->>'unit_price'\)::numeric, 2\)/);
+    expect(m).not.toMatch(/p_payload->>'(subtotal|total_amount|line_total)'/);
+    expect(m).toContain("quotations_total_consistent");
+    expect(m).toContain("quotation_items_line_total_consistent");
+  });
+
+  it("customer views do not look like content changes (updated_at is preserved for counter-only updates)", () => {
+    expect(m).toContain("'tracking_view_count'");
+    expect(m).toContain("new.updated_at := old.updated_at");
+  });
+
+  it("contains no credentials or personal data", () => {
+    expect(m + hardeningSqlTests).not.toMatch(
+      /(sk_live|service_role_key|password\s*=|BEGIN PRIVATE KEY|@gmail\.com)/i,
+    );
+  });
+});
+
 describe("Customer Features migration (static checks — always run)", () => {
   it("creates status history, callbacks, quotations, and quotation_items tables", () => {
     expect(customerFeaturesMigration).toContain("create table public.enquiry_status_history");
@@ -276,6 +370,8 @@ describe.skipIf(!bin)("migration on real PostgreSQL (single-user mode)", () => {
             authSqlTests,
             customerFeaturesMigration,
             customerFeaturesSqlTests,
+            hardeningMigration,
+            hardeningSqlTests,
           ].join("\n\n") + "\n\n",
         encoding: "utf8",
         maxBuffer: 64 * 1024 * 1024,
@@ -294,5 +390,6 @@ describe.skipIf(!bin)("migration on real PostgreSQL (single-user mode)", () => {
     expect(output).toContain('marker = "SQL_TESTS_PASSED"');
     expect(output).toContain('marker = "ADMIN_AUTH_SQL_TESTS_PASSED"');
     expect(output).toContain('marker = "CUSTOMER_FEATURES_SQL_TESTS_PASSED"');
+    expect(output).toContain('marker = "CUSTOMER_FEATURES_HARDENING_SQL_TESTS_PASSED"');
   });
 });

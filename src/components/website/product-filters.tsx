@@ -7,12 +7,21 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { Checkbox, Field, Input, Radio, Select } from "@/components/ui/form-controls";
 import { Drawer } from "@/components/ui/modal";
 import { STOCK_STATUSES, stockStatusLabel } from "@/components/ui/status-badge";
-import { SORT_LABELS, SORT_OPTIONS, type ListingParams } from "@/features/products/query";
+import {
+  PRICE_FILTERS,
+  PRICE_FILTER_LABELS,
+  SORT_LABELS,
+  SORT_OPTIONS,
+  type ListingParams,
+} from "@/features/products/query";
 import type { Brand, Category } from "@/features/products/types";
+import type { UnitOption } from "@/features/products/units";
 
 type Props = {
   categories: Category[];
   brands: Brand[];
+  /** Units present in the catalogue (see availableUnitOptions). */
+  units?: UnitOption[];
   params: ListingParams;
   activeCount: number;
 };
@@ -20,6 +29,7 @@ type Props = {
 function FilterForm({
   categories,
   brands,
+  units = [],
   params,
   onSubmit,
 }: Omit<Props, "activeCount"> & { onSubmit?: () => void }) {
@@ -81,22 +91,29 @@ function FilterForm({
           />
         ))}
       </fieldset>
+      {units.length > 0 && (
+        <fieldset className="space-y-gutter-sm">
+          <legend className="mb-gutter-sm text-label-lg">Unit</legend>
+          {units.map((u) => (
+            <Checkbox
+              key={u.code}
+              name="unit"
+              value={u.code}
+              label={u.label}
+              defaultChecked={params.units?.includes(u.code)}
+            />
+          ))}
+        </fieldset>
+      )}
       <fieldset className="space-y-gutter-sm">
-        <legend className="mb-gutter-sm text-label-lg">Unit of Measurement</legend>
-        {[
-          { code: "BAG", label: "Bag" },
-          { code: "METRIC_TON", label: "Metric Ton" },
-          { code: "PIECE", label: "Piece" },
-          { code: "KG", label: "Kilogram (KG)" },
-          { code: "CUBIC_FEET", label: "Cubic Feet" },
-          { code: "BUNDLE", label: "Bundle" },
-        ].map((u) => (
-          <Checkbox
-            key={u.code}
-            name="unit"
-            value={u.code}
-            label={u.label}
-            defaultChecked={params.units?.includes(u.code)}
+        <legend className="mb-gutter-sm text-label-lg">Price</legend>
+        {PRICE_FILTERS.map((f) => (
+          <Radio
+            key={f}
+            name="price"
+            value={f === "any" ? "" : f}
+            label={PRICE_FILTER_LABELS[f]}
+            defaultChecked={(params.price ?? "any") === f}
           />
         ))}
       </fieldset>
@@ -124,7 +141,7 @@ function FilterForm({
 }
 
 /** Desktop: inline sidebar. Below `lg`: a "Filters" button opening the same form in a drawer. */
-export function ProductFilters({ categories, brands, params, activeCount }: Props) {
+export function ProductFilters({ categories, brands, units, params, activeCount }: Props) {
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -142,6 +159,7 @@ export function ProductFilters({ categories, brands, params, activeCount }: Prop
           <FilterForm
             categories={categories}
             brands={brands}
+            units={units}
             params={params}
             onSubmit={() => setOpen(false)}
           />
@@ -149,7 +167,7 @@ export function ProductFilters({ categories, brands, params, activeCount }: Prop
       </div>
       <div className="hidden lg:block rounded-lg border border-border bg-surface p-5 shadow-xs">
         <h2 className="mb-gutter-md text-title-lg font-bold text-on-surface">Filters</h2>
-        <FilterForm categories={categories} brands={brands} params={params} />
+        <FilterForm categories={categories} brands={brands} units={units} params={params} />
       </div>
     </>
   );

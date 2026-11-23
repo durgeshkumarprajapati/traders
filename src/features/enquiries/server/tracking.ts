@@ -8,9 +8,15 @@ import type { TrackedEnquiry } from "../tracking-types";
 
 export type { TrackedEnquiry };
 
+/**
+ * Tracking token. Random by default. When a `seed` (the submission's idempotency key) and a server `secret` are given the
+ * token is an HMAC of the seed instead, so a retried submission (same key) gets the SAME token whose hash is already
+ * stored. It stays unguessable: it cannot be derived without the server secret. The HMAC input is domain-separated so the
+ * shared secret is never used to produce the same value for any other purpose (e.g. rate-limit keys).
+ */
 export function generateTrackingToken(seed?: string, secret?: string): string {
   if (seed && secret) {
-    const hmac = createHmac("sha256", secret).update(seed).digest("hex");
+    const hmac = createHmac("sha256", secret).update(`tracking-token:v1:${seed}`).digest("hex");
     return `tr_${hmac}`;
   }
   return `tr_${randomBytes(32).toString("hex")}`;
@@ -28,7 +34,8 @@ export async function getTrackedEnquiry(
   const cleanRef = reference.trim().toUpperCase();
   const cleanToken = token.trim();
 
-  if (!/^ENQ-\d{4}-\d{6}$/.test(cleanRef)) {
+  // Current references are random (ENQ-XXXX-XXXX-XXXX); older ones were sequential (ENQ-YYYY-NNNNNN).
+  if (!/^ENQ-(?:\d{4}-\d{6}|[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4})$/.test(cleanRef)) {
     return null;
   }
 
@@ -79,7 +86,7 @@ export async function getTrackedEnquiry(
           version: Number(rawQuo.version || 1),
           totalAmount: Number(rawQuo.total_amount || 0),
           validUntil: (rawQuo.valid_until as string) || null,
-          trackingUrl: String(rawQuo.tracking_url || `/quotation/${rawQuo.reference}`),
+          isExpired: rawQuo.is_expired === true,
         }
       : null;
 
@@ -87,11 +94,7 @@ export async function getTrackedEnquiry(
       reference: String(raw.reference),
       type: raw.type === "BULK" ? "BULK" : "GENERAL",
       status: (raw.status as EnquiryStatus) || "NEW",
-      customerName: String(raw.customer_name || "Customer"),
-      mobile: String(raw.mobile || ""),
-      email: (raw.email as string) || null,
       deliveryLocation: (raw.delivery_location as string) || null,
-      message: (raw.message as string) || null,
       createdAt: String(raw.created_at),
       updatedAt: String(raw.updated_at),
       items,

@@ -72,9 +72,10 @@ describe("submitCallbackEnquiry integration", () => {
     const res = await submitCallbackEnquiry(input, { ip: "127.0.0.1" }, t.deps);
     expect(res.ok).toBe(true);
     if (res.ok) {
-      expect(res.reference).toMatch(/^ENQ-\d{4}-\d{6}$/);
+      expect(res.reference).toMatch(/^ENQ-(\d{4}-\d{6}|[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4})$/);
       expect(res.trackingToken).toMatch(/^tr_[0-9a-f]{64}$/);
-      expect(res.trackingUrl).toContain("/track-enquiry?ref=");
+      expect(res.trackingUrl).toContain("/track-enquiry#ref="); // credentials in the fragment, never the query
+      expect(res.trackingUrl).not.toContain("?");
     }
   });
 

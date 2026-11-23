@@ -15,10 +15,11 @@ import {
   contactSubmissionSchema,
   toSubmissionFieldErrors,
 } from "../submission-schemas";
-import { callbackSubmissionSchema } from "../callback-schemas";
+import { CALLBACK_TIME_WINDOW_LABELS, callbackSubmissionSchema } from "../callback-schemas";
 import { buildEnquiryEmail, type EmailEnquiry, type EmailItem } from "./email-template";
 import { enforceRateLimits } from "./rate-limit";
 import { buildItemSnapshots, type ItemSnapshot } from "./snapshots";
+import { trackingPath } from "../tracking-types";
 import { generateTrackingToken, hashTrackingToken } from "./tracking";
 
 /**
@@ -201,9 +202,7 @@ async function persistAndNotify(
     reference: result.reference,
     mode: "PERSISTED",
     trackingToken: trackingToken ?? null,
-    trackingUrl: trackingToken
-      ? `/track-enquiry?ref=${encodeURIComponent(result.reference)}&token=${encodeURIComponent(trackingToken)}`
-      : null,
+    trackingUrl: trackingToken ? trackingPath(result.reference, trackingToken) : null,
   };
 }
 
@@ -374,9 +373,15 @@ export async function submitCallbackEnquiry(
   const trackingToken = generateTrackingToken(v.idempotencyKey, deps.rateLimitSecret);
   const tokenHash = hashTrackingToken(trackingToken);
 
-  const message = v.reason
-    ? `Callback request (${v.preferredTimeWindow}): ${v.reason}`
-    : `Callback request requested for ${v.preferredDate || "earliest convenience"} (${v.preferredTimeWindow})`;
+  // The structured preference lives in enquiry_callbacks; this text only gives the admin a readable one-line summary.
+  const message = [
+    `Callback requested (${CALLBACK_TIME_WINDOW_LABELS[v.preferredTimeWindow]}${v.preferredDate ? `, ${v.preferredDate}` : ", earliest convenience"}).`,
+    v.reason && `Reason: ${v.reason}`,
+    v.message,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .slice(0, 1000);
 
   return persistAndNotify(
     "GENERAL",
@@ -385,6 +390,7 @@ export async function submitCallbackEnquiry(
       type: "GENERAL",
       name: v.name,
       mobile: v.mobile,
+      email: v.email,
       message,
       tracking_token_hash: tokenHash,
       callback: {

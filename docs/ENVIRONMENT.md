@@ -85,3 +85,7 @@ SITE_INDEXING=
 NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=
 CLOUDINARY_API_SECRET=
 ```
+
+## Customer experience features (2026-11-23): no new environment variables
+
+The tracking, callback, quotation and PWA features use only variables that already exist: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (server only), `RATE_LIMIT_SECRET` (also keys the HMAC that makes retried submissions receive the same tracking token, and salts the rate-limit hashes), `CRON_SECRET`, `WEB3FORMS_ACCESS_KEY`, `SITE_INDEXING`. Nothing new needs to be set in Vercel. **Changing `RATE_LIMIT_SECRET` later** only affects retries of submissions that are in flight at that moment and resets rate-limit counters; it does not invalidate issued tracking links (only their hashes are stored).

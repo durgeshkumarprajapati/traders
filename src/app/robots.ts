@@ -6,5 +6,11 @@ export default function robots(): MetadataRoute.Robots {
     // Pre-launch: ask crawlers to stay away from everything.
     return { rules: { userAgent: "*", disallow: "/" } };
   }
-  return { rules: { userAgent: "*", allow: "/", disallow: ["/admin", "/api", "/dev"] } };
+  return {
+    rules: {
+      userAgent: "*",
+      allow: "/",
+      disallow: ["/admin", "/api", "/dev", "/track-enquiry", "/quotation"],
+    },
+  };
 }

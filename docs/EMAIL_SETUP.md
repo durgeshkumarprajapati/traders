@@ -35,3 +35,15 @@ Then submit a real enquiry on the site and confirm (a) it appears in `/admin/enq
 - **Web3Forms plan:** Web3Forms may block server-side (API) submissions on its free plan. If the test returns HTTP 403/401, confirm with Web3Forms; the fix is a paid plan or another provider. This was **never verified live** by the developer (no credentials in the build environment).
 - **Vercel Cron frequency:** `*/10 * * * *` requires a paid Vercel plan; Hobby allows only daily cron. On Hobby, change the schedule to once a day or use an external scheduler — otherwise the deployment can be rejected.
 - Delivery is at-least-once: a rare duplicate email is possible if the result of a successful send could not be recorded.
+
+## Verified provider limits (read this before relying on email)
+
+Checked against Web3Forms' public documentation (pricing page returned HTTP 403, so plan prices and monthly limits are **not verified**):
+
+- **Server-side use:** the API reference states _"Server side usage requires paid plan + server IP whitelisting."_ This application sends from a server (Vercel). The free plan is therefore **not expected to work**, and a paid plan would also need the sending IP addresses whitelisted — which is impractical on Vercel, whose outbound addresses are not fixed.
+- **Recipients:** mail goes only to the inbox that owns the access key; there is **no per-request recipient**. The application therefore **cannot** email a customer (tracking link, quotation, status update) through this provider.
+- **Customer auto-reply** is a paid (Pro) browser-form feature using the `email` field; it is not a general sending API.
+
+**Consequence:** the owner-notification email is unverified and may never deliver on the free plan. Everything customer-facing that needs email (tracking-link email, status-change email, quotation email) is **not implemented** — those parts are blocked, not faked. Enquiries themselves are always saved first, so nothing is lost.
+
+**Recommended decision (needs owner approval; nothing was changed or purchased):** replace the Web3Forms adapter with a server-side transactional email provider that can send to arbitrary recipients. The architecture already isolates the provider behind `src/lib/email/web3forms.ts` and the Supabase outbox (retries, attempts, idempotency), so only the adapter, one environment variable and the outbox `recipient/kind` need to change. Until then the admin can share tracking and quotation links by WhatsApp or by their own email app (the admin screen offers both).

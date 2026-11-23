@@ -173,3 +173,66 @@ describe("iconForCategory", () => {
     ]).toEqual(["cement", "steel", "bricks", "sand", "hardware", "other"]);
   });
 });
+
+describe("relatedProducts", () => {
+  const prod = (id: string, over: Record<string, unknown> = {}) =>
+    ({
+      id,
+      slug: id,
+      name: id,
+      sku: null,
+      categoryId: "cat-a",
+      brandId: null,
+      description: "",
+      specifications: [],
+      imageUrl: null,
+      price: null,
+      unit: { code: "BAG" },
+      stockStatus: null,
+      isFeatured: false,
+      updatedAt: null,
+      ...over,
+    }) as unknown as Parameters<typeof relatedProducts>[1];
+  const cat = (products: ReturnType<typeof prod>[]) =>
+    ({ products, categories: [], brands: [] }) as unknown as Parameters<typeof relatedProducts>[0];
+
+  it("only same-category products, never the product itself", () => {
+    const self = prod("self");
+    const out = relatedProducts(
+      cat([self, prod("a"), prod("other", { categoryId: "cat-b" })]),
+      self,
+    );
+    expect(out.map((p) => p.id)).toEqual(["a"]);
+  });
+
+  it("ranks the same brand first, then shared specification values, then catalogue order", () => {
+    const self = prod("self", { brandId: "b1", specifications: [{ label: "Grade", value: "53" }] });
+    const list = [
+      self,
+      prod("plain-1"),
+      prod("shares-spec", { specifications: [{ label: "grade", value: "53" }] }),
+      prod("same-brand", { brandId: "b1" }),
+      prod("plain-2"),
+    ];
+    expect(relatedProducts(cat(list), self).map((p) => p.id)).toEqual([
+      "same-brand",
+      "shares-spec",
+      "plain-1",
+      "plain-2",
+    ]);
+  });
+
+  it("respects the limit and returns nothing invented when there are no siblings", () => {
+    const self = prod("self");
+    const many = [self, ...Array.from({ length: 9 }, (_, i) => prod(`p${i}`))];
+    expect(relatedProducts(cat(many), self)).toHaveLength(4);
+    expect(relatedProducts(cat(many), self, 2)).toHaveLength(2);
+    expect(relatedProducts(cat([self]), self)).toEqual([]);
+  });
+
+  it("a product with no brand never 'matches' other unbranded products by brand", () => {
+    const self = prod("self", { brandId: null });
+    const out = relatedProducts(cat([self, prod("a"), prod("b", { brandId: "x" })]), self);
+    expect(out.map((p) => p.id)).toEqual(["a", "b"]); // pure catalogue order: null === null is not a brand match
+  });
+});

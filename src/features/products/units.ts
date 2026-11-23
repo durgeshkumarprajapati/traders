@@ -58,3 +58,17 @@ export function isValidUnit(unit: ProductUnit): boolean {
   const hasLabel = Boolean(unit.customLabel?.trim());
   return unit.code === "CUSTOM" ? hasLabel : !hasLabel;
 }
+
+export type UnitOption = { code: UnitCode; label: string };
+
+/**
+ * Filter options for the units that actually occur in the catalogue, in canonical order. `TON` and `METRIC_TON` stay separate
+ * options; every `CUSTOM` unit shares one option (its per-product display label is shown on the product itself).
+ */
+export function availableUnitOptions(products: Array<{ unit: ProductUnit }>): UnitOption[] {
+  const present = new Set(products.map((p) => p.unit.code));
+  return UNIT_CODES.filter((c) => present.has(c)).map((code) => ({
+    code,
+    label: code === "CUSTOM" ? "Other units" : UNIT_LABELS[code],
+  }));
+}

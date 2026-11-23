@@ -1,40 +1,105 @@
-// Sagar Traders Service Worker — Production Grade PWA
-// Safe caching strategy: Precache core static assets, Stale-While-Revalidate for images,
-// Network-First for public product pages with offline fallback,
-// STRICT Network-Only for admin routes, enquiry tracking, quotations, and mutations.
+// Sagar Traders service worker.
+//
+// Goal: let a customer re-open public catalogue pages they have already visited when offline, WITHOUT ever storing
+// anything private. Policy is an explicit ALLOWLIST; everything not listed is passed straight to the network and never
+// touched by this worker.
+//
+//   NEVER intercepted / cached: /admin, /api (every API route incl. health, session, quotation PDFs), /track-enquiry,
+//   /quotation, /_next/data, RSC/prefetch requests, non-GET requests, cross-origin requests, requests carrying
+//   Authorization or Range headers, and any URL with a secret-looking query parameter (token, ref, key, code, otp…).
+//
+//   Cached (same-origin, GET, HTTP 200, not `Cache-Control: no-store|private`):
+//     - public pages:  /  /products  /products/<slug>  /contact  /bulk-enquiry  /offline   (network-first, 4 s timeout)
+//     - build assets:  /_next/static/**                                                    (cache-first, content-hashed)
+//     - public images: /images/**  /icons/**  *.jpeg|jpg|png|webp|svg|ico under the site    (cache-first)
+//
+// Caches are versioned, size-bounded, and every cached page is stamped with the time it was saved so the page can tell the
+// customer how old the offline copy is. Prices and stock in a cached page are NEVER live.
 
-const CACHE_NAME = "sagar-traders-v1";
-const PRECACHE_ASSETS = [
-  "/",
-  "/products",
-  "/contact",
-  "/offline",
-  "/icons/icon-192.png",
-  "/icons/icon-512.png",
+const VERSION = "v2";
+const PAGE_CACHE = `sagar-pages-${VERSION}`;
+const ASSET_CACHE = `sagar-assets-${VERSION}`;
+const CURRENT_CACHES = [PAGE_CACHE, ASSET_CACHE];
+const MAX_PAGES = 40;
+const MAX_ASSETS = 120;
+const NAVIGATION_TIMEOUT_MS = 4000;
+const CACHED_AT_HEADER = "x-sw-cached-at";
+const OFFLINE_URL = "/offline";
+const PRECACHE = [OFFLINE_URL, "/icons/icon-192.png", "/icons/icon-512.png"];
+
+const NEVER_PREFIXES = ["/admin", "/api", "/track-enquiry", "/quotation", "/_next/data"];
+// Secret-looking parameters, plus anything a customer types (search text, contact details): such URLs are never stored.
+const SECRET_PARAMS = [
+  "token",
+  "ref",
+  "key",
+  "code",
+  "otp",
+  "auth",
+  "session",
+  "access_token",
+  "id_token",
+  "q",
+  "search",
+  "email",
+  "phone",
+  "mobile",
+  "name",
 ];
+const PUBLIC_PAGE =
+  /^\/(?:$|products\/?$|products\/[a-z0-9][a-z0-9-]*\/?$|contact\/?$|bulk-enquiry\/?$|offline\/?$)/;
+const IMAGE_EXT = /\.(?:jpe?g|png|webp|svg|ico)$/i;
 
-// URLs and paths that must NEVER be cached or intercepted by service worker
-function isStrictNetworkOnly(url, request) {
+/** True when this request must bypass the worker entirely (no respondWith, no caching, no reading). */
+function mustBypass(request, url) {
   if (request.method !== "GET") return true;
-
+  if (url.origin !== self.location.origin) return true;
+  if (request.headers.has("authorization") || request.headers.has("range")) return true;
+  if (
+    request.headers.get("rsc") ||
+    request.headers.get("next-router-prefetch") ||
+    url.searchParams.has("_rsc")
+  )
+    return true;
   const path = url.pathname;
-  if (path.startsWith("/admin")) return true;
-  if (path.startsWith("/track-enquiry")) return true;
-  if (path.startsWith("/quotation")) return true;
-  if (path.startsWith("/api/quotation")) return true;
-  if (url.searchParams.has("token")) return true;
-  if (url.hostname.includes("supabase.co")) return true;
-
+  if (NEVER_PREFIXES.some((p) => path === p || path.startsWith(`${p}/`))) return true;
+  for (const name of url.searchParams.keys())
+    if (SECRET_PARAMS.includes(name.toLowerCase())) return true;
   return false;
 }
 
+/** A response may be stored only if it is a plain successful same-origin response that did not forbid storing. */
+function isCacheable(response) {
+  if (!response || response.status !== 200 || response.type !== "basic") return false;
+  const cc = (response.headers.get("cache-control") || "").toLowerCase();
+  return !/(no-store|private)/.test(cc);
+}
+
+async function stamp(response) {
+  const headers = new Headers(response.headers);
+  headers.set(CACHED_AT_HEADER, new Date().toISOString());
+  return new Response(await response.blob(), {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
+async function trim(cacheName, max) {
+  const cache = await caches.open(cacheName);
+  const keys = await cache.keys();
+  for (let i = 0; i < keys.length - max; i++) await cache.delete(keys[i]);
+}
+
+async function put(cacheName, max, request, response) {
+  const cache = await caches.open(cacheName);
+  await cache.put(request, response);
+  await trim(cacheName, max);
+}
+
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches
-      .open(CACHE_NAME)
-      .then((cache) => cache.addAll(PRECACHE_ASSETS))
-      .then(() => self.skipWaiting()),
-  );
+  // No skipWaiting here: an open page keeps its matching assets until the customer chooses to refresh (see SKIP_WAITING).
+  event.waitUntil(caches.open(ASSET_CACHE).then((cache) => cache.addAll(PRECACHE)));
 });
 
 self.addEventListener("activate", (event) => {
@@ -42,68 +107,109 @@ self.addEventListener("activate", (event) => {
     caches
       .keys()
       .then((keys) =>
-        Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))),
+        Promise.all(
+          keys
+            .filter((k) => k.startsWith("sagar-") && !CURRENT_CACHES.includes(k))
+            .map((k) => caches.delete(k)),
+        ),
       )
       .then(() => self.clients.claim()),
   );
 });
 
+self.addEventListener("message", (event) => {
+  const type = event.data && event.data.type;
+  if (type === "SKIP_WAITING") self.skipWaiting();
+  if (type === "CLEAR_CACHES")
+    event.waitUntil(
+      caches
+        .keys()
+        .then((keys) =>
+          Promise.all(keys.filter((k) => k.startsWith("sagar-")).map((k) => caches.delete(k))),
+        ),
+    );
+});
+
+function offlineResponse() {
+  return new Response("You are offline.", {
+    status: 503,
+    headers: { "Content-Type": "text/plain" },
+  });
+}
+
+function networkFirstWithTimeout(request) {
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = (r) => {
+      if (!settled) {
+        settled = true;
+        resolve(r);
+      }
+    };
+    const network = fetch(request)
+      .then(async (response) => {
+        if (isCacheable(response)) {
+          const copy = await stamp(response.clone());
+          put(PAGE_CACHE, MAX_PAGES, request, copy).catch(() => undefined);
+        }
+        finish(response);
+        return response;
+      })
+      .catch(() => null);
+    // Slow network: serve the saved copy (if any) while the network request carries on and refreshes the cache.
+    setTimeout(async () => {
+      const cached = await caches.match(request);
+      if (cached) finish(cached);
+    }, NAVIGATION_TIMEOUT_MS);
+    network
+      .then(async (response) => {
+        if (response) return;
+        const cached = await caches.match(request);
+        if (cached) return finish(cached);
+        const offline = await caches.match(OFFLINE_URL);
+        finish(offline || offlineResponse());
+      })
+      // Whatever goes wrong, the navigation must always settle with SOMETHING (never hang the page load).
+      .catch(() => finish(offlineResponse()));
+  });
+}
+
 self.addEventListener("fetch", (event) => {
   const request = event.request;
-  const url = new URL(request.url);
-
-  // 1. Strict Exclusions: Pass directly through to network with no cache involvement
-  if (isStrictNetworkOnly(url, request)) {
+  let url;
+  try {
+    url = new URL(request.url);
+  } catch {
     return;
   }
+  if (mustBypass(request, url)) return;
 
-  // 2. Static Assets (Next.js JS/CSS chunks, icons, images): Cache-First
-  if (
-    url.pathname.startsWith("/_next/static/") ||
-    url.pathname.startsWith("/icons/") ||
-    url.pathname.endsWith(".jpeg") ||
-    url.pathname.endsWith(".jpg") ||
-    url.pathname.endsWith(".png") ||
-    url.pathname.endsWith(".webp") ||
-    url.pathname.endsWith(".svg")
-  ) {
-    event.respondWith(
-      caches.match(request).then((cached) => {
-        if (cached) return cached;
-        return fetch(request).then((response) => {
-          if (response && response.status === 200 && response.type === "basic") {
-            const responseClone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone));
-          }
-          return response;
-        });
-      }),
-    );
-    return;
-  }
-
-  // 3. Public Web Pages: Network-First with cache fallback and offline page
+  // Public pages: network-first, saved copy when offline or slow.
   if (request.mode === "navigate") {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          if (response && response.status === 200) {
-            const responseClone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone));
-          }
-          return response;
-        })
-        .catch(async () => {
-          const cached = await caches.match(request);
-          if (cached) return cached;
-          const offlinePage = await caches.match("/offline");
-          if (offlinePage) return offlinePage;
-          return new Response("Offline mode", {
-            status: 503,
-            headers: { "Content-Type": "text/plain" },
-          });
-        }),
-    );
+    if (!PUBLIC_PAGE.test(url.pathname)) return; // anything else is network-only
+    event.respondWith(networkFirstWithTimeout(request));
     return;
   }
+
+  // Build assets and public images: cache-first.
+  const isAsset = url.pathname.startsWith("/_next/static/");
+  const isImage =
+    (url.pathname.startsWith("/images/") ||
+      url.pathname.startsWith("/icons/") ||
+      IMAGE_EXT.test(url.pathname)) &&
+    !url.pathname.startsWith("/_next/image");
+  if (isAsset || isImage) {
+    event.respondWith(
+      caches.match(request).then(
+        (cached) =>
+          cached ||
+          fetch(request).then((response) => {
+            if (isCacheable(response))
+              put(ASSET_CACHE, MAX_ASSETS, request, response.clone()).catch(() => undefined);
+            return response;
+          }),
+      ),
+    );
+  }
+  // Everything else: not handled (browser default, network only).
 });

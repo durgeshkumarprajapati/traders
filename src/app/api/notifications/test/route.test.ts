@@ -71,7 +71,7 @@ describe("email delivery test route", () => {
         retryable: false,
         summary: "Web3Forms returned HTTP 403",
       },
-      /free plan/,
+      /paid plan plus whitelisting/,
     ],
     [
       { ok: false, kind: "TIMEOUT", status: null, retryable: true, summary: "no response" },

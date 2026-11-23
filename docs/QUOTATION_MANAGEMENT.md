@@ -1,74 +1,48 @@
-# Digital Quotation Management & PDF Generation
+# Digital quotations
 
-**Project:** Sagar Traders  
-**Scope:** Admin Quotation Generation, Public Customer Quotation View & Pure TypeScript PDF 1.4 Generation  
-**Routes:** `/admin/enquiries/[id]`, `/quotation/[token]`, `/api/quotation/[token]/pdf`
+Status: implemented; unit tested (server logic, arithmetic, PDF, admin UI, customer view) and **tested against a real PostgreSQL 16** for atomicity, immutability, versioning and access control. **Not browser-tested, not live-tested, no email delivery.**
 
----
+## Lifecycle
 
-## 1. Overview & Architecture
+`DRAFT` → `ISSUED` → (`REVISED` when a newer version is issued) — plus `EXPIRED / ACCEPTED / REJECTED`, reserved: nothing sets them automatically today (expiry is _derived_ from `valid_until`, so no job is needed).
 
-Sagar Traders enables administrators to draft, revise, and issue formal price quotations linked directly to customer enquiries. Customers can view the responsive digital quotation online and download an authentic PDF document.
+1. **New quotation** (admin, from the enquiry page): lines pre-filled from the enquiry's items (catalogue-backed lines are read-only; manual lines can be added), a **quoted rate per line (required, > 0)**, discount, an optional **tax amount**, validity in days (**1–90, required, no default**) and optional terms (**no default text**).
+2. **Preview PDF** (admin-only endpoint) — drafts are stamped "DRAFT – NOT ISSUED".
+3. **Issue** (asks for confirmation): in **one transaction** the draft becomes `ISSUED`, earlier issued versions become `REVISED`, a random access link is created, and the enquiry moves to `QUOTATION_SENT` **only if it was `NEW` or `CONTACTED`** (history records the _real_ previous status; other statuses are left alone).
+4. **Revise**: creates a new draft (next version) pre-filled from any version; issuing it supersedes the previous one.
 
-### Zero Third-Party Cloud PDF Dependencies
+## Money
 
-In strict accordance with the project architecture:
+Done with exact arithmetic — never floating point. The **database** computes line totals (`round(quantity × rate, 2)`), subtotal and total inside the same transaction; the browser sends no totals (any it sent would be ignored). The TypeScript preview uses integer paise and BigInt, round-half-up, matching PostgreSQL; a mismatch is logged. Constraints enforce `total = subtotal − discount + tax`, `discount ≤ subtotal`, `line = round(qty × rate, 2)`.
 
-- **No external paid PDF APIs** (no DocRaptor, PDFShift, Puppeteer microservice, etc.).
-- **Pure TypeScript PDF 1.4 Generator** (`src/features/quotations/server/pdf.ts`) implemented in ~400 lines of standard library code.
-- Builds binary PDF document structure, catalog, info dictionary, page tree, typography font dictionary (Helvetica/Helvetica-Bold), vector graphics (ruling lines, headers, badges), and text stream objects.
-- Runs natively on Edge / Node.js runtime inside Vercel without headless Chrome binaries or external OS font packages.
+**Tax is an amount entered by the administrator.** The system applies **no tax rate and assumes no tax applicability** (none is configured). GSTIN appears on documents only if it is set in Business Settings.
 
----
+## Immutability and history (enforced by database triggers)
 
-## 2. Quotation Lifecycle & Versioning
+Once `ISSUED` the reference, enquiry, version, customer snapshot, amounts, terms, validity and issue time **cannot be changed**, line items **cannot be added/edited/removed**, the quotation **cannot be deleted** or returned to draft — even by an administrator or a direct SQL client using the app's roles. Only the access-link columns and the status transitions needed for supersession can change. Customer name/contact are **snapshots** taken when the draft is created.
 
-```
-[Customer Enquiry]
-        │
-        ▼
-[Admin: Create Quotation Draft] ──► (Version 1, Status: DRAFT)
-        │
-        ├── Add / Remove Quotation Items
-        ├── Enter Quantities, Unit Prices, Discounts, Taxes (GST 18%)
-        ├── Set Validity Date & Delivery Terms
-        │
-        ▼
-[Admin: Issue Quotation] ──► (Status: ISSUED, Status History Updated)
-        │
-        ├── Generates / Reuses Secure Tracking Token
-        ├── Customer views `/quotation/[token]`
-        └── Customer downloads `/api/quotation/[token]/pdf`
-        │
-        ▼
-[Optional: Revise Quotation] ──► (Version 2, Status: REVISED / DRAFT)
-```
+## Customer access
 
----
+- `/quotation/<token>` and `/api/quotation/<token>/pdf`. The token is `qt_` + 32 random bytes; only its SHA-256 hash is stored.
+- The enquiry's own tracking link also opens the **latest issued** quotation (the tracking page's "View quotation" button uses this).
+- **Expiry** 90 days from issue; **revoke** and **rotate** from the admin page (the new link is shown once). Rotating/revoking the enquiry link stops the enquiry-link route too.
+- Unknown / expired / revoked tokens are indistinguishable (404). **Rate limited** (shared tracking budget: 20 per 10 min per IP, fail-closed). Responses are `private, no-store`, `noindex`, `no-referrer`; never cached by the service worker.
+- An **older version** keeps working but is labelled _Superseded_ (page and PDF) and says a newer version exists. An **expired** quotation (past `valid_until`) is labelled _Expired_. Each customer view is counted for the admin.
 
-## 3. Precision Financial Calculations
+## What the customer / PDF shows
 
-Implemented in `src/features/quotations/calculations.ts`:
+Only configured facts: business name, tagline, address, phone, email and GSTIN **from Business Settings**, each omitted if not set. There are **no bank details, payment instructions, delivery promises or warranty text** anywhere — none exist in the configured data. Terms appear only if the administrator typed them for that quotation. Previous builds shipped hard-coded address/bank/GSTIN placeholders in the PDF and page; they were removed.
 
-- **Line Total:** `round(quantity * unitPrice, 2)`
-- **Subtotal:** `sum(lineTotals)`
-- **Discount:** Clamped to `[0, Subtotal]`
-- **Taxable Base:** `Subtotal - Discount`
-- **Tax (GST):** `round(TaxableBase * (taxRate / 100), 2)`
-- **Grand Total:** `TaxableBase + Tax`
-- All calculations adhere to 2-decimal Indian Rupee formatting (`Intl.NumberFormat("en-IN")`).
+## PDF (`features/quotations/server/pdf.ts`)
 
----
+A dependency-free PDF 1.4 generator: A4, multi-page with the table header repeated and "Page n of N", wrapped (never truncated) descriptions, correct cross-reference offsets. **Limitation:** it uses the standard Helvetica font (Latin-1/WinAnsi), so non-Latin scripts (e.g. Devanagari names) print as `?` in the PDF; the on-screen quotation shows them correctly. Embedding a font would remove this and is the recommended follow-up. Generated from the stored snapshot only.
 
-## 4. Public Quotation View (`/quotation/[token]`)
+## Sharing
 
-Features:
+- **Download PDF** and **Copy link** (customer page and admin).
+- **WhatsApp**: opens WhatsApp with an encoded message and the link; **nothing is sent by the website** and delivery is not tracked.
+- **Email**: the admin gets an "Email customer (opens your email app)" link (`mailto:`) when the enquiry has an email. **The website does not send quotation emails.** Distinguishing queued / attempted / accepted / failed / delivered requires a server-side provider that can email arbitrary recipients; the configured provider cannot (see `EMAIL_SETUP.md`). No fake status is shown.
 
-- Formal Sagar Traders business identity header (GSTIN, address, contact numbers).
-- Customer delivery address and quotation reference.
-- Itemized materials table with quantities, canonical unit labels, unit rates, and totals.
-- Tax and discount breakdown with grand total.
-- Terms & conditions and quotation validity period banner.
-- One-click "Download PDF" button.
-- One-click "Share via WhatsApp" button with prefilled quotation summary and link.
-- One-click "Track Enquiry Timeline" button linking back to `/track-enquiry`.
+## Admin access control
+
+Every admin action runs inside `withAdminAction` (server-side session + active-admin check) **and** the database functions re-check `is_admin()`, so a forged request from an anonymous or non-admin session is refused twice. Admin PDF requires the admin session.

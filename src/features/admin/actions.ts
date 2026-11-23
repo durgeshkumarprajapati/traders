@@ -4,6 +4,7 @@ import { ALLOWED_STATUS_TRANSITIONS, ENQUIRY_STATUSES, type EnquiryStatus } from
 import { revalidatePath, revalidateTag, updateTag } from "next/cache";
 import { SHEETS_CACHE_TAG } from "@/features/catalogue/constants";
 import { generateTrackingToken, hashTrackingToken } from "@/features/enquiries/server/tracking";
+import { trackingPath } from "@/features/enquiries/tracking-types";
 import {
   brandInputSchema,
   brandPatchSchema,
@@ -396,7 +397,7 @@ export async function rotateTrackingTokenAction(
       revalidatePath(`/admin/enquiries/${enquiryId}`);
       return {
         token: newToken,
-        trackingUrl: `/track-enquiry?ref=${encodeURIComponent(enquiry.reference)}&token=${encodeURIComponent(newToken)}`,
+        trackingUrl: trackingPath(enquiry.reference, newToken),
       };
     },
     clientOverride,

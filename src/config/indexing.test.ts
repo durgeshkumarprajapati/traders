@@ -22,7 +22,11 @@ describe("search indexing switch", () => {
     expect(robots()).toEqual({ rules: { userAgent: "*", disallow: "/" } });
     vi.stubEnv("SITE_INDEXING", "enabled");
     expect(robots()).toEqual({
-      rules: { userAgent: "*", allow: "/", disallow: ["/admin", "/api", "/dev"] },
+      rules: {
+        userAgent: "*",
+        allow: "/",
+        disallow: ["/admin", "/api", "/dev", "/track-enquiry", "/quotation"],
+      },
     });
     vi.unstubAllEnvs();
   });

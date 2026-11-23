@@ -26,6 +26,17 @@ export function useEnquirySubmit(action: (input: unknown) => Promise<EnquiryActi
   function submit(payload: Record<string, unknown>, onDone?: (r: EnquiryActionResult) => void) {
     key.current ??= newKey();
     const idempotencyKey = key.current;
+    // Enquiries are online-only: never attempt (or appear to complete) a submission without a connection.
+    if (typeof navigator !== "undefined" && navigator.onLine === false) {
+      const offline: EnquiryActionResult = {
+        ok: false,
+        code: "UNAVAILABLE",
+        message: ENQUIRY_MESSAGES.offline,
+      };
+      setResult(offline);
+      onDone?.(offline);
+      return;
+    }
     startTransition(async () => {
       let r: EnquiryActionResult;
       try {

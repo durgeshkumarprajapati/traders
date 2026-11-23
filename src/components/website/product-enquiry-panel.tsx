@@ -22,6 +22,7 @@ export function ProductEnquiryPanel({
   unit,
   whatsappNumber,
   businessEmail = null,
+  businessPhone = null,
 }: {
   productId: string;
   productName: string;
@@ -30,6 +31,7 @@ export function ProductEnquiryPanel({
   unit: string;
   whatsappNumber: string | null;
   businessEmail?: string | null;
+  businessPhone?: string | null;
 }) {
   const [quantity, setQuantity] = useState(1);
   const [location, setLocation] = useState("");
@@ -102,6 +104,7 @@ export function ProductEnquiryPanel({
             size="lg"
             variant="outline"
             defaultReason={`Enquiry about ${productName} (${quantity} ${unit})`}
+            contact={{ phone: businessPhone, whatsappNumber }}
           />
         </div>
         <p className="text-body-sm text-on-surface-variant">
