@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(publicEnv.NEXT_PUBLIC_SITE_URL),
   // noindex until SITE_INDEXING=enabled (see src/config/indexing.ts). Admin and /dev routes always set their own noindex.
   robots: robotsMetadata(),
-  title: { default: "Sagar Traders", template: "%s | Sagar Traders" },
+  title: { default: "Sagar Trader & Hardware", template: "%s | Sagar Trader & Hardware" },
   description:
     "Quality building materials and construction supplies. Browse indicative rates and request quotations online.",
   alternates: {
@@ -40,14 +40,14 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_IN",
     url: "/",
-    siteName: "Sagar Traders",
-    title: "Sagar Traders",
+    siteName: "Sagar Trader & Hardware",
+    title: "Sagar Trader & Hardware",
     description:
       "Quality building materials and construction supplies. Browse indicative rates and request quotations online.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Sagar Traders",
+    title: "Sagar Trader & Hardware",
     description:
       "Quality building materials and construction supplies. Browse indicative rates and request quotations online.",
   },

@@ -5,7 +5,9 @@ import { PageContainer } from "@/components/common/container";
 import { HomeContent } from "@/components/website/home-content";
 
 export const metadata: Metadata = {
-  title: "Building Materials & Hardware Supplies",
+  title: {
+    absolute: "Sagar Trader & Hardware",
+  },
   description:
     "Explore cement, TMT steel rebar, bricks, sand, plumbing, and construction materials with indicative rates. Request a quotation online.",
   alternates: {

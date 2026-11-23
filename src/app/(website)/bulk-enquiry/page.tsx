@@ -5,7 +5,9 @@ import { Skeleton } from "@/components/ui/feedback";
 import { BulkEnquiryContent } from "@/components/website/bulk-enquiry-content";
 
 export const metadata: Metadata = {
-  title: "Bulk Quotation Enquiry",
+  title: {
+    absolute: "Sagar Trader & Hardware",
+  },
   description:
     "Request a competitive quotation for commercial construction materials and hardware supplies in one streamlined enquiry.",
   alternates: {
