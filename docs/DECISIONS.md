@@ -125,3 +125,5 @@ Authoritative detail: `PROJECT_BLUEPRINT.md` §27 and §26.1.
 | 55  | **Rate alerts ship disabled.** Without a verified customer email provider the page says "unavailable" and nothing is stored. Prices are integer paise; tokens are hashed and carried in URL fragments; double opt-in. |
 | 56  | **Expert photo upload is not built**; photos go via WhatsApp until a signed-upload path is approved. |
 | 57  | **Pending owner decisions (Phase 13):** email provider; photo upload approach; delivery PIN list; applying migrations `20261125000000` and `20261126000000`. |
+| 58  | **Business phone numbers go through one validator** (`lib/phone`): only a clearly valid number becomes a `tel:` link; bad or missing numbers render no link. Display keeps the owner's formatting; the dial target is E.164. |
+| 59  | **The visiting card is drawn by one canvas renderer** shared by the preview and the PNG export (2100×1200). Only configured values appear; the QR encodes only the validated public https origin and is generated server-side. Owner must compare it with the reference design. |

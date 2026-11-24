@@ -2,6 +2,7 @@ import { Mail, MessageCircle, Phone } from "lucide-react";
 import { Button, ButtonAnchor } from "@/components/ui/button";
 import type { ComponentProps, ReactNode } from "react";
 import { buildMailtoUrl } from "@/lib/mailto";
+import { parsePhone } from "@/lib/phone";
 import { buildWhatsAppUrl } from "@/lib/whatsapp";
 
 type Common = Pick<ComponentProps<typeof ButtonAnchor>, "variant" | "size" | "className">;
@@ -11,12 +12,19 @@ export function CallButton({
   phone,
   children = "Call",
   variant = "outline",
+  "aria-label": ariaLabel,
   ...rest
-}: Common & { phone: string | null; children?: ReactNode }) {
-  const digits = phone?.replace(/[^\d+]/g, "");
-  if (!digits) return null;
+}: Common & {
+  phone: string | null;
+  children?: ReactNode;
+  /** Accepted for call sites that know the business name; the visible text is the accessible name. */
+  businessName?: string;
+  "aria-label"?: string;
+}) {
+  const parsed = parsePhone(phone);
+  if (!parsed) return null;
   return (
-    <ButtonAnchor href={`tel:${digits}`} variant={variant} {...rest}>
+    <ButtonAnchor href={parsed.href} variant={variant} aria-label={ariaLabel} {...rest}>
       <Phone aria-hidden className="size-4" />
       {children}
     </ButtonAnchor>

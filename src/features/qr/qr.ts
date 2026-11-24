@@ -75,6 +75,15 @@ export async function qrSvg(url: string): Promise<string> {
   return QRCode.toString(url, { type: "svg", errorCorrectionLevel: "M", margin: 4, color: COLORS });
 }
 
+/** QR module matrix for drawing it ourselves (e.g. onto a canvas): `modules` is size*size characters, "1" = dark. */
+export function qrMatrix(url: string): { size: number; modules: string } {
+  const qr = QRCode.create(url, { errorCorrectionLevel: "M" });
+  const size = qr.modules.size;
+  let modules = "";
+  for (let i = 0; i < size * size; i++) modules += qr.modules.data[i] ? "1" : "0";
+  return { size, modules };
+}
+
 export async function qrPng(url: string, size: number): Promise<Buffer> {
   return QRCode.toBuffer(url, {
     type: "png",

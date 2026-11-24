@@ -1,8 +1,8 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import { Phone, PhoneCall } from "lucide-react";
-import { Button, ButtonAnchor } from "@/components/ui/button";
+import { PhoneCall } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/form-controls";
 import { Modal } from "@/components/ui/modal";
 import { Notification } from "@/components/ui/notification";
@@ -17,7 +17,8 @@ import {
   type CallbackTimeWindow,
 } from "@/features/enquiries/callback-schemas";
 import { HONEYPOT_FIELD } from "@/features/enquiries/submission-schemas";
-import { WhatsAppButton } from "./contact-actions";
+import { parsePhone } from "@/lib/phone";
+import { CallButton, WhatsAppButton } from "./contact-actions";
 import { EnquiryReceived } from "./enquiry-received";
 
 export type CallbackContact = { phone?: string | null; whatsappNumber?: string | null };
@@ -134,7 +135,7 @@ export function CallbackModal({ open, onClose, defaultReason = "", contact }: Ca
     onClose();
   }
 
-  const phoneDigits = contact?.phone?.replace(/[^0-9+]/g, "");
+  const phoneDigits = parsePhone(contact?.phone)?.e164;
 
   return (
     <Modal
@@ -164,12 +165,9 @@ export function CallbackModal({ open, onClose, defaultReason = "", contact }: Ca
           </div>
           {(phoneDigits || contact?.whatsappNumber) && (
             <div className="flex flex-wrap gap-2">
-              {phoneDigits && (
-                <ButtonAnchor href={`tel:${phoneDigits}`} variant="outline" size="sm">
-                  <Phone aria-hidden className="mr-1.5 size-4" />
-                  Call us now
-                </ButtonAnchor>
-              )}
+              <CallButton phone={contact?.phone ?? null} variant="outline" size="sm">
+                Call us now
+              </CallButton>
               <WhatsAppButton
                 hideIfUnavailable
                 number={contact?.whatsappNumber ?? null}

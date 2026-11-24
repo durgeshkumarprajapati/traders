@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
-import { WifiOff, Phone, RefreshCw } from "lucide-react";
+import { WifiOff, RefreshCw } from "lucide-react";
 import { PageContainer } from "@/components/common/container";
-import { ButtonAnchor, ButtonLink } from "@/components/ui/button";
+import { ButtonLink } from "@/components/ui/button";
+import { CallButton } from "@/components/website/contact-actions";
+import { parsePhone } from "@/lib/phone";
 import { Card } from "@/components/ui/card";
 import { loadSettings } from "@/features/catalogue/server";
 
@@ -29,17 +31,15 @@ export default async function OfflinePage() {
         </p>
 
         <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
-          {settings.phone && (
-            <ButtonAnchor
-              href={`tel:${settings.phone}`}
-              variant="primary"
-              size="lg"
-              className="w-full sm:w-auto"
-            >
-              <Phone className="size-4 mr-2" />
-              Call Desk: {settings.phone}
-            </ButtonAnchor>
-          )}
+          <CallButton
+            phone={settings.phone}
+            businessName={settings.name}
+            variant="primary"
+            size="lg"
+            className="w-full sm:w-auto"
+          >
+            Call Desk: {parsePhone(settings.phone)?.display}
+          </CallButton>
 
           <ButtonLink href="/products" variant="outline" size="lg" className="w-full sm:w-auto">
             Browse Catalogue

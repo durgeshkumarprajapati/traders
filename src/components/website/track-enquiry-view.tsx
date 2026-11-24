@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { Button, ButtonAnchor, ButtonLink } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/form-controls";
 import { Notification } from "@/components/ui/notification";
@@ -12,7 +12,8 @@ import {
   trackingPath,
   type TrackedEnquiry,
 } from "@/features/enquiries/tracking-types";
-import { WhatsAppButton } from "./contact-actions";
+import { parsePhone } from "@/lib/phone";
+import { CallButton, WhatsAppButton } from "./contact-actions";
 
 interface TrackEnquiryViewProps {
   initialReference?: string;
@@ -198,11 +199,9 @@ export function TrackEnquiryView({
                 Help via WhatsApp
               </WhatsAppButton>
             )}
-            {businessPhone && (
-              <ButtonAnchor href={`tel:${businessPhone}`} size="sm" variant="outline">
-                Call Us: {businessPhone}
-              </ButtonAnchor>
-            )}
+            <CallButton phone={businessPhone ?? null} size="sm" variant="outline">
+              Call Us: {parsePhone(businessPhone)?.display}
+            </CallButton>
           </div>
         </Notification>
       )}
@@ -429,11 +428,9 @@ export function TrackEnquiryView({
                   WhatsApp Us
                 </WhatsAppButton>
               )}
-              {businessPhone && (
-                <ButtonAnchor href={`tel:${businessPhone}`} size="sm" variant="outline">
-                  Call Desk
-                </ButtonAnchor>
-              )}
+              <CallButton phone={businessPhone ?? null} size="sm" variant="outline">
+                Call Desk
+              </CallButton>
             </div>
           </div>
         </div>

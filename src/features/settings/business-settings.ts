@@ -9,6 +9,8 @@ import type { DeliveryConfig } from "@/features/catalogue/types";
 export type BusinessSettings = {
   name: string;
   tagline: string | null;
+  /** Approved https image URL (BusinessSettings `logo_url`); null = use the built-in brand mark. */
+  logoUrl?: string | null;
   phone: string | null;
   /** Digits with country code. */
   whatsappNumber: string | null;
@@ -35,6 +37,7 @@ export function emptyBusinessSettings(): BusinessSettings {
   return {
     name: DEFAULT_BUSINESS_NAME,
     tagline: null,
+    logoUrl: null,
     phone: null,
     whatsappNumber: null,
     email: null,

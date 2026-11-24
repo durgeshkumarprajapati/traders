@@ -1,14 +1,15 @@
 import { PageContainer, PageHeading } from "@/components/common/container";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/card";
 import { Breadcrumbs } from "@/components/ui/navigation-aids";
-import { loadSettings } from "@/features/catalogue/server";
+import { BusinessCardSection } from "@/components/business/business-card-section";
+import { loadCatalogue, loadSettings } from "@/features/catalogue/server";
 import { RequestCallbackButton } from "./callback-modal";
 import { ContactDetails } from "./contact-details";
 import { ContactForm } from "./contact-form";
 
 /** Contact page body: details come only from configured business settings; missing items are omitted. */
 export async function ContactContent() {
-  const settings = await loadSettings();
+  const [settings, load] = await Promise.all([loadSettings(), loadCatalogue()]);
   return (
     <PageContainer className="pb-section-lg">
       <div className="pt-gutter-lg">
@@ -60,6 +61,12 @@ export async function ContactContent() {
             <ContactForm />
           </CardBody>
         </Card>
+      </div>
+      <div className="mt-gutter-xl">
+        <BusinessCardSection
+          settings={settings}
+          categoryNames={load.ok ? load.catalogue.categories.map((cat) => cat.name) : []}
+        />
       </div>
     </PageContainer>
   );

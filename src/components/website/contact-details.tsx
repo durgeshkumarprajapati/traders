@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Card, CardBody } from "@/components/ui/card";
 import type { BusinessSettings } from "@/features/settings/business-settings";
 import { generalEnquiryMessage, normalizeWhatsAppNumber } from "@/lib/whatsapp";
+import { BusinessCallLink } from "@/components/business/business-call-link";
 import { CallButton, WhatsAppButton } from "./contact-actions";
 
 function Item({ icon, title, children }: { icon: ReactNode; title: string; children: ReactNode }) {
@@ -32,8 +33,16 @@ export function ContactDetails({ settings }: { settings: BusinessSettings }) {
   if (settings.phone) {
     items.push(
       <Item key="phone" icon={<Phone />} title="Phone">
-        <p className="font-semibold text-on-surface">{settings.phone}</p>
-        <CallButton phone={settings.phone} size="sm" />
+        <p className="font-semibold text-on-surface">
+          <BusinessCallLink
+            phone={settings.phone}
+            businessName={settings.name}
+            className="hover:underline"
+          />
+        </p>
+        <CallButton phone={settings.phone} businessName={settings.name} size="sm">
+          Call now
+        </CallButton>
       </Item>,
     );
   }

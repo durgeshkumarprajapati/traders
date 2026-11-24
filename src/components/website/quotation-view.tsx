@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { AlertTriangle, ArrowLeft, Check, Copy, Download, Phone, Share2 } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Check, Copy, Download, Share2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button, ButtonAnchor, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Table, TBody, Td, Th, THead, Tr } from "@/components/ui/table";
 import { formatRupees } from "@/features/quotations/calculations";
 import type { CustomerTrackedQuotation } from "@/features/quotations/types";
-import { WhatsAppButton } from "./contact-actions";
+import { parsePhone } from "@/lib/phone";
+import { CallButton, WhatsAppButton } from "./contact-actions";
 
 export interface QuotationBusiness {
   name: string;
@@ -242,16 +243,14 @@ export function QuotationView({
           Contact us about this quotation.
         </p>
         <div className="flex flex-wrap gap-2">
-          {business.phone && (
-            <ButtonAnchor
-              href={`tel:${business.phone.replace(/[^0-9+]/g, "")}`}
-              variant="outline"
-              size="sm"
-            >
-              <Phone aria-hidden className="mr-1.5 size-4" />
-              Call {business.phone}
-            </ButtonAnchor>
-          )}
+          <CallButton
+            phone={business.phone ?? null}
+            businessName={business.name}
+            size="sm"
+            variant="outline"
+          >
+            Call {parsePhone(business.phone)?.display}
+          </CallButton>
           <WhatsAppButton
             hideIfUnavailable
             number={business.whatsappNumber ?? null}

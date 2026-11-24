@@ -5,6 +5,8 @@ import { PageContainer } from "@/components/common/container";
 import { NavLink } from "@/components/common/nav-link";
 import { websiteNav } from "@/config/navigation";
 import type { BusinessSettings } from "@/features/settings/business-settings";
+import { BusinessCallLink } from "@/components/business/business-call-link";
+import { parsePhone } from "@/lib/phone";
 import { generalEnquiryMessage } from "@/lib/whatsapp";
 import { CallButton, WhatsAppButton } from "./contact-actions";
 import { RequestCallbackButton } from "./callback-modal";
@@ -25,7 +27,7 @@ export function SiteHeader({ settings }: { settings: BusinessSettings }) {
   const callbackContact = { phone: settings.phone, whatsappNumber: settings.whatsappNumber };
   const mobileActions = (
     <>
-      <CallButton phone={settings.phone} size="lg">
+      <CallButton phone={settings.phone} businessName={settings.name} size="lg">
         Call us
       </CallButton>
       {settings.whatsappNumber && (
@@ -73,13 +75,14 @@ export function SiteHeader({ settings }: { settings: BusinessSettings }) {
           {/* Right: Direct Contacts & Admin Portal Link */}
           <div className="flex items-center gap-3 shrink-0 text-body-sm">
             {settings.phone && (
-              <a
-                href={`tel:${settings.phone.replace(/[^0-9+]/g, "")}`}
-                className="inline-flex items-center gap-1.5 text-on-primary hover:text-secondary transition-colors text-label-md tabular-nums"
+              <BusinessCallLink
+                phone={settings.phone}
+                businessName={settings.name}
+                className="min-h-0 text-on-primary hover:text-secondary transition-colors text-label-md tabular-nums"
               >
                 <Phone aria-hidden="true" className="size-3.5 text-secondary" />
-                <span>Call {settings.phone}</span>
-              </a>
+                <span>Call {parsePhone(settings.phone)?.display}</span>
+              </BusinessCallLink>
             )}
             {settings.whatsappNumber && (
               <>

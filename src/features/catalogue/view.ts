@@ -68,6 +68,7 @@ export function toBusinessSettings(r: BusinessSettingsRecord): BusinessSettings 
   return {
     name: r.businessName ?? DEFAULT_BUSINESS_NAME,
     tagline: r.tagline,
+    logoUrl: r.logoUrl,
     phone: r.phone,
     whatsappNumber: r.whatsappNumber,
     email: r.email,

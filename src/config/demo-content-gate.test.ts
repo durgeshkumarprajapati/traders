@@ -10,6 +10,9 @@ import { join, relative, sep } from "node:path";
 const BANNED: Array<[RegExp, string]> = [
   [/98000\s?00000|98111\s?11111|98765\s?43210|98222\s?33333|98333\s?44444/, "demo phone number"],
   [/27AABCS0000A1Z5/i, "demo GSTIN"],
+  // Phase 14: the visiting-card reference image's demonstration values must never reach the app.
+  [/22AABCS0000A1Z5/i, "demo GSTIN (visiting-card reference)"],
+  [/Plot 45-B|Raipur Bypass/i, "demo address (visiting-card reference)"],
   [/sagartraders-demo|sagartraders\.com/i, "demo email/domain"],
   [/admin123|admin@sagartraders/i, "demo credentials"],
   [/DEMO PROTOTYPE|\[Demo/i, "demo banner/label"],

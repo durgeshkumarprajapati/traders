@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Building2 } from "lucide-react";
 import { PageContainer } from "@/components/common/container";
+import { BusinessCallLink } from "@/components/business/business-call-link";
 import { websiteNav } from "@/config/navigation";
 import { PRICE_DISCLAIMER } from "@/features/products/format";
 import type { Category } from "@/features/products/types";
@@ -69,9 +70,11 @@ export function SiteFooter({
           <ul className="space-y-2.5 text-body-md text-on-surface-variant [overflow-wrap:anywhere] md:text-body-sm">
             {settings.phone && (
               <li>
-                <a href={`tel:${settings.phone.replace(/[^0-9+]/g, "")}`} className={link}>
-                  {settings.phone}
-                </a>
+                <BusinessCallLink
+                  phone={settings.phone}
+                  businessName={settings.name}
+                  className={link}
+                />
               </li>
             )}
             {settings.email && (
@@ -96,6 +99,11 @@ export function SiteFooter({
             <li>
               <Link href="/contact" className="font-semibold text-primary hover:underline">
                 Contact page
+              </Link>
+            </li>
+            <li>
+              <Link href="/contact#visiting-card" className={link}>
+                Download business card
               </Link>
             </li>
           </ul>

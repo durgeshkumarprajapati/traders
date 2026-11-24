@@ -1,3 +1,4 @@
+import { BusinessCardSection } from "@/components/business/business-card-section";
 import { PageContainer } from "@/components/common/container";
 import { filterAndSort, parseListingParams } from "@/features/products/query";
 import { loadCatalogue } from "@/features/catalogue/server";
@@ -73,6 +74,11 @@ export async function HomeContent() {
       {catalogueSections}
       <BulkEnquiryCtaSection settings={settings} />
       {hasContactData(settings) && <ContactInfoSection settings={settings} />}
+      <BusinessCardSection
+        contained
+        settings={settings}
+        categoryNames={load.ok ? load.catalogue.categories.map((c) => c.name) : []}
+      />
     </>
   );
 }

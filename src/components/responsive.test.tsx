@@ -229,10 +229,9 @@ describe("final-pass guards", () => {
     const { emptyBusinessSettings } = await import("@/features/settings/business-settings");
     const settings = { ...emptyBusinessSettings(), phone: "+91 99999 00000", email: "a@b.test" };
     render(<SiteFooter settings={settings} categories={[]} />);
-    expect(screen.getByRole("link", { name: "+91 99999 00000" })).toHaveAttribute(
-      "href",
-      "tel:+919999900000",
-    );
+    expect(
+      screen.getByRole("link", { name: "Call Sagar Traders at +91 99999 00000" }),
+    ).toHaveAttribute("href", "tel:+919999900000");
     expect(screen.getByRole("link", { name: "a@b.test" })).toHaveAttribute(
       "href",
       "mailto:a@b.test",
