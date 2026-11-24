@@ -8,12 +8,27 @@ const SW_URL = "/sw.js";
 const DISMISS_KEY = "sagar-pwa-install-dismissed-at";
 const DISMISS_DAYS = 30;
 
-/** Registers the service worker (production only is not required: it is harmless and optional) and announces updates. */
+/** Registers the service worker (not in development, where it is removed instead) and announces updates. */
 export function PwaRegister() {
   const [waiting, setWaiting] = useState<ServiceWorker | null>(null);
 
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;
+    if (process.env.NODE_ENV === "development") {
+      // In development the worker would serve saved copies of pages while the dev server compiles, which shows stale HTML
+      // that no longer matches the freshly compiled code (hydration errors). Remove any worker and cache left from earlier visits.
+      void navigator.serviceWorker
+        .getRegistrations()
+        .then((regs) => regs.forEach((r) => void r.unregister()))
+        .catch(() => undefined);
+      void globalThis.caches
+        ?.keys()
+        .then((keys) =>
+          keys.filter((k) => k.startsWith("sagar-")).forEach((k) => void caches.delete(k)),
+        )
+        .catch(() => undefined);
+      return;
+    }
     let reloading = false;
     const onControllerChange = () => {
       if (reloading) return;
