@@ -27,7 +27,7 @@ export function SiteHeader({ settings }: { settings: BusinessSettings }) {
   const callbackContact = { phone: settings.phone, whatsappNumber: settings.whatsappNumber };
   const mobileActions = (
     <>
-      <CallButton phone={settings.phone} businessName={settings.name} size="lg">
+      <CallButton phone={settings.phone} size="lg">
         Call us
       </CallButton>
       {settings.whatsappNumber && (

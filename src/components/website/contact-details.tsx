@@ -40,7 +40,7 @@ export function ContactDetails({ settings }: { settings: BusinessSettings }) {
             className="hover:underline"
           />
         </p>
-        <CallButton phone={settings.phone} businessName={settings.name} size="sm">
+        <CallButton phone={settings.phone} size="sm">
           Call now
         </CallButton>
       </Item>,

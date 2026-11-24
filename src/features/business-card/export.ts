@@ -3,7 +3,8 @@ import { CARD_HEIGHT, CARD_WIDTH, drawBusinessCard, type CardImage } from "./dra
 
 /** Export size: 3× the 640×440 design = 1920×1320 px: sharp on phones, in messaging apps and in print. */
 export const EXPORT_SCALE = 3;
-export const PREVIEW_MAX_SCALE = 2;
+/** Backing-store scale of the on-screen preview: constant, so the canvas markup never depends on the device. */
+export const PREVIEW_SCALE = 2;
 
 const FONT_TIMEOUT_MS = 3000;
 const IMAGE_TIMEOUT_MS = 5000;

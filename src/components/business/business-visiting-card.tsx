@@ -9,7 +9,7 @@ import {
   drawBusinessCard,
 } from "@/features/business-card/draw";
 import {
-  PREVIEW_MAX_SCALE,
+  PREVIEW_SCALE,
   ensureFonts,
   loadLogo,
   resolveFontFamily,
@@ -27,9 +27,7 @@ export function BusinessVisitingCard({ data }: { data: BusinessCardData }) {
     const canvas = ref.current;
     if (!canvas) return;
     let cancelled = false;
-    const scale = Math.min(PREVIEW_MAX_SCALE, Math.max(1, window.devicePixelRatio || 1));
-    canvas.width = Math.round(CARD_WIDTH * scale);
-    canvas.height = Math.round(CARD_HEIGHT * scale);
+    const scale = PREVIEW_SCALE;
     const draw = (family: string, logo: Awaited<ReturnType<typeof loadLogo>>) => {
       const ctx = canvas.getContext("2d");
       if (ctx && !cancelled) drawBusinessCard(ctx, data, { scale, fontFamily: family, logo });
@@ -51,6 +49,9 @@ export function BusinessVisitingCard({ data }: { data: BusinessCardData }) {
       ref={ref}
       role="img"
       aria-label={describeCard(data)}
+      // Fixed backing-store size (a constant, not a measurement): the markup is identical on server and client, and CSS scales it.
+      width={CARD_WIDTH * PREVIEW_SCALE}
+      height={CARD_HEIGHT * PREVIEW_SCALE}
       className="block aspect-[16/11] h-auto w-full max-w-2xl rounded-md border border-border bg-surface shadow-xs"
     />
   );

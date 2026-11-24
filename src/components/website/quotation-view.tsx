@@ -243,12 +243,7 @@ export function QuotationView({
           Contact us about this quotation.
         </p>
         <div className="flex flex-wrap gap-2">
-          <CallButton
-            phone={business.phone ?? null}
-            businessName={business.name}
-            size="sm"
-            variant="outline"
-          >
+          <CallButton phone={business.phone ?? null} size="sm" variant="outline">
             Call {parsePhone(business.phone)?.display}
           </CallButton>
           <WhatsAppButton

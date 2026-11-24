@@ -33,7 +33,6 @@ export default async function OfflinePage() {
         <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
           <CallButton
             phone={settings.phone}
-            businessName={settings.name}
             variant="primary"
             size="lg"
             className="w-full sm:w-auto"
