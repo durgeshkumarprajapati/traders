@@ -13,7 +13,7 @@ There are two independent email paths. Neither claims delivery it cannot prove.
 
 1. The enquiry is saved first (so it is never lost), with an outbox row.
 2. Right after the response the server sends **one** email through Web3Forms using `WEB3FORMS_ACCESS_KEY`.
-3. If sending fails, it is retried with backoff by the sweeper (`/api/notifications/process`, scheduled in `vercel.json` every 10 minutes) and can be retried by hand from the admin enquiry page ("Retry Email Notification"). The admin page shows the last error.
+3. If sending fails, it is retried with backoff by the sweeper (`/api/notifications/process`, scheduled in `vercel.json` once a day at 03:00 UTC, because Vercel Hobby only allows daily crons) and can be retried by hand from the admin enquiry page ("Retry Email Notification"). The admin page shows the last error.
 4. **Who receives it:** the inbox that owns the Web3Forms access key. Customers do not receive a copy.
 
 ### Prove it works (owner, once, after deploying)
@@ -33,7 +33,7 @@ Then submit a real enquiry on the site and confirm (a) it appears in `/admin/enq
 ### Known risks (honest list)
 
 - **Web3Forms plan:** Web3Forms may block server-side (API) submissions on its free plan. If the test returns HTTP 403/401, confirm with Web3Forms; the fix is a paid plan or another provider. This was **never verified live** by the developer (no credentials in the build environment).
-- **Vercel Cron frequency:** `*/10 * * * *` requires a paid Vercel plan; Hobby allows only daily cron. On Hobby, change the schedule to once a day or use an external scheduler — otherwise the deployment can be rejected.
+- **Vercel Cron frequency:** the sweeper runs daily (`0 3 * * *`) so the project deploys on Vercel Hobby. Emails are sent immediately after an enquiry is saved; the sweeper is only a retry safety net, so a failed email can wait up to a day (or be retried by hand from the admin enquiry page). On a Pro plan you may change it to `*/10 * * * *`.
 - Delivery is at-least-once: a rare duplicate email is possible if the result of a successful send could not be recorded.
 
 ## Verified provider limits (read this before relying on email)

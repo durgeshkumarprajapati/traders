@@ -47,7 +47,7 @@ As part of the Phase 12 production-readiness review:
 - **Supabase PostgreSQL & Auth:** Verified. Migrations `20261118000000_enquiries.sql` and `20261120000000_admin_auth.sql` confirmed on live instance. Row Level Security active on all 7 tables. `public.is_admin()` RPC function active. Admin authentication and authorization verified.
 - **Web3Forms Notifications:** Server-side integration verified via mocked unit and integration tests. Real outbound email dispatch classified strictly as `NOT TESTED` for live recipient delivery until explicit business owner approval is granted for a controlled test email.
 - **Fail-Closed Serverless Enquiry Posture:** `enableEmailFallback: false` configured for production Server Actions. Submissions fail closed safely with `UNAVAILABLE` when Supabase is unreachable, eliminating unthrottled serverless email abuse while preserving client form inputs and presenting phone/WhatsApp contact options.
-- **Vercel Cron Sweeper:** Configured in `vercel.json` (`/api/notifications/process`, schedule `*/10 * * * *`). Execution deadline guard (`maxDurationMs = 20000`) prevents serverless timeouts. Protected by `CRON_SECRET`.
+- **Vercel Cron Sweeper:** Configured in `vercel.json` (`/api/notifications/process`, schedule `0 3 * * *`, daily so it fits Vercel Hobby). Execution deadline guard (`maxDurationMs = 20000`) prevents serverless timeouts. Protected by `CRON_SECRET`.
 - **Security & Vulnerabilities:** `npm audit` reports 0 vulnerabilities. All sensitive keys isolated to server-side scopes.
 
 Names are reported by the loaders; values are never logged or returned to the browser (verified by automated tests and inspection of `.next/static`).
