@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { PageBodySkeleton } from "@/components/common/page-skeleton";
 import { PageContainer, PageHeading } from "@/components/common/container";
 import { Notification } from "@/components/ui/notification";
 import { Breadcrumbs } from "@/components/ui/navigation-aids";
@@ -13,7 +15,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/rate-alerts" },
 };
 
-export default async function RateAlertsPage() {
+async function RateAlertsBody() {
   const available = await rateAlertsAvailable();
   const load = available ? await loadCatalogue() : null;
   const products =
@@ -22,6 +24,16 @@ export default async function RateAlertsPage() {
           .filter((p) => typeof p.price === "number" && p.price > 0)
           .map((p) => ({ id: p.id, name: p.name }))
       : [];
+  return !available || products.length === 0 ? (
+    <Notification tone="info" title="Rate alerts are not available yet">
+      {RATE_ALERT_MESSAGES.unavailable}
+    </Notification>
+  ) : (
+    <RateAlertForm products={products} />
+  );
+}
+
+export default function RateAlertsPage() {
   return (
     <PageContainer className="max-w-2xl pb-section-lg">
       <div className="pt-gutter-lg">
@@ -31,13 +43,9 @@ export default async function RateAlertsPage() {
         title="Rate alerts"
         description="Follow the listed rate of a product. Listed rates are indicative; Sagar Traders confirms rates and availability when you enquire."
       />
-      {!available || products.length === 0 ? (
-        <Notification tone="info" title="Rate alerts are not available yet">
-          {RATE_ALERT_MESSAGES.unavailable}
-        </Notification>
-      ) : (
-        <RateAlertForm products={products} />
-      )}
+      <Suspense fallback={<PageBodySkeleton />}>
+        <RateAlertsBody />
+      </Suspense>
     </PageContainer>
   );
 }

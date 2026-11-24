@@ -17,12 +17,29 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-/** The tracking credentials arrive in the URL fragment and are read in the browser, never by the server. */
-export default async function TrackEnquiryPage() {
-  const load = await loadCatalogue();
-  const whatsappNumber = load.ok ? load.settings.whatsappNumber : undefined;
-  const businessPhone = load.ok ? load.settings.phone : undefined;
+const trackingFallback = (
+  <div className="space-y-gutter-md py-section-sm" aria-busy="true">
+    <Skeleton className="h-40 w-full" />
+    <Skeleton className="h-64 w-full" />
+  </div>
+);
 
+/**
+ * The only part that reads data (the business phone / WhatsApp number from the cached catalogue). It lives inside <Suspense> so the
+ * rest of the page can be prerendered and this streams in, instead of blocking the whole route.
+ */
+async function TrackingContent() {
+  const load = await loadCatalogue();
+  return (
+    <TrackEnquiryView
+      whatsappNumber={(load.ok ? load.settings.whatsappNumber : null) ?? undefined}
+      businessPhone={(load.ok ? load.settings.phone : null) ?? undefined}
+    />
+  );
+}
+
+/** The tracking credentials arrive in the URL fragment and are read in the browser, never by the server. */
+export default function TrackEnquiryPage() {
   return (
     <PageContainer className="pb-section-lg">
       <div className="pt-gutter-lg">
@@ -32,18 +49,8 @@ export default async function TrackEnquiryPage() {
         title="Enquiry Status & Tracking"
         description="View real-time progress, review prepared quotations, and communicate directly with the Sagar Traders sales desk."
       />
-      <Suspense
-        fallback={
-          <div className="space-y-gutter-md py-section-sm" aria-busy="true">
-            <Skeleton className="h-40 w-full" />
-            <Skeleton className="h-64 w-full" />
-          </div>
-        }
-      >
-        <TrackEnquiryView
-          whatsappNumber={whatsappNumber ?? undefined}
-          businessPhone={businessPhone ?? undefined}
-        />
+      <Suspense fallback={trackingFallback}>
+        <TrackingContent />
       </Suspense>
     </PageContainer>
   );

@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { PageBodySkeleton } from "@/components/common/page-skeleton";
 import { PageContainer, PageHeading } from "@/components/common/container";
 import { Breadcrumbs } from "@/components/ui/navigation-aids";
 import { MaterialCollection } from "@/components/tools/material-collection";
@@ -12,8 +14,14 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function MyMaterialListsPage() {
+async function ListsBody() {
   const load = await loadCatalogue();
+  return (
+    <MaterialCollection kind="list" catalogue={load.ok ? toEnquiryItems(load.catalogue) : []} />
+  );
+}
+
+export default function MyMaterialListsPage() {
   return (
     <PageContainer className="pb-section-lg">
       <div className="pt-gutter-lg">
@@ -29,7 +37,9 @@ export default async function MyMaterialListsPage() {
         title="My material lists"
         description="Keep lists such as a monthly requirement or a site's materials, and send one as an enquiry whenever you need it. No account needed."
       />
-      <MaterialCollection kind="list" catalogue={load.ok ? toEnquiryItems(load.catalogue) : []} />
+      <Suspense fallback={<PageBodySkeleton />}>
+        <ListsBody />
+      </Suspense>
     </PageContainer>
   );
 }

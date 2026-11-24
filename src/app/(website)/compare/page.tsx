@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { PageBodySkeleton } from "@/components/common/page-skeleton";
 import { PageContainer, PageHeading } from "@/components/common/container";
 import { CompareView } from "@/components/compare/compare-view";
 import { Breadcrumbs } from "@/components/ui/navigation-aids";
@@ -16,13 +18,35 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-export default async function ComparePage({
+async function CompareBody({
   searchParams,
 }: {
   searchParams: Promise<{ ids?: string | string[] }>;
 }) {
   const requested = parseCompareIds((await searchParams).ids);
   const load = await loadCatalogue();
+  if (!load.ok) return <CatalogueUnavailable />;
+  return (
+    <CompareView
+      comparison={buildComparison(load.catalogue, requested)}
+      requestedIds={requested}
+      picker={load.catalogue.products.map((p) => ({
+        id: p.id,
+        name: p.name,
+        brandName: load.catalogue.brands.find((b) => b.id === p.brandId)?.name ?? null,
+        unitLabel: unitLabel(p.unit),
+      }))}
+      whatsappNumber={load.settings.whatsappNumber}
+      source={load.source === "STATIC" ? "STATIC" : "LIVE"}
+    />
+  );
+}
+
+export default function ComparePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ ids?: string | string[] }>;
+}) {
   return (
     <PageContainer className="pb-section-lg">
       <div className="pt-gutter-lg">
@@ -38,22 +62,9 @@ export default async function ComparePage({
         title="Compare products"
         description="Up to three products side by side. Only listed catalogue information is shown; anything missing is marked “Not specified”."
       />
-      {load.ok ? (
-        <CompareView
-          comparison={buildComparison(load.catalogue, requested)}
-          requestedIds={requested}
-          picker={load.catalogue.products.map((p) => ({
-            id: p.id,
-            name: p.name,
-            brandName: load.catalogue.brands.find((b) => b.id === p.brandId)?.name ?? null,
-            unitLabel: unitLabel(p.unit),
-          }))}
-          whatsappNumber={load.settings.whatsappNumber}
-          source={load.source === "STATIC" ? "STATIC" : "LIVE"}
-        />
-      ) : (
-        <CatalogueUnavailable />
-      )}
+      <Suspense fallback={<PageBodySkeleton />}>
+        <CompareBody searchParams={searchParams} />
+      </Suspense>
     </PageContainer>
   );
 }

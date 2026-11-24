@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { PageBodySkeleton } from "@/components/common/page-skeleton";
 import { PageContainer, PageHeading } from "@/components/common/container";
 import { Breadcrumbs } from "@/components/ui/navigation-aids";
 import { MaterialCalculator } from "@/components/tools/calculator";
@@ -12,9 +14,24 @@ export const metadata: Metadata = {
   alternates: { canonical: "/tools/material-calculator" },
 };
 
-export default async function MaterialCalculatorPage() {
+async function CalculatorBody() {
   const load = await loadCatalogue();
   const catalogue = load.ok ? toEnquiryItems(load.catalogue) : [];
+  return (
+    <MaterialCalculator
+      catalogue={catalogue}
+      catalogueNote={
+        load.ok
+          ? load.source === "STATIC"
+            ? "Product prices are not live right now, so product matching shows the built-in catalogue. Quantities you calculate are unaffected."
+            : undefined
+          : "The product list is unavailable right now. You can still calculate, and add the materials as custom requirements."
+      }
+    />
+  );
+}
+
+export default function MaterialCalculatorPage() {
   return (
     <PageContainer className="pb-section-lg">
       <div className="pt-gutter-lg">
@@ -30,16 +47,9 @@ export default async function MaterialCalculatorPage() {
         title="Construction material calculator"
         description="Approximate quantities for planning. Choose a calculator, enter your measurements and see exactly how the result was worked out."
       />
-      <MaterialCalculator
-        catalogue={catalogue}
-        catalogueNote={
-          load.ok
-            ? load.source === "STATIC"
-              ? "Product prices are not live right now, so product matching shows the built-in catalogue. Quantities you calculate are unaffected."
-              : undefined
-            : "The product list is unavailable right now. You can still calculate, and add the materials as custom requirements."
-        }
-      />
+      <Suspense fallback={<PageBodySkeleton />}>
+        <CalculatorBody />
+      </Suspense>
     </PageContainer>
   );
 }

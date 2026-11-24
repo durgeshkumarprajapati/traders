@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageBodySkeleton } from "@/components/common/page-skeleton";
 import type { Metadata } from "next";
 import { WifiOff, RefreshCw } from "lucide-react";
 import { PageContainer } from "@/components/common/container";
@@ -12,7 +14,7 @@ export const metadata: Metadata = {
   description: "You are currently browsing Sagar Traders in offline mode.",
 };
 
-export default async function OfflinePage() {
+async function OfflineContent() {
   const settings = await loadSettings();
 
   return (
@@ -53,5 +55,13 @@ export default async function OfflinePage() {
         </div>
       </Card>
     </PageContainer>
+  );
+}
+
+export default function OfflinePage() {
+  return (
+    <Suspense fallback={<PageBodySkeleton />}>
+      <OfflineContent />
+    </Suspense>
   );
 }

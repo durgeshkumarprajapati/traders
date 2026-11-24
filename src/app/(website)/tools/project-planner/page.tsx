@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { PageBodySkeleton } from "@/components/common/page-skeleton";
 import { PageContainer, PageHeading } from "@/components/common/container";
 import { Breadcrumbs } from "@/components/ui/navigation-aids";
 import { MaterialCollection } from "@/components/tools/material-collection";
@@ -12,8 +14,14 @@ export const metadata: Metadata = {
   alternates: { canonical: "/tools/project-planner" },
 };
 
-export default async function ProjectPlannerPage() {
+async function PlannerBody() {
   const load = await loadCatalogue();
+  return (
+    <MaterialCollection kind="project" catalogue={load.ok ? toEnquiryItems(load.catalogue) : []} />
+  );
+}
+
+export default function ProjectPlannerPage() {
   return (
     <PageContainer className="pb-section-lg">
       <div className="pt-gutter-lg">
@@ -29,10 +37,9 @@ export default async function ProjectPlannerPage() {
         title="Project material planner"
         description="Build a material checklist for a house, room, boundary wall or renovation. It is a planning checklist, not a complete bill of quantities."
       />
-      <MaterialCollection
-        kind="project"
-        catalogue={load.ok ? toEnquiryItems(load.catalogue) : []}
-      />
+      <Suspense fallback={<PageBodySkeleton />}>
+        <PlannerBody />
+      </Suspense>
     </PageContainer>
   );
 }

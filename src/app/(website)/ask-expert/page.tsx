@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { PageContainer, PageHeading } from "@/components/common/container";
 import { Breadcrumbs } from "@/components/ui/navigation-aids";
 import { ExpertForm } from "@/components/website/expert-form";
@@ -13,9 +14,36 @@ export const metadata: Metadata = {
   alternates: { canonical: "/ask-expert" },
 };
 
-export default async function AskExpertPage() {
+/** Reads the WhatsApp number from the cached catalogue; inside <Suspense> so the rest of the page prerenders. */
+async function PhotoSection() {
   const load = await loadCatalogue();
   const whatsapp = load.ok && load.source === "LIVE" ? load.settings.whatsappNumber : null;
+  return (
+    <section
+      aria-labelledby="photos-heading"
+      className="mt-gutter-lg space-y-2 rounded border border-border bg-surface-muted p-gutter-md"
+    >
+      <h2 id="photos-heading" className="text-title-md font-semibold">
+        Want to share a photo?
+      </h2>
+      <p className="text-body-md text-on-surface-variant">
+        Photos cannot be uploaded on this page. Send them to us on WhatsApp and mention your enquiry
+        reference.
+      </p>
+      <WhatsAppButton
+        hideIfUnavailable
+        number={whatsapp}
+        message="Hello, I would like to share a photo for my materials question."
+        variant="outline"
+        size="sm"
+      >
+        Send photos on WhatsApp
+      </WhatsAppButton>
+    </section>
+  );
+}
+
+export default function AskExpertPage() {
   return (
     <PageContainer className="max-w-2xl pb-section-lg">
       <div className="pt-gutter-lg">
@@ -27,27 +55,9 @@ export default async function AskExpertPage() {
       />
       <p className="mb-gutter-md text-body-sm text-on-surface-variant">{EXPERT_DISCLAIMER}</p>
       <ExpertForm />
-      <section
-        aria-labelledby="photos-heading"
-        className="mt-gutter-lg space-y-2 rounded border border-border bg-surface-muted p-gutter-md"
-      >
-        <h2 id="photos-heading" className="text-title-md font-semibold">
-          Want to share a photo?
-        </h2>
-        <p className="text-body-md text-on-surface-variant">
-          Photos cannot be uploaded on this page. Send them to us on WhatsApp and mention your
-          enquiry reference.
-        </p>
-        <WhatsAppButton
-          hideIfUnavailable
-          number={whatsapp}
-          message="Hello, I would like to share a photo for my materials question."
-          variant="outline"
-          size="sm"
-        >
-          Send photos on WhatsApp
-        </WhatsAppButton>
-      </section>
+      <Suspense fallback={null}>
+        <PhotoSection />
+      </Suspense>
     </PageContainer>
   );
 }
