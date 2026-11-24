@@ -12,6 +12,7 @@ import { loadSettings } from "@/features/catalogue/server";
 export const metadata: Metadata = {
   title: "Offline — Sagar Traders",
   description: "You are currently browsing Sagar Traders in offline mode.",
+  robots: { index: false, follow: false },
 };
 
 async function OfflineContent() {

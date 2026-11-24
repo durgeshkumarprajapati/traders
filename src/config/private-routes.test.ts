@@ -20,6 +20,8 @@ describe("private routes: no cache, no indexing, no Referer leak", () => {
     "/api/quotation/qt_0123456789abcdef0123456789abcdef/pdf",
     "/api/admin/quotations/00000000-0000-0000-0000-000000000000/pdf",
     "/admin/enquiries/abc",
+    "/rate-alerts/confirm",
+    "/rate-alerts/unsubscribe",
   ])("%s is served private, no-store, noindex, no-referrer", async (path) => {
     const h = await headersFor(path);
     expect(h.get("Cache-Control")).toBe("private, no-store, max-age=0");
@@ -38,7 +40,15 @@ describe("private routes: no cache, no indexing, no Referer leak", () => {
     vi.stubEnv("SITE_INDEXING", "enabled");
     const r = robots() as { rules: { disallow: string[] } };
     expect(r.rules.disallow).toEqual(
-      expect.arrayContaining(["/track-enquiry", "/quotation", "/admin", "/api"]),
+      expect.arrayContaining([
+        "/track-enquiry",
+        "/quotation",
+        "/admin",
+        "/api",
+        "/rate-alerts/confirm",
+        "/rate-alerts/unsubscribe",
+        "/my-material-lists",
+      ]),
     );
     vi.unstubAllEnvs();
   });
