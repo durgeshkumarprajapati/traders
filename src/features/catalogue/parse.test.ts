@@ -385,6 +385,7 @@ describe("business settings", () => {
       social: {},
       announcement: { enabled: false, text: null },
       whyChooseUs: [],
+      delivery: { enabled: false, pincodes: [], localities: null, notes: null, terms: null },
     });
   });
   it("reads structured 'Why choose us' items: only complete title+description pairs, in order, max 6", () => {
@@ -469,5 +470,59 @@ describe("issue ordering", () => {
       "Products:3:unit",
       "Categories:2:display_order",
     ]);
+  });
+});
+
+describe("delivery coverage settings", () => {
+  const settings = (rows: unknown[][]) => buildCatalogue(tables({ settings: rows }));
+  const delivery = (rows: [string, string][]) => settings(rows).settings.delivery!;
+
+  it("reads the owner's configuration exactly (and nothing else)", () => {
+    expect(
+      delivery([
+        ["delivery_enabled", "TRUE"],
+        ["delivery_pincodes", "221001, 221002\n221005;221001"],
+        ["delivery_localities", "Varanasi city"],
+        ["delivery_notes", "Call before ordering"],
+        ["delivery_terms", "Minimum order as confirmed by the shop"],
+      ]),
+    ).toEqual({
+      enabled: true,
+      pincodes: ["221001", "221002", "221005"],
+      localities: "Varanasi city",
+      notes: "Call before ordering",
+      terms: "Minimum order as confirmed by the shop",
+    });
+  });
+
+  it("is OFF and empty when not configured (no assumed areas)", () => {
+    expect(delivery([])).toEqual({
+      enabled: false,
+      pincodes: [],
+      localities: null,
+      notes: null,
+      terms: null,
+    });
+  });
+
+  it.each(["22100", "2210011", "abc123", "021001", "221001, 12", "221001 &"])(
+    "rejects the PIN list %j and ignores it (reported as a warning)",
+    (bad) => {
+      const r = settings([["delivery_pincodes", bad]]);
+      expect(r.settings.delivery!.pincodes).toEqual([]);
+      expect(r.issues.some((i) => i.code === "INVALID_SETTING" && /PIN code/.test(i.message))).toBe(
+        true,
+      );
+    },
+  );
+
+  it("warns when delivery is switched on but nothing is listed", () => {
+    const r = settings([["delivery_enabled", "TRUE"]]);
+    expect(r.issues.some((i) => /no PIN codes or localities/.test(i.message))).toBe(true);
+  });
+
+  it("caps the list at 500 PIN codes", () => {
+    const many = Array.from({ length: 501 }, (_, i) => String(100000 + i)).join(",");
+    expect(settings([["delivery_pincodes", many]]).settings.delivery!.pincodes).toEqual([]);
   });
 });

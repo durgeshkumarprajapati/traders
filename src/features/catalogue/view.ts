@@ -76,6 +76,7 @@ export function toBusinessSettings(r: BusinessSettingsRecord): BusinessSettings 
     gstNumber: r.gstNumber,
     googleMapsUrl: r.googleMapsUrl,
     deliveryCoverage: r.deliveryCoverage,
+    delivery: r.delivery,
     announcement: r.announcement.enabled ? r.announcement.text : null,
     social: r.social,
     whyChooseUs: r.whyChooseUs,

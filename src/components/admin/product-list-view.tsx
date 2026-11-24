@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { Edit, Eye, EyeOff, Plus, Search } from "lucide-react";
+import { Edit, Eye, EyeOff, Plus, QrCode, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/form-controls";
@@ -95,6 +95,11 @@ export function ProductListView({ products, categories, brands }: ProductListVie
     return result;
   }, [products, search, categoryFilter, brandFilter, stockFilter, activeFilter, sortBy]);
 
+  // QR labels exist only for active products (inactive ones have no public page); one print run holds up to 24.
+  const qrIds = filteredProducts
+    .filter((p) => p.isActive)
+    .slice(0, 24)
+    .map((p) => p.id);
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / pageSize));
   const paginatedProducts = useMemo(() => {
     const start = (page - 1) * pageSize;
@@ -260,6 +265,18 @@ export function ProductListView({ products, categories, brands }: ProductListVie
             <span className="text-body-md text-on-surface-variant">
               Showing <strong>{filteredProducts.length}</strong> of {products.length} products
             </span>
+            {qrIds.length > 0 && (
+              <ButtonLink
+                href={`/admin/qr-labels?ids=${qrIds.map(encodeURIComponent).join(",")}`}
+                target="_blank"
+                rel="noopener"
+                variant="outline"
+                size="sm"
+              >
+                <QrCode className="size-3.5 mr-1" aria-hidden /> QR labels for these (
+                {Math.min(qrIds.length, 24)})
+              </ButtonLink>
+            )}
             {(search ||
               categoryFilter !== "all" ||
               brandFilter !== "all" ||
@@ -365,6 +382,18 @@ export function ProductListView({ products, categories, brands }: ProductListVie
                           >
                             <Edit className="size-3.5 mr-1" aria-hidden /> Edit
                           </ButtonLink>
+                          {p.isActive && (
+                            <ButtonLink
+                              href={`/admin/qr-labels?ids=${encodeURIComponent(p.id)}`}
+                              target="_blank"
+                              rel="noopener"
+                              variant="ghost"
+                              size="sm"
+                              aria-label={`QR code for ${p.name}`}
+                            >
+                              <QrCode className="size-3.5 mr-1" aria-hidden /> QR
+                            </ButtonLink>
+                          )}
                           <Button
                             variant="ghost"
                             size="sm"

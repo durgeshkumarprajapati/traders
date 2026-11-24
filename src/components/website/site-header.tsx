@@ -46,17 +46,24 @@ export function SiteHeader({ settings }: { settings: BusinessSettings }) {
         <PageContainer className="flex h-9 items-center justify-between gap-gutter-md">
           {/* Left: Location & Hours */}
           <div className="flex items-center gap-3 text-body-sm truncate">
-            <span className="inline-flex items-center gap-1.5 truncate">
-              <span className="size-2 rounded-full bg-secondary shrink-0" aria-hidden="true" />
-              <span className=" text-label-md text-secondary font-semibold">
-                {settings.deliveryCoverage || settings.address || "Raipur Depot"}
+            {/* Only owner-configured details are shown: no invented location or opening hours. */}
+            {(settings.deliveryCoverage || settings.address) && (
+              <span className="inline-flex items-center gap-1.5 truncate">
+                <span className="size-2 rounded-full bg-secondary shrink-0" aria-hidden="true" />
+                <span className=" text-label-md text-secondary font-semibold">
+                  {settings.deliveryCoverage || settings.address}
+                </span>
               </span>
-            </span>
-            <span className="text-on-primary/60">|</span>
-            <span className="hidden sm:inline-flex items-center gap-1.5 text-on-primary/95 truncate">
-              <Clock aria-hidden="true" className="size-3.5 text-secondary shrink-0" />
-              <span>{settings.businessHours || "Mon–Sat: 8:00 AM – 7:00 PM (Sunday Closed)"}</span>
-            </span>
+            )}
+            {(settings.deliveryCoverage || settings.address) && settings.businessHours && (
+              <span className="text-on-primary/60">|</span>
+            )}
+            {settings.businessHours && (
+              <span className="hidden sm:inline-flex items-center gap-1.5 text-on-primary/95 truncate">
+                <Clock aria-hidden="true" className="size-3.5 text-secondary shrink-0" />
+                <span>{settings.businessHours}</span>
+              </span>
+            )}
             <span className="hidden lg:inline text-on-primary/60">|</span>
             <span className="hidden lg:inline text-on-primary/90 text-body-md">
               Wholesale &amp; Retail Supply • Direct Site Supplies

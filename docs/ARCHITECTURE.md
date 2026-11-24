@@ -294,3 +294,10 @@ Distributor brands in the static catalogue must not invent unverified regional m
 ## Foundation already in repo
 
 See `docs/FOUNDATION.md` and `docs/FOUNDATION_RECONCILIATION.md`. Token corrections were completed in Phase 1; remaining approved fixes are listed in `PROJECT_BLUEPRINT.md` §26.1 (not started).
+
+## Phase 13 (2026-11-24)
+
+- Local-first state: versioned localStorage stores (`features/material-lists`, `features/compare`) with recovery and size limits; prices are always re-read from the catalogue on the server.
+- Freight and expert questions are GENERAL enquiries with an `enquiry_metadata` row written atomically in `create_enquiry`; they reuse the shared `persistAndNotify` path.
+- Rate alerts: daily cron → snapshot (integer paise) → exact detection in PostgreSQL → provider send. `lib/email/provider.ts` is the single seam; it currently returns `null`.
+- QR codes are generated server-side only and encode only canonical public URLs.

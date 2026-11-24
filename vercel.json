@@ -4,6 +4,10 @@
     {
       "path": "/api/notifications/process",
       "schedule": "*/10 * * * *"
+    },
+    {
+      "path": "/api/rate-alerts/process",
+      "schedule": "30 2 * * *"
     }
   ]
 }

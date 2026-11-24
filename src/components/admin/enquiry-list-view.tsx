@@ -254,6 +254,11 @@ export function EnquiryListView({
                           >
                             {enquiry.type === "BULK" ? "Bulk Order" : "General"}
                           </Badge>
+                          {enquiry.metadataKind && (
+                            <Badge tone="primary" appearance="outline">
+                              {enquiry.metadataKind === "DELIVERY" ? "Freight" : "Expert question"}
+                            </Badge>
+                          )}
                           {enquiry.isCallback && (
                             <Badge tone="warning" appearance="solid">
                               Callback

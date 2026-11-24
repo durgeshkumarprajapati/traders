@@ -5,6 +5,7 @@ import { StockBadge } from "@/components/ui/status-badge";
 import type { Brand, Category, Product } from "@/features/products/types";
 import { unitLabel } from "@/features/products/units";
 import { normalizeWhatsAppNumber, productEnquiryMessage } from "@/lib/whatsapp";
+import { AddToCompareButton } from "@/components/compare/add-to-compare-button";
 import { AddToEnquiryButton } from "./add-to-enquiry-button";
 import { WhatsAppButton } from "./contact-actions";
 import { ProductImage } from "./product-image";
@@ -60,6 +61,7 @@ export function ProductCard({
           View details<span className="sr-only">: {product.name}</span>
         </ButtonLink>
         <AddToEnquiryButton productId={product.id} productName={product.name} />
+        <AddToCompareButton productId={product.id} productName={product.name} />
         {normalizeWhatsAppNumber(whatsappNumber) && (
           <WhatsAppButton
             size="sm"

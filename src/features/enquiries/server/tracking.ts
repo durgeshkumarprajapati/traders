@@ -4,6 +4,7 @@ import { createHash, createHmac, randomBytes } from "node:crypto";
 import { logger } from "@/lib/logger";
 import type { Rpc } from "@/lib/supabase/rest";
 import type { EnquiryStatus } from "@/components/ui/status-badge";
+import { ENQUIRY_REFERENCE } from "../reference";
 import type { TrackedEnquiry } from "../tracking-types";
 
 export type { TrackedEnquiry };
@@ -35,7 +36,7 @@ export async function getTrackedEnquiry(
   const cleanToken = token.trim();
 
   // Current references are random (ENQ-XXXX-XXXX-XXXX); older ones were sequential (ENQ-YYYY-NNNNNN).
-  if (!/^ENQ-(?:\d{4}-\d{6}|[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4})$/.test(cleanRef)) {
+  if (!ENQUIRY_REFERENCE.test(cleanRef)) {
     return null;
   }
 

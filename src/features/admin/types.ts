@@ -44,6 +44,8 @@ export interface AdminEnquiryListItem {
   updatedAt: string;
   itemCount: number;
   isCallback?: boolean;
+  /** Structured request kind from enquiry_metadata, when the enquiry came from the freight or expert forms. */
+  metadataKind?: "DELIVERY" | "EXPERT" | null;
 }
 
 export interface AdminEnquiryItem {
@@ -101,6 +103,7 @@ export interface AdminEnquiryDetail {
   trackingLastViewedAt?: string | null;
   trackingTokenExpiresAt?: string | null;
   trackingTokenRevokedAt?: string | null;
+  metadata?: { kind: "DELIVERY" | "EXPERT"; data: Record<string, unknown> } | null;
   callbackDetails?: {
     preferredDate: string | null;
     preferredTimeWindow: string | null;

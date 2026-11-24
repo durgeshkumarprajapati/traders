@@ -192,7 +192,10 @@ export class FakeSupabase {
     });
 
     // commit (all or nothing)
-    const reference = `ENQ-${new Date(this.clock).getUTCFullYear()}-${String(this.seq++).padStart(6, "0")}`;
+    // Mirrors the real database: random-looking ENQ-XXXX-XXXX-XXXX (deterministic here so tests are repeatable).
+    const n = (this.seq++ * 2654435761) >>> 0;
+    const h = n.toString(16).toUpperCase().padStart(8, "0");
+    const reference = `ENQ-${h.slice(0, 4)}-${h.slice(4, 8)}-${(this.seq + 0xa000).toString(16).toUpperCase().padStart(4, "0")}`;
     const outboxId = randomUUID();
     this.enquiries.push({
       id,

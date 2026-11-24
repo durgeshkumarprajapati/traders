@@ -32,6 +32,19 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
   const [deliveryCoverage, setDeliveryCoverage] = useState(initialSettings.deliveryCoverage ?? "");
   const [googleMapsUrl, setGoogleMapsUrl] = useState(initialSettings.googleMapsUrl ?? "");
 
+  // Delivery coverage (PIN-code checker on /delivery-check). Nothing is assumed: left empty = "contact us".
+  const [deliveryEnabled, setDeliveryEnabled] = useState(
+    initialSettings.delivery?.enabled ?? false,
+  );
+  const [deliveryPincodes, setDeliveryPincodes] = useState(
+    (initialSettings.delivery?.pincodes ?? []).join(", "),
+  );
+  const [deliveryLocalities, setDeliveryLocalities] = useState(
+    initialSettings.delivery?.localities ?? "",
+  );
+  const [deliveryNotes, setDeliveryNotes] = useState(initialSettings.delivery?.notes ?? "");
+  const [deliveryTerms, setDeliveryTerms] = useState(initialSettings.delivery?.terms ?? "");
+
   // Announcement
   const [announcementEnabled, setAnnouncementEnabled] = useState(
     initialSettings.announcement.enabled ?? false,
@@ -143,6 +156,11 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
         gst_number: gstNumber.trim().toUpperCase(),
         google_maps_url: googleMapsUrl.trim(),
         delivery_coverage: deliveryCoverage.trim(),
+        delivery_enabled: deliveryEnabled ? "TRUE" : "FALSE",
+        delivery_pincodes: deliveryPincodes.trim(),
+        delivery_localities: deliveryLocalities.trim(),
+        delivery_notes: deliveryNotes.trim(),
+        delivery_terms: deliveryTerms.trim(),
         announcement_enabled: announcementEnabled ? "TRUE" : "FALSE",
         announcement_text: announcementText.trim(),
         social_facebook: facebook.trim(),
@@ -388,6 +406,86 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
                 value={deliveryCoverage}
                 onChange={(e) => setDeliveryCoverage(e.target.value)}
                 placeholder="e.g. Within 50 km radius; site dispatch across Varanasi and adjacent districts"
+              />
+            )}
+          </Field>
+        </CardBody>
+      </Card>
+
+      {/* 3b. Delivery coverage */}
+      <Card className="border border-border bg-surface">
+        <CardHeader className="flex flex-row items-center gap-2 border-b border-border px-4 py-4 sm:px-6">
+          <Truck className="size-5 text-primary" aria-hidden />
+          <CardTitle className="text-title-lg">Delivery coverage (PIN-code checker)</CardTitle>
+        </CardHeader>
+        <CardBody className="space-y-4 p-4 sm:p-6">
+          <p className="text-body-md text-on-surface-variant">
+            Customers can check their PIN code on the Delivery check page. Only list PIN codes you
+            have confirmed. A listed PIN code never promises delivery — the page always asks
+            customers to confirm with you.
+          </p>
+          <Checkbox
+            label={
+              <span className="font-medium text-on-surface">
+                Show delivery coverage results to customers
+              </span>
+            }
+            checked={deliveryEnabled}
+            onChange={(e) => setDeliveryEnabled(e.target.checked)}
+          />
+          <Field
+            label="Covered PIN codes"
+            helper="Six-digit PIN codes separated by commas, spaces or new lines (up to 500)."
+          >
+            {(p) => (
+              <Textarea
+                {...p}
+                rows={3}
+                value={deliveryPincodes}
+                onChange={(e) => setDeliveryPincodes(e.target.value)}
+                placeholder="e.g. 221001, 221002, 221005"
+              />
+            )}
+          </Field>
+          <Field
+            label="Covered localities (optional)"
+            helper="Shown to customers as information only."
+          >
+            {(p) => (
+              <Textarea
+                {...p}
+                rows={2}
+                value={deliveryLocalities}
+                onChange={(e) => setDeliveryLocalities(e.target.value)}
+                maxLength={1000}
+              />
+            )}
+          </Field>
+          <Field
+            label="Delivery notes (optional)"
+            helper="Anything you want customers to know. Only write what you can stand behind."
+          >
+            {(p) => (
+              <Textarea
+                {...p}
+                rows={2}
+                value={deliveryNotes}
+                onChange={(e) => setDeliveryNotes(e.target.value)}
+                maxLength={500}
+              />
+            )}
+          </Field>
+          <Field
+            label="Delivery terms (optional)"
+            helper="Minimum order or other terms — only if confirmed by the business."
+          >
+            {(p) => (
+              <Textarea
+                {...p}
+                rows={2}
+                value={deliveryTerms}
+                onChange={(e) => setDeliveryTerms(e.target.value)}
+                maxLength={1000}
               />
             )}
           </Field>

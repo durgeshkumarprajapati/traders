@@ -12,7 +12,7 @@ const linkClass =
 
 export function AdminSidebar({ admin }: { admin?: AdminContext }) {
   return (
-    <aside className="hidden w-sidebar shrink-0 flex-col justify-between border-r border-border bg-surface p-gutter-md lg:flex lg:min-h-screen">
+    <aside className="hidden w-sidebar shrink-0 flex-col justify-between border-r border-border bg-surface p-gutter-md lg:flex lg:min-h-screen print:hidden">
       <div>
         <p className="mb-gutter-md text-title-lg text-primary font-bold">Sagar Traders Admin</p>
         <nav aria-label="Admin" className="flex flex-col gap-gutter-xs text-label-lg">

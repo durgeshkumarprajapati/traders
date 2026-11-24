@@ -64,3 +64,10 @@ alter table public.quotation_items drop constraint if exists quotation_items_lin
 ```
 
 Then re-run the `create or replace function` statements for `create_enquiry`, `get_tracked_enquiry`, `get_tracked_quotation` and `set_updated_at` from the earlier migration files to restore their previous definitions. The added columns are harmless and may stay. The application code of this phase requires the migration: **deploy the migration first, then the code.**
+
+## Phase 13 migrations (2026-11-24) — NOT applied
+
+1. `20261125000000_enquiry_metadata.sql` — `enquiry_metadata` + `create_enquiry` with atomic metadata. Verify: `select count(*) from public.enquiry_metadata;` (0 is fine) and `select has_function_privilege('anon','public.create_enquiry(jsonb)','execute');` (must be `false`).
+2. `20261126000000_rate_alerts.sql` — three tables and seven service-role-only functions. Verify: `select relname, relrowsecurity from pg_class where relname in ('rate_alert_subscriptions','product_price_snapshots','rate_alert_notifications');` (all `true`); `select has_function_privilege('authenticated','public.unsubscribe_rate_alert(text)','execute');` (must be `false`).
+
+Apply in order after `20261124000000`. Rollback: drop the three rate-alert tables/functions; drop `enquiry_metadata` and re-create `create_enquiry` from `20261124000000`. Tested only in the local single-user PostgreSQL harness (no RLS enforcement); run the owner checklist against a staging project before production.

@@ -117,6 +117,11 @@ describe("service worker: private traffic is never touched", () => {
     ["/products?q=cement"],
     ["/contact?email=a@b.test"],
     ["/products?_rsc=abc", { mode: "cors" }],
+    ["/my-material-lists", {}],
+    ["/rate-alerts/confirm", {}],
+    ["/rate-alerts/unsubscribe", {}],
+    ["/api/qr/product/cement?format=png", {}],
+    ["/api/rate-alerts/process", {}],
     ["/products", { method: "POST" }],
     ["/products", { origin: "https://evil.example" }],
     ["/products", { headers: { authorization: "Bearer x" } }],
@@ -151,18 +156,28 @@ describe("service worker: private traffic is never touched", () => {
 });
 
 describe("service worker: public pages", () => {
-  it.each(["/", "/products", "/products/cement-ppc-50kg", "/contact", "/bulk-enquiry"])(
-    "%s is served from the network and saved with a timestamp",
-    async (path) => {
-      const sw = boot(ok);
-      const res = await sw.dispatch(path);
-      expect(res).not.toBe("BYPASSED");
-      expect(await (res as Response).text()).toContain("page");
-      await tick();
-      const saved = [...sw.store.get("sagar-pages-v2")!.values()][0];
-      expect(saved.headers.get("x-sw-cached-at")).toMatch(/^\d{4}-\d{2}-\d{2}T/);
-    },
-  );
+  it.each([
+    "/",
+    "/products",
+    "/products/cement-ppc-50kg",
+    "/contact",
+    "/bulk-enquiry",
+    "/tools",
+    "/tools/material-calculator",
+    "/tools/project-planner",
+    "/compare",
+    "/delivery-check",
+    "/ask-expert",
+    "/rate-alerts",
+  ])("%s is served from the network and saved with a timestamp", async (path) => {
+    const sw = boot(ok);
+    const res = await sw.dispatch(path);
+    expect(res).not.toBe("BYPASSED");
+    expect(await (res as Response).text()).toContain("page");
+    await tick();
+    const saved = [...sw.store.get("sagar-pages-v2")!.values()][0];
+    expect(saved.headers.get("x-sw-cached-at")).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+  });
 
   it("never stores responses that forbid caching, errors, or non-basic responses", async () => {
     for (const make of [

@@ -395,6 +395,30 @@ const SETTING_PARSERS: Record<string, (v: string) => SettingResult> = {
   },
   google_maps_url: httpsUrl(null),
   delivery_coverage: str(500),
+  delivery_enabled: (v) => {
+    const p = parseBoolean(v);
+    return p.ok
+      ? { ok: true, value: p.value }
+      : v === ""
+        ? { ok: true, value: null }
+        : { ok: false, message: "must be TRUE or FALSE" };
+  },
+  /** Six-digit Indian PIN codes separated by commas, spaces or new lines. Stored normalised as "110001,110002". */
+  delivery_pincodes: (v) => {
+    const tokens = v.split(/[\s,;]+/).filter(Boolean);
+    if (tokens.length === 0) return { ok: true, value: null };
+    if (tokens.length > 500) return { ok: false, message: "can list at most 500 PIN codes" };
+    const bad = tokens.find((t) => !/^[1-9][0-9]{5}$/.test(t));
+    if (bad)
+      return {
+        ok: false,
+        message: `contains "${bad.slice(0, 12)}", which is not a six-digit PIN code`,
+      };
+    return { ok: true, value: [...new Set(tokens)].join(",") };
+  },
+  delivery_localities: str(1000),
+  delivery_notes: str(500),
+  delivery_terms: str(1000),
   announcement_text: str(300),
   announcement_enabled: (v) => {
     const p = parseBoolean(v);
@@ -439,6 +463,7 @@ export function emptySettings(): BusinessSettingsRecord {
     social: {},
     announcement: { enabled: false, text: null },
     whyChooseUs: [],
+    delivery: { enabled: false, pincodes: [], localities: null, notes: null, terms: null },
   };
 }
 
@@ -530,6 +555,24 @@ export function parseSettings(
   s.gstNumber = get("gst_number");
   s.googleMapsUrl = get("google_maps_url");
   s.deliveryCoverage = get("delivery_coverage");
+  s.delivery = {
+    enabled: values.get("delivery_enabled") === true,
+    pincodes: (get("delivery_pincodes") ?? "").split(",").filter(Boolean),
+    localities: get("delivery_localities"),
+    notes: get("delivery_notes"),
+    terms: get("delivery_terms"),
+  };
+  if (s.delivery.enabled && s.delivery.pincodes.length === 0 && !s.delivery.localities) {
+    push(
+      bag,
+      ws,
+      rowOf.get("delivery_enabled") ?? null,
+      "delivery_pincodes",
+      "warning",
+      "INVALID_SETTING",
+      "delivery_enabled is TRUE but no PIN codes or localities are listed; customers will be told to contact you",
+    );
+  }
   for (const [k, v] of values)
     if (k.startsWith("social_") && typeof v === "string") s.social[k.slice(7)] = v;
   // "Why choose us": an item needs BOTH a title and a description; half-filled items are ignored and reported.

@@ -118,9 +118,10 @@ export async function loadAdminEnquiries(
 
     // Query item counts and callback statuses for these enquiries in batch
     const enquiryIds = rows.map((r: { id: string }) => r.id);
-    const [itemRowsRes, callbackRowsRes] = await Promise.all([
+    const [itemRowsRes, callbackRowsRes, metaRowsRes] = await Promise.all([
       supabase.from("enquiry_items").select("enquiry_id").in("enquiry_id", enquiryIds),
       supabase.from("enquiry_callbacks").select("enquiry_id").in("enquiry_id", enquiryIds),
+      supabase.from("enquiry_metadata").select("enquiry_id, kind").in("enquiry_id", enquiryIds),
     ]);
 
     const countMap: Record<string, number> = {};
@@ -133,6 +134,10 @@ export async function loadAdminEnquiries(
     const callbackSet = new Set(
       (callbackRowsRes.data ?? []).map((c: { enquiry_id: string }) => c.enquiry_id),
     );
+
+    const metaKinds = new Map<string, "DELIVERY" | "EXPERT">();
+    for (const m of (metaRowsRes.data ?? []) as Array<{ enquiry_id: string; kind: string }>)
+      if (m.kind === "DELIVERY" || m.kind === "EXPERT") metaKinds.set(m.enquiry_id, m.kind);
 
     const enquiries: AdminEnquiryListItem[] = (rows as unknown as EnquiryDbRow[]).map((r) => ({
       id: r.id,
@@ -148,6 +153,7 @@ export async function loadAdminEnquiries(
       updatedAt: r.updated_at,
       itemCount: countMap[r.id] ?? 0,
       isCallback: callbackSet.has(r.id),
+      metadataKind: metaKinds.get(r.id) ?? null,
     }));
 
     return { enquiries, totalCount, page, pageSize, totalPages };
@@ -175,7 +181,7 @@ export async function loadAdminEnquiryDetail(id: string): Promise<AdminEnquiryDe
       return null;
     }
 
-    const [itemsRes, notesRes, outboxRes, historyRes, callbackRes] = await Promise.all([
+    const [itemsRes, notesRes, outboxRes, historyRes, callbackRes, metaRes] = await Promise.all([
       supabase
         .from("enquiry_items")
         .select("*")
@@ -203,6 +209,7 @@ export async function loadAdminEnquiryDetail(id: string): Promise<AdminEnquiryDe
         .select("preferred_date, preferred_time_window, reason")
         .eq("enquiry_id", id)
         .maybeSingle(),
+      supabase.from("enquiry_metadata").select("kind, data").eq("enquiry_id", id).maybeSingle(),
     ]);
 
     const itemRows = (itemsRes.data ?? []) as unknown as EnquiryItemDbRow[];
@@ -275,6 +282,14 @@ export async function loadAdminEnquiryDetail(id: string): Promise<AdminEnquiryDe
         }
       : null;
 
+    const metaRow = metaRes.data as { kind?: string; data?: unknown } | null;
+    const metaKind: "DELIVERY" | "EXPERT" | null =
+      metaRow?.kind === "DELIVERY" ? "DELIVERY" : metaRow?.kind === "EXPERT" ? "EXPERT" : null;
+    const metadata =
+      metaKind && metaRow?.data && typeof metaRow.data === "object"
+        ? { kind: metaKind, data: metaRow.data as Record<string, unknown> }
+        : null;
+
     return {
       id: enquiry.id,
       reference: enquiry.reference,
@@ -296,6 +311,7 @@ export async function loadAdminEnquiryDetail(id: string): Promise<AdminEnquiryDe
       trackingTokenExpiresAt: enquiry.tracking_token_expires_at ?? null,
       trackingTokenRevokedAt: enquiry.tracking_token_revoked_at ?? null,
       callbackDetails,
+      metadata,
       statusHistory,
     };
   } catch (error: unknown) {

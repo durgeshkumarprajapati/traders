@@ -6,6 +6,7 @@ import { Field, Input } from "@/components/ui/form-controls";
 import { QuantityInput } from "@/components/common/quantity-input";
 import { productEnquirySubject } from "@/lib/mailto";
 import { productEnquiryMessage } from "@/lib/whatsapp";
+import { AddToCompareButton } from "@/components/compare/add-to-compare-button";
 import { AddToEnquiryButton } from "./add-to-enquiry-button";
 import { RequestCallbackButton } from "./callback-modal";
 import { EmailButton, WhatsAppButton } from "./contact-actions";
@@ -99,6 +100,12 @@ export function ProductEnquiryPanel({
             productName={productName}
             quantity={quantity}
             size="lg"
+          />
+          <AddToCompareButton
+            productId={productId}
+            productName={productName}
+            size="lg"
+            variant="outline"
           />
           <RequestCallbackButton
             size="lg"

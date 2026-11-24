@@ -2,6 +2,7 @@ export const websiteNav = [
   { href: "/", label: "Home" },
   { href: "/products", label: "Products" },
   { href: "/bulk-enquiry", label: "Bulk Enquiry" },
+  { href: "/tools", label: "Tools" },
   { href: "/track-enquiry", label: "Track Enquiry" },
   { href: "/contact", label: "Contact" },
 ] as const;
@@ -12,5 +13,6 @@ export const adminNav = [
   { href: "/admin/products", label: "Products" },
   { href: "/admin/categories", label: "Categories & Brands" },
   { href: "/admin/enquiries", label: "Enquiries" },
+  { href: "/admin/rate-alerts", label: "Rate alerts" },
   { href: "/admin/settings", label: "Settings" },
 ] as const;

@@ -51,8 +51,10 @@ describe("Phase 6 credential boundaries", () => {
       .sort();
     expect(owners).toEqual([
       "app/api/notifications/test/route.ts", // operator-only (CRON_SECRET) email delivery test
+      "app/api/rate-alerts/process/route.ts", // operator-only (CRON_SECRET) daily rate-alert job
       "features/admin/server/dashboard.ts",
       "features/admin/server/enquiries.ts",
+      "features/admin/server/rate-alerts.ts",
       "features/auth/actions.ts",
       "features/enquiries/server/deps.ts",
       "features/enquiries/server/email-template.ts",
@@ -62,6 +64,8 @@ describe("Phase 6 credential boundaries", () => {
       "features/enquiries/server/tracking.ts",
       "features/health/server.ts",
       "features/quotations/server/quotations.ts",
+      "features/rate-alerts/actions.ts",
+      "features/rate-alerts/server/service.ts",
       "lib/auth/admin.ts",
       "proxy.ts",
     ]);
@@ -75,6 +79,10 @@ describe("Phase 6 credential boundaries", () => {
       "lib/supabase/admin.ts",
       "lib/auth/admin.ts",
       "lib/email/web3forms.ts",
+      "lib/email/provider.ts",
+      "features/rate-alerts/server/service.ts",
+      "features/admin/server/rate-alerts.ts",
+      "features/enquiries/server/requests.ts",
       "features/enquiries/server/deps.ts",
       "features/enquiries/server/notifications.ts",
       "features/enquiries/server/rate-limit.ts",
@@ -117,7 +125,7 @@ describe("Phase 6 credential boundaries", () => {
     expect(t.match(/^export\s/gm)).toHaveLength(2); // no other export kinds
   });
 
-  it("only the catalogue-product, sweeper, email-test, admin session, admin quotation PDF, health and customer quotation PDF routes (plus Server Actions) are entry points", () => {
+  it("only the catalogue-product, sweeper, rate-alert job, email-test, admin session, admin quotation PDF, health and customer quotation PDF routes (plus Server Actions) are entry points", () => {
     const api = nonTest.map(rel).filter((r) => /^app\/api\//.test(r));
     expect(api.sort()).toEqual([
       "app/api/admin/quotations/[id]/pdf/route.ts", // administrator session required
@@ -126,7 +134,9 @@ describe("Phase 6 credential boundaries", () => {
       "app/api/health/route.ts",
       "app/api/notifications/process/route.ts",
       "app/api/notifications/test/route.ts",
+      "app/api/qr/product/[slug]/route.ts", // public QR image of an active product
       "app/api/quotation/[token]/pdf/route.ts",
+      "app/api/rate-alerts/process/route.ts", // CRON_SECRET required
     ]);
   });
 });

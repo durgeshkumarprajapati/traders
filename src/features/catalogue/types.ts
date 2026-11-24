@@ -83,6 +83,18 @@ export type BusinessSettingsRecord = {
   announcement: { enabled: boolean; text: string | null };
   /** Owner-written "Why choose us" statements (complete title+description pairs only). */
   whyChooseUs: { title: string; description: string }[];
+  /** Optional so older fixtures stay valid; absent = delivery coverage not configured. */
+  delivery?: DeliveryConfig;
+};
+
+/** Delivery coverage configured by the owner (BusinessSettings sheet). Nothing here is ever assumed. */
+export type DeliveryConfig = {
+  enabled: boolean;
+  /** Six-digit PIN codes the business has chosen to list as covered. */
+  pincodes: string[];
+  localities: string | null;
+  notes: string | null;
+  terms: string | null;
 };
 
 export type WorksheetStats = { rows: number; valid: number };

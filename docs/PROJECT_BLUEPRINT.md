@@ -1277,3 +1277,7 @@ All six contradictions identified in v0.1 were resolved by owner decisions after
 - Sweeper route exists but is **not scheduled**.
 - Reference numbers are sequential (leaks rough volume); acceptable for now.
 - `admin_profiles` deferred to Phase 7 (admin authentication).
+
+## Phase 13 additions (2026-11-24) — see `PHASE_13_REPORT.md`
+
+New customer routes: `/tools`, `/tools/material-calculator`, `/tools/project-planner`, `/compare`, `/my-material-lists`, `/delivery-check`, `/ask-expert`, `/rate-alerts` (+ `/confirm`, `/unsubscribe`), `/api/qr/product/[slug]`. New admin routes: `/admin/rate-alerts`, `/admin/qr-labels`. Customer-side lists and comparisons live only on the customer's device; nothing is stored server-side until a form is submitted. Rate alerts are built but switched off until a customer email provider is approved.

@@ -46,6 +46,39 @@ interface EnquiryDetailViewProps {
   quotations?: QuotationRecord[];
 }
 
+/** Only these keys are shown, in this order; stored values are rendered as plain text (React escapes them). */
+const METADATA_LABELS: Record<"DELIVERY" | "EXPERT", Array<[string, string]>> = {
+  DELIVERY: [
+    ["pincode", "PIN code"],
+    ["locality", "Locality"],
+    ["materials", "Materials"],
+    ["quantity_note", "Quantity"],
+    ["coverage_status_at_submission", "Coverage when submitted"],
+  ],
+  EXPERT: [
+    ["topic", "Topic"],
+    ["project_type", "Project type"],
+    ["question", "Question"],
+    ["usage", "Intended use"],
+  ],
+};
+const METADATA_VALUE_LABELS: Record<string, string> = {
+  LISTED: "On the listed delivery area",
+  NOT_LISTED: "Not on the listed delivery area",
+  NOT_CONFIGURED: "Delivery area was not configured",
+  INVALID: "Invalid PIN",
+  CONCRETE_MASONRY: "Cement, concrete & masonry",
+  STEEL_REINFORCEMENT: "Steel & reinforcement",
+  PLUMBING_ELECTRICAL: "Plumbing & electrical",
+  FINISHING_PAINT: "Finishing & paint",
+  TOOLS_HARDWARE: "Tools & hardware",
+  OTHER: "Something else",
+  NEW_CONSTRUCTION: "New construction",
+  RENOVATION: "Renovation",
+  REPAIR: "Repair",
+  NOT_SURE: "Not sure",
+};
+
 export function EnquiryDetailView({
   enquiry: initialEnquiry,
   quotations = [],
@@ -370,6 +403,32 @@ export function EnquiryDetailView({
                 <p className="text-body-md text-on-surface mt-1 bg-surface-muted p-3 rounded border border-border whitespace-pre-line [overflow-wrap:anywhere]">
                   {enquiry.message}
                 </p>
+              </div>
+            )}
+
+            {enquiry.metadata && (
+              <div className="border-t border-border pt-4">
+                <div className="mb-2 flex items-center gap-2">
+                  <Badge tone="primary" appearance="solid">
+                    {enquiry.metadata.kind === "DELIVERY"
+                      ? "Freight / delivery enquiry"
+                      : "Materials expert question"}
+                  </Badge>
+                </div>
+                <dl className="space-y-1 rounded border border-border bg-surface-muted p-3 text-body-sm">
+                  {METADATA_LABELS[enquiry.metadata.kind].map(([key, label]) => {
+                    const value = enquiry.metadata?.data[key];
+                    if (typeof value !== "string" || !value) return null;
+                    return (
+                      <div key={key}>
+                        <dt className="inline font-semibold">{label}: </dt>
+                        <dd className="inline whitespace-pre-line [overflow-wrap:anywhere]">
+                          {METADATA_VALUE_LABELS[value] ?? value}
+                        </dd>
+                      </div>
+                    );
+                  })}
+                </dl>
               </div>
             )}
 

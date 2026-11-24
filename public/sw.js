@@ -9,7 +9,8 @@
 //   Authorization or Range headers, and any URL with a secret-looking query parameter (token, ref, key, code, otp…).
 //
 //   Cached (same-origin, GET, HTTP 200, not `Cache-Control: no-store|private`):
-//     - public pages:  /  /products  /products/<slug>  /contact  /bulk-enquiry  /offline   (network-first, 4 s timeout)
+//     - public pages:  /  /products  /products/<slug>  /contact  /bulk-enquiry  /offline  /tools(/material-calculator|/project-planner)
+//                      /compare  /delivery-check  /ask-expert  /rate-alerts   (network-first, 4 s timeout)
 //     - build assets:  /_next/static/**                                                    (cache-first, content-hashed)
 //     - public images: /images/**  /icons/**  *.jpeg|jpg|png|webp|svg|ico under the site    (cache-first)
 //
@@ -27,7 +28,17 @@ const CACHED_AT_HEADER = "x-sw-cached-at";
 const OFFLINE_URL = "/offline";
 const PRECACHE = [OFFLINE_URL, "/icons/icon-192.png", "/icons/icon-512.png"];
 
-const NEVER_PREFIXES = ["/admin", "/api", "/track-enquiry", "/quotation", "/_next/data"];
+const NEVER_PREFIXES = [
+  "/admin",
+  "/api",
+  "/track-enquiry",
+  "/quotation",
+  "/_next/data",
+  // Private or token-bearing: the customer's saved lists (their own device data) and the rate-alert confirm/unsubscribe links.
+  "/my-material-lists",
+  "/rate-alerts/confirm",
+  "/rate-alerts/unsubscribe",
+];
 // Secret-looking parameters, plus anything a customer types (search text, contact details): such URLs are never stored.
 const SECRET_PARAMS = [
   "token",
@@ -47,7 +58,7 @@ const SECRET_PARAMS = [
   "name",
 ];
 const PUBLIC_PAGE =
-  /^\/(?:$|products\/?$|products\/[a-z0-9][a-z0-9-]*\/?$|contact\/?$|bulk-enquiry\/?$|offline\/?$)/;
+  /^\/(?:$|products\/?$|products\/[a-z0-9][a-z0-9-]*\/?$|contact\/?$|bulk-enquiry\/?$|offline\/?$|tools\/?$|tools\/(?:material-calculator|project-planner)\/?$|compare\/?$|delivery-check\/?$|ask-expert\/?$|rate-alerts\/?$)/;
 const IMAGE_EXT = /\.(?:jpe?g|png|webp|svg|ico)$/i;
 
 /** True when this request must bypass the worker entirely (no respondWith, no caching, no reading). */

@@ -408,3 +408,44 @@ describe("Email enquiry button (mailto) — the email counterpart of WhatsApp", 
     expect(screen.getByText(/only prepares a message; you must press Send/)).toBeInTheDocument();
   });
 });
+
+describe("BulkEnquiryForm: message prefilled by a planner / saved list / calculator", () => {
+  const PREFILL = "sagar-enquiry-prefill-v1";
+
+  it("shows the staged message in the message box, once, for the customer to edit", () => {
+    sessionStorage.setItem(
+      PREFILL,
+      JSON.stringify({ message: "Project: House\n- Waterproofing: 1 job" }),
+    );
+    const { unmount } = render(<BulkEnquiryForm catalogue={catalogue} whatsappNumber={null} />);
+    expect((screen.getByLabelText(/Message/) as HTMLTextAreaElement).value).toBe(
+      "Project: House\n- Waterproofing: 1 job",
+    );
+    expect(sessionStorage.getItem(PREFILL)).toBeNull(); // consumed
+    unmount();
+    render(<BulkEnquiryForm catalogue={catalogue} whatsappNumber={null} />);
+    expect((screen.getByLabelText(/Message/) as HTMLTextAreaElement).value).toBe("");
+  });
+
+  it("is submitted ONLY when the customer submits, and goes through the normal server action", async () => {
+    sessionStorage.setItem(PREFILL, JSON.stringify({ message: "Project: House" }));
+    act(() => {
+      enquiryList.add("p1", 5);
+    });
+    actions.submitBulkEnquiryAction.mockResolvedValue(ok());
+    render(<BulkEnquiryForm catalogue={catalogue} whatsappNumber={null} />);
+    expect(actions.submitBulkEnquiryAction).not.toHaveBeenCalled();
+    fill(/Full name/, "Asha Rao");
+    fill(/Mobile number/, "9876543210");
+    fill(/Delivery location/, "Pune site");
+    fireEvent.submit(screen.getByRole("form", { name: "Bulk quotation enquiry" }));
+    await screen.findByText(/Enquiry received/);
+    expect(actions.submitBulkEnquiryAction.mock.calls[0][0].message).toBe("Project: House");
+  });
+
+  it("ignores a malformed prefill and never overwrites what is already there", () => {
+    sessionStorage.setItem(PREFILL, "{broken");
+    render(<BulkEnquiryForm catalogue={catalogue} whatsappNumber={null} />);
+    expect((screen.getByLabelText(/Message/) as HTMLTextAreaElement).value).toBe("");
+  });
+});

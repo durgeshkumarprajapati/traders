@@ -23,6 +23,7 @@ import { bulkEnquiryMessage } from "@/lib/whatsapp";
 import { EmailButton, WhatsAppButton } from "./contact-actions";
 import { submitBulkEnquiryAction } from "@/features/enquiries/actions";
 import { EnquiryReceived } from "./enquiry-received";
+import { takeEnquiryPrefill } from "@/features/material-lists/handoff";
 import { useEnquirySubmit } from "./use-enquiry-submit";
 
 /**
@@ -56,6 +57,15 @@ export function BulkEnquiryForm({
   } | null>(null);
   const [focusTick, setFocusTick] = useState(0);
   const formRef = useRef<HTMLFormElement>(null);
+
+  // A project / saved list / calculator can hand over a message (project name, notes, custom requirements). It is shown in the
+  // message box for the customer to read and edit; nothing is sent until they submit the form.
+  useEffect(() => {
+    const prefill = takeEnquiryPrefill();
+    if (!prefill) return;
+    const el = formRef.current?.elements.namedItem("message");
+    if (el instanceof HTMLTextAreaElement && !el.value) el.value = prefill;
+  }, []);
   const summary = useRef<HTMLDivElement>(null);
   const received = useRef<HTMLDivElement>(null);
   const { submit, pending } = useEnquirySubmit(submitBulkEnquiryAction);

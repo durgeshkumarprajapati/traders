@@ -1,3 +1,5 @@
+import type { DeliveryConfig } from "@/features/catalogue/types";
+
 /**
  * Business settings as the customer UI consumes them. They come from the Google Sheets
  * `BusinessSettings` worksheet (see `features/catalogue/view.ts: toBusinessSettings`). Every value
@@ -16,6 +18,8 @@ export type BusinessSettings = {
   gstNumber: string | null;
   googleMapsUrl: string | null;
   deliveryCoverage: string | null;
+  /** Owner-configured delivery coverage (PIN codes etc.). Undefined / disabled = not configured. */
+  delivery?: DeliveryConfig;
   announcement: string | null;
   /** Social profile links keyed by network (e.g. `instagram`). */
   social: Record<string, string>;
@@ -39,6 +43,7 @@ export function emptyBusinessSettings(): BusinessSettings {
     gstNumber: null,
     googleMapsUrl: null,
     deliveryCoverage: null,
+    delivery: { enabled: false, pincodes: [], localities: null, notes: null, terms: null },
     announcement: null,
     social: {},
     whyChooseUs: [],

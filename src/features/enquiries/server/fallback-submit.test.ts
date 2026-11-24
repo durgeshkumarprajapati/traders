@@ -1,4 +1,5 @@
 // @vitest-environment node
+import { ENQUIRY_REFERENCE } from "../reference";
 import { describe, expect, it } from "vitest";
 import { getStaticCatalogue } from "@/features/catalogue/data/static-catalogue";
 import { SupabaseApiError } from "@/lib/supabase/errors";
@@ -42,7 +43,7 @@ describe("Phase 11 Enquiry Fallback & Reliability", () => {
     });
 
     const res = await submitBulkEnquiry(input, ctx, t.deps);
-    expect(res).toMatchObject({ ok: true, reference: expect.stringMatching(/^ENQ-\d{4}-\d{6}$/) });
+    expect(res).toMatchObject({ ok: true, reference: expect.stringMatching(ENQUIRY_REFERENCE) });
 
     expect(t.db.enquiries).toHaveLength(1);
     expect(t.db.items).toHaveLength(2);

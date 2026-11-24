@@ -19,6 +19,7 @@ import { CALLBACK_TIME_WINDOW_LABELS, callbackSubmissionSchema } from "../callba
 import { buildEnquiryEmail, type EmailEnquiry, type EmailItem } from "./email-template";
 import { enforceRateLimits } from "./rate-limit";
 import { buildItemSnapshots, type ItemSnapshot } from "./snapshots";
+import { ENQUIRY_REFERENCE } from "../reference";
 import { trackingPath } from "../tracking-types";
 import { generateTrackingToken, hashTrackingToken } from "./tracking";
 
@@ -47,18 +48,18 @@ export type SubmitContext = { ip: string | null };
 
 const created = z.object({
   id: z.uuid(),
-  reference: z.string().regex(/^ENQ-\d{4}-\d{6}$/),
+  reference: z.string().regex(ENQUIRY_REFERENCE),
   outbox_id: z.uuid().nullable(),
   duplicate: z.boolean(),
 });
 
-const unavailable = (): EnquiryActionResult => ({
+export const unavailable = (): EnquiryActionResult => ({
   ok: false,
   code: "UNAVAILABLE",
   message: ENQUIRY_MESSAGES.unavailable,
 });
 
-function isHoneypotFilled(input: unknown): boolean {
+export function isHoneypotFilled(input: unknown): boolean {
   if (typeof input !== "object" || input === null) return false;
   const v = (input as Record<string, unknown>)[HONEYPOT_FIELD];
   return typeof v === "string" && v.trim() !== "";
@@ -153,7 +154,7 @@ async function deliverEmailOnlyFallback(
   return unavailable();
 }
 
-async function persistAndNotify(
+export async function persistAndNotify(
   type: "BULK" | "GENERAL",
   payload: Payload,
   itemCount: number,
@@ -206,7 +207,7 @@ async function persistAndNotify(
   };
 }
 
-async function limited(
+export async function limited(
   rpc: Rpc,
   secret: string,
   ip: string | null,

@@ -63,6 +63,18 @@ describe("loadAdminEnquiries", () => {
             })),
           };
         }
+        if (table === "enquiry_metadata") {
+          return {
+            select: vi.fn(() => ({
+              in: vi.fn(() =>
+                Promise.resolve({
+                  data: [{ enquiry_id: mockEnquiryRows[0].id, kind: "DELIVERY" }],
+                  error: null,
+                }),
+              ),
+            })),
+          };
+        }
         return {};
       }),
     } as unknown as SupabaseClient;
@@ -73,6 +85,7 @@ describe("loadAdminEnquiries", () => {
     expect(result.totalCount).toBe(1);
     expect(result.enquiries.length).toBe(1);
     expect(result.enquiries[0].reference).toBe("ENQ-2026-001001");
+    expect(result.enquiries[0].metadataKind).toBe("DELIVERY");
     expect(result.enquiries[0].itemCount).toBe(3);
     expect(result.enquiries[0].status).toBe("NEW");
   });
@@ -212,6 +225,20 @@ describe("loadAdminEnquiryDetail", () => {
             })),
           };
         }
+        if (table === "enquiry_metadata") {
+          return {
+            select: vi.fn(() => ({
+              eq: vi.fn(() => ({
+                maybeSingle: vi.fn(() =>
+                  Promise.resolve({
+                    data: { kind: "DELIVERY", data: { pincode: "110001" } },
+                    error: null,
+                  }),
+                ),
+              })),
+            })),
+          };
+        }
         return {};
       }),
     } as unknown as SupabaseClient;
@@ -221,6 +248,7 @@ describe("loadAdminEnquiryDetail", () => {
     const detail = await loadAdminEnquiryDetail("enq-123");
     expect(detail).not.toBeNull();
     expect(detail?.reference).toBe("ENQ-2026-001002");
+    expect(detail?.metadata).toEqual({ kind: "DELIVERY", data: { pincode: "110001" } });
     expect(detail?.items.length).toBe(1);
     expect(detail?.items[0].productName).toBe("BuildPro PPC Cement");
     expect(detail?.items[0].listedPrice).toBe(385.0);

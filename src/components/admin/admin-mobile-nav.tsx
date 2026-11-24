@@ -19,7 +19,7 @@ const linkClass =
 export function AdminMobileNav({ footer }: { footer?: ReactNode }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="sticky top-0 z-30 flex h-14 items-center justify-between gap-gutter-md border-b border-border bg-surface px-gutter-md lg:hidden">
+    <div className="sticky top-0 z-30 flex h-14 items-center justify-between gap-gutter-md border-b border-border bg-surface px-gutter-md lg:hidden print:hidden">
       <Link
         href="/admin/dashboard"
         className="min-w-0 truncate text-title-lg font-bold text-primary"

@@ -25,7 +25,16 @@ describe("search indexing switch", () => {
       rules: {
         userAgent: "*",
         allow: "/",
-        disallow: ["/admin", "/api", "/dev", "/track-enquiry", "/quotation"],
+        disallow: [
+          "/admin",
+          "/api",
+          "/dev",
+          "/track-enquiry",
+          "/quotation",
+          "/my-material-lists",
+          "/rate-alerts/confirm",
+          "/rate-alerts/unsubscribe",
+        ],
       },
     });
     vi.unstubAllEnvs();

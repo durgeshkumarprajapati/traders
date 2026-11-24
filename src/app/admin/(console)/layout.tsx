@@ -17,7 +17,7 @@ export default async function AdminConsoleLayout({ children }: { children: React
       <main
         id="main-content"
         tabIndex={-1}
-        className="min-w-0 flex-1 p-gutter-md outline-none sm:p-page-margin"
+        className="min-w-0 flex-1 p-gutter-md outline-none sm:p-page-margin print:p-0"
       >
         {children}
       </main>

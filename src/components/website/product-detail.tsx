@@ -11,8 +11,11 @@ import { unitLabel } from "@/features/products/units";
 import { CatalogueFallbackNotice, CatalogueUnavailable } from "./catalogue-states";
 import { ProductCard } from "./product-card";
 import { ProductEnquiryPanel } from "./product-enquiry-panel";
+import { ProductShare } from "./product-share";
 import { ProductImage } from "./product-image";
 import { RateDisplay } from "./rate-display";
+import { productUrl } from "@/features/qr/qr";
+import { publicEnv } from "@/lib/env/public";
 
 type Params = Promise<{ slug: string }>;
 
@@ -71,6 +74,13 @@ export async function ProductDetail({ params }: { params: Params }) {
     : undefined;
   const category = catalogue.categories.find((c) => c.id === product.categoryId);
   const related = relatedProducts(catalogue, product);
+  // The share card is optional: a misconfigured site URL must never break the product page.
+  let shareUrl: string | null = null;
+  try {
+    shareUrl = productUrl(publicEnv.NEXT_PUBLIC_SITE_URL, product.slug);
+  } catch {
+    shareUrl = null;
+  }
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -150,6 +160,7 @@ export async function ProductDetail({ params }: { params: Params }) {
             businessEmail={settings.email}
             businessPhone={settings.phone}
           />
+          {shareUrl && <ProductShare slug={product.slug} name={product.name} url={shareUrl} />}
         </div>
       </div>
 

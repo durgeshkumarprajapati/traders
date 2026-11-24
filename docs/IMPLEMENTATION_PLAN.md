@@ -23,3 +23,5 @@ The full phase plan (objective, scope, dependencies, deliverables, tests, accept
 ## Exit criteria for Phase 0 — **Superseded (met)**
 
 Phase 0 was approved by the owner; decisions are recorded in `DECISIONS.md` and `PROJECT_BLUEPRINT.md` §27.
+
+| 14    | **Advanced customer features (Phase 13) — implemented 2026-11-24; NOT deployed, NOT browser-tested, migrations NOT applied.** Calculator, planner, compare, saved lists, delivery check, QR sharing, ask-an-expert; rate alerts are foundation-only (blocked on an email provider). See `PHASE_13_REPORT.md`. |

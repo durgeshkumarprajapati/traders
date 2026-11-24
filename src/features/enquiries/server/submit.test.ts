@@ -1,4 +1,5 @@
 // @vitest-environment node
+import { ENQUIRY_REFERENCE } from "../reference";
 import { SupabaseApiError } from "@/lib/supabase/errors";
 import { hashIdentifier, RATE_LIMITS } from "./rate-limit";
 import { submitBulkEnquiry, submitContactEnquiry } from "./submit";
@@ -32,7 +33,7 @@ describe("bulk enquiry — authoritative snapshots and persistence", () => {
       type: "GENERAL",
     });
     const r = await submitBulkEnquiry(hostile, ctx, t.deps);
-    expect(r).toMatchObject({ ok: true, reference: expect.stringMatching(/^ENQ-\d{4}-\d{6}$/) });
+    expect(r).toMatchObject({ ok: true, reference: expect.stringMatching(ENQUIRY_REFERENCE) });
 
     expect(t.db.enquiries).toHaveLength(1);
     expect(t.db.enquiries[0]).toMatchObject({
@@ -511,3 +512,39 @@ describe("privacy of logs", () => {
     }
   });
 });
+
+describe("public reference formats", () => {
+  it("accepts the current random reference format returned by the database", async () => {
+    const t = await setup();
+    const r = await submitBulkEnquiry(bulkInput(), { ip: "203.0.113.1" }, t.deps);
+    expect(r).toMatchObject({
+      ok: true,
+      reference: expect.stringMatching(/^ENQ-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}$/),
+    });
+  });
+
+  it("still accepts a legacy sequential reference (enquiries created before the change)", async () => {
+    const r = await withReference("ENQ-2026-001234");
+    expect(r).toMatchObject({ ok: true, reference: "ENQ-2026-001234" });
+  });
+
+  it("refuses to show a reference the database returned in an unexpected format", async () => {
+    const r = await withReference("<script>alert(1)</script>");
+    expect(r).toMatchObject({ ok: false, code: "UNAVAILABLE" });
+  });
+});
+
+async function withReference(reference: string) {
+  const base = await setup();
+  const rpc = (async (name: string, args: Record<string, unknown>, opts: never) =>
+    name === "create_enquiry"
+      ? {
+          id: "11111111-1111-4111-8111-111111111111",
+          reference,
+          outbox_id: null,
+          duplicate: false,
+        }
+      : base.db.rpc(name, args, opts)) as typeof base.db.rpc;
+  const t = await setup({ rpc });
+  return submitBulkEnquiry(bulkInput(), { ip: "203.0.113.2" }, t.deps);
+}
