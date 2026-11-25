@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/feedback";
 import { Breadcrumbs } from "@/components/ui/navigation-aids";
 import { OrderTrackingView } from "@/components/website/order-tracking-view";
+import { loadSettings } from "@/features/catalogue/server";
 import { getTrackedOrder } from "@/features/orders/server/orders";
 import { guardTokenAccess } from "@/features/quotations/server/access";
 
@@ -34,7 +35,7 @@ async function OrderContent({ params }: { params: Promise<{ token: string }> }) 
     );
   }
 
-  const order = await getTrackedOrder(token);
+  const [order, settings] = await Promise.all([getTrackedOrder(token), loadSettings()]);
   if (!order) notFound();
 
   return (
@@ -48,7 +49,11 @@ async function OrderContent({ params }: { params: Promise<{ token: string }> }) 
           ]}
         />
       </div>
-      <OrderTrackingView order={order} />
+      <OrderTrackingView
+        order={order}
+        token={token}
+        whatsappNumber={settings.whatsappNumber}
+      />
     </PageContainer>
   );
 }

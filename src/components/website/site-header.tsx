@@ -11,6 +11,7 @@ import { generalEnquiryMessage } from "@/lib/whatsapp";
 import { CallButton, WhatsAppButton } from "./contact-actions";
 import { RequestCallbackButton } from "./callback-modal";
 import { EnquiryListLink } from "./enquiry-list-link";
+import { ExperienceControls } from "./experience-controls";
 import { MobileNav } from "./mobile-nav";
 
 const linkClass =
@@ -140,7 +141,11 @@ export function SiteHeader({ settings }: { settings: BusinessSettings }) {
         </Link>
 
         {/* Primary Desktop Navigation */}
-        <nav aria-label="Main" className="hidden md:flex items-center gap-6 lg:gap-8 text-label-lg">
+        <nav
+          data-tour="main-nav"
+          aria-label="Main"
+          className="hidden md:flex items-center gap-5 lg:gap-6 text-label-lg"
+        >
           <Suspense
             fallback={websiteNav.map((i) => (
               <Link key={i.href} href={i.href} className={linkClass}>
@@ -157,7 +162,7 @@ export function SiteHeader({ settings }: { settings: BusinessSettings }) {
         </nav>
 
         {/* Streamlined Header Actions */}
-        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+        <div data-tour="enquiry-list-link" className="flex shrink-0 items-center gap-2 sm:gap-3">
           {/* Enquiry List / Cart Button */}
           <EnquiryListLink className="flex items-center gap-1.5 font-medium text-body-sm px-3 py-2 border border-border rounded hover:bg-surface-muted transition-colors">
             <span className="hidden sm:inline text-label-md">Enquiry List</span>
@@ -191,6 +196,16 @@ export function SiteHeader({ settings }: { settings: BusinessSettings }) {
           </Suspense>
         </div>
       </PageContainer>
+
+      {/* Inclusive Language, Easy Mode & Guided Tour Strip */}
+      <div className="border-t border-border bg-surface-muted/70 py-1.5">
+        <PageContainer className="flex flex-wrap items-center justify-between gap-2">
+          <span className="text-body-sm text-on-surface-variant">
+            Simple mode, language &amp; guided help:
+          </span>
+          <ExperienceControls />
+        </PageContainer>
+      </div>
     </header>
   );
 }

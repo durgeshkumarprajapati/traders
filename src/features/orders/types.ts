@@ -91,9 +91,14 @@ export interface CustomerTrackedOrder {
   status: OrderStatus;
   customerName: string;
   deliveryAddress: string | null;
+  contactPerson: string | null;
+  contactNumber: string | null;
+  customerInstructions: string | null;
   expectedDeliveryDate: string | null;
   dispatchedAt: string | null;
   actualDeliveryDate: string | null;
+  customerConfirmedAt: string | null;
+  hasReview: boolean;
   subtotal: number;
   discountAmount: number;
   taxAmount: number;
@@ -101,8 +106,10 @@ export interface CustomerTrackedOrder {
   createdAt: string;
   items: Array<{
     position: number;
+    productId: string | null;
     productName: string;
     brandName: string | null;
+    unitCode: string;
     unitLabel: string;
     quantity: number;
     unitPrice: number;
@@ -112,6 +119,13 @@ export interface CustomerTrackedOrder {
     previousStatus: OrderStatus | null;
     newStatus: OrderStatus;
     description: string | null;
+    createdAt: string;
+  }>;
+  issues: Array<{
+    id: string;
+    issueType: string;
+    description: string;
+    status: string;
     createdAt: string;
   }>;
 }

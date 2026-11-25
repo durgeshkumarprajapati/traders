@@ -210,9 +210,14 @@ export async function getTrackedOrder(rawToken: string): Promise<CustomerTracked
       status: String(raw.status) as OrderStatus,
       customerName: String(raw.customer_name),
       deliveryAddress: (raw.delivery_address as string) || null,
+      contactPerson: (raw.contact_person as string) || null,
+      contactNumber: (raw.contact_number as string) || null,
+      customerInstructions: (raw.customer_instructions as string) || null,
       expectedDeliveryDate: (raw.expected_delivery_date as string) || null,
       dispatchedAt: (raw.dispatched_at as string) || null,
       actualDeliveryDate: (raw.actual_delivery_date as string) || null,
+      customerConfirmedAt: (raw.customer_confirmed_at as string) || null,
+      hasReview: Boolean(raw.has_review),
       subtotal: Number(raw.subtotal),
       discountAmount: Number(raw.discount_amount),
       taxAmount: Number(raw.tax_amount),
@@ -221,8 +226,10 @@ export async function getTrackedOrder(rawToken: string): Promise<CustomerTracked
       items: Array.isArray(raw.items)
         ? raw.items.map((it: Record<string, unknown>) => ({
             position: Number(it.position),
+            productId: (it.product_id as string) || null,
             productName: String(it.product_name),
             brandName: (it.brand_name as string) || null,
+            unitCode: String(it.unit_code ?? "CUSTOM"),
             unitLabel: String(it.unit_label),
             quantity: Number(it.quantity),
             unitPrice: Number(it.unit_price),
@@ -235,6 +242,15 @@ export async function getTrackedOrder(rawToken: string): Promise<CustomerTracked
             newStatus: String(h.new_status) as OrderStatus,
             description: (h.description as string) || null,
             createdAt: String(h.created_at),
+          }))
+        : [],
+      issues: Array.isArray(raw.issues)
+        ? raw.issues.map((r: Record<string, unknown>) => ({
+            id: String(r.id),
+            issueType: String(r.issue_type),
+            description: String(r.description),
+            status: String(r.status),
+            createdAt: String(r.created_at),
           }))
         : [],
     };

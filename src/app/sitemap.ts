@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { loadCatalogue } from "@/features/catalogue/server";
+import { listPublicKnowledgeArticles } from "@/features/knowledge/server/knowledge";
 import { listPublicProjects } from "@/features/projects/server/projects";
 import { listPublicServiceAreas } from "@/features/seo/service-areas";
 import { publicEnv } from "@/lib/env/public";
@@ -30,12 +31,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...[
       "/tools",
       "/tools/material-calculator",
+      "/tools/cost-estimator",
       "/tools/project-planner",
       "/compare",
       "/delivery-check",
       "/ask-expert",
       "/rate-alerts",
       "/projects",
+      "/knowledge",
+      "/help",
     ].map((path) => ({
       url: `${baseUrl}${path}`,
       lastModified: now,
@@ -51,10 +55,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   try {
-    const [load, projects, areas] = await Promise.all([
+    const [load, projects, areas, articles] = await Promise.all([
       loadCatalogue(),
       listPublicProjects(),
       listPublicServiceAreas(),
+      listPublicKnowledgeArticles(),
     ]);
     const dynamicRoutes: MetadataRoute.Sitemap = [
       ...projects.map((p) => ({
@@ -65,6 +70,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       })),
       ...areas.map((a) => ({
         url: `${baseUrl}/areas/${a.slug}`,
+        lastModified: new Date(a.updatedAt),
+        changeFrequency: "monthly" as const,
+        priority: 0.7,
+      })),
+      ...articles.map((a) => ({
+        url: `${baseUrl}/knowledge/${a.slug}`,
         lastModified: new Date(a.updatedAt),
         changeFrequency: "monthly" as const,
         priority: 0.7,

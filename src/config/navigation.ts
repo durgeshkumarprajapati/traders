@@ -2,9 +2,11 @@ export const websiteNav = [
   { href: "/", label: "Home" },
   { href: "/products", label: "Products" },
   { href: "/projects", label: "Projects" },
+  { href: "/knowledge", label: "Knowledge" },
   { href: "/bulk-enquiry", label: "Bulk Enquiry" },
   { href: "/tools", label: "Tools" },
   { href: "/track-enquiry", label: "Track Enquiry" },
+  { href: "/help", label: "Help" },
   { href: "/contact", label: "Contact" },
 ] as const;
 
@@ -17,9 +19,11 @@ export const adminNav = [
   { href: "/admin/contractors", label: "Contractors" },
   { href: "/admin/enquiries", label: "Enquiries" },
   { href: "/admin/orders", label: "Orders" },
+  { href: "/admin/reviews", label: "Reviews" },
   { href: "/admin/products", label: "Products" },
   { href: "/admin/categories", label: "Categories & Brands" },
   { href: "/admin/projects", label: "Project Showcase" },
+  { href: "/admin/knowledge", label: "Knowledge Centre" },
   { href: "/admin/service-areas", label: "Service Areas" },
   { href: "/admin/whatsapp", label: "WhatsApp" },
   { href: "/admin/rate-alerts", label: "Rate alerts" },

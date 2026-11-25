@@ -42,6 +42,24 @@
     dialog[data-drawer][open] {
       animation: none;
     }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+  /* Easy Mode: larger readable copy, bigger touch targets, and simpler spacing */
+  html[data-easy-mode="true"] body {
+    font-size: 18px;
+    line-height: 1.65;
+  }
+  html[data-easy-mode="true"] button,
+  html[data-easy-mode="true"] a[role="button"],
+  html[data-easy-mode="true"] input,
+  html[data-easy-mode="true"] select {
+    min-height: 48px;
   }
 }
 

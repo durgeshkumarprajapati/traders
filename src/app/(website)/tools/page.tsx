@@ -12,6 +12,11 @@ export const metadata: Metadata = {
 
 const TOOLS = [
   {
+    href: "/tools/cost-estimator",
+    title: "Project cost & material estimator",
+    text: "Enter simple room, wall, or floor measurements in feet to estimate materials and indicative costs.",
+  },
+  {
     href: "/tools/material-calculator",
     title: "Material calculator",
     text: "Estimate concrete, cement, sand, aggregate, bricks, blocks and preliminary steel. Every formula is shown.",

@@ -50,6 +50,11 @@ const phase14ExpansionMigration = readFileSync(
   "utf8",
 );
 const phase14SqlTests = readFileSync(join(root, "supabase/tests/07_phase14.sql"), "utf8");
+const phases1518Migration = readFileSync(
+  join(root, "supabase/migrations/20261130000000_customer_experience_expansion.sql"),
+  "utf8",
+);
+const phases1518SqlTests = readFileSync(join(root, "supabase/tests/08_phases_15_18.sql"), "utf8");
 const stub = readFileSync(join(root, "supabase/tests/00_stub.sql"), "utf8");
 const sqlTests = readFileSync(join(root, "supabase/tests/01_enquiries.sql"), "utf8");
 const authSqlTests = readFileSync(join(root, "supabase/tests/02_admin_auth.sql"), "utf8");
@@ -403,6 +408,8 @@ describe.skipIf(!bin)("migration on real PostgreSQL (single-user mode)", () => {
             phase14OrdersMigration,
             phase14ExpansionMigration,
             phase14SqlTests,
+            phases1518Migration,
+            phases1518SqlTests,
           ].join("\n\n") + "\n\n",
         encoding: "utf8",
         maxBuffer: 64 * 1024 * 1024,
@@ -425,5 +432,6 @@ describe.skipIf(!bin)("migration on real PostgreSQL (single-user mode)", () => {
     expect(output).toContain('marker = "ENQUIRY_METADATA_SQL_TESTS_PASSED"');
     expect(output).toContain('marker = "RATE_ALERTS_SQL_TESTS_PASSED"');
     expect(output).toContain('marker = "PHASE_14_SQL_TESTS_PASSED"');
+    expect(output).toContain('marker = "PHASES_15_18_SQL_TESTS_PASSED"');
   });
 });

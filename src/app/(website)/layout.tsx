@@ -3,6 +3,7 @@ import { AnnouncementSlot, FooterSlot, HeaderSlot } from "@/components/website/s
 import { SiteFooter } from "@/components/website/site-footer";
 import { SiteHeader } from "@/components/website/site-header";
 import { OfflineBanner, PwaInstallPrompt, PwaRegister } from "@/components/website/pwa-components";
+import { GuidedTourProvider } from "@/components/website/guided-tour-provider";
 import { emptyBusinessSettings } from "@/features/settings/business-settings";
 
 /**
@@ -28,6 +29,7 @@ export default function WebsiteLayout({ children }: LayoutProps<"/">) {
       <Suspense fallback={<SiteFooter settings={empty} categories={[]} />}>
         <FooterSlot />
       </Suspense>
+      <GuidedTourProvider />
       <PwaInstallPrompt />
     </>
   );

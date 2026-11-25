@@ -11,6 +11,15 @@ import { AddToEnquiryButton } from "./add-to-enquiry-button";
 import { RequestCallbackButton } from "./callback-modal";
 import { EmailButton, WhatsAppButton } from "./contact-actions";
 
+const ENQUIRY_TOPICS = [
+  "Latest price",
+  "Available quantity",
+  "Available brands",
+  "Packaging & specifications",
+  "Bulk purchase rates",
+  "Delivery availability",
+] as const;
+
 /**
  * Enquiry panel on the product page. The WhatsApp and email links only open a prepared message
  * (customer presses Send) and create NO database record; "Add to enquiry list" feeds the bulk enquiry.
@@ -36,10 +45,42 @@ export function ProductEnquiryPanel({
 }) {
   const [quantity, setQuantity] = useState(1);
   const [location, setLocation] = useState("");
+  const [topic, setTopic] = useState<(typeof ENQUIRY_TOPICS)[number]>("Latest price");
+
+  const baseMessage = productEnquiryMessage({
+    productName,
+    brandName,
+    sku,
+    quantity,
+    unitLabel: unit,
+    deliveryLocation: location,
+  });
+  const preparedMessage = `${baseMessage} Enquiry about: ${topic}.`;
   return (
     <Card>
       <CardBody className="space-y-gutter-md">
-        <h2 className="text-title-lg">Request a quotation</h2>
+        <h2 className="text-title-lg">Ask for latest price or availability</h2>
+        <div>
+          <p className="mb-gutter-xs text-label-md text-on-surface-variant">
+            What would you like to ask?
+          </p>
+          <div className="flex flex-wrap gap-1.5" role="group" aria-label="Enquiry topic">
+            {ENQUIRY_TOPICS.map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setTopic(t)}
+                className={`min-h-9 rounded-full border px-3 py-1 text-label-md transition-colors ${
+                  topic === t
+                    ? "border-primary bg-primary text-on-primary"
+                    : "border-border bg-surface text-on-surface hover:bg-surface-muted"
+                }`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+        </div>
         <div>
           <p className="mb-gutter-xs text-label-lg" id="qty-label">
             Quantity
@@ -68,14 +109,7 @@ export function ProductEnquiryPanel({
             hideIfUnavailable
             number={whatsappNumber}
             size="lg"
-            message={productEnquiryMessage({
-              productName,
-              brandName,
-              sku,
-              quantity,
-              unitLabel: unit,
-              deliveryLocation: location,
-            })}
+            message={preparedMessage}
           >
             WhatsApp enquiry
           </WhatsAppButton>
@@ -84,14 +118,7 @@ export function ProductEnquiryPanel({
             email={businessEmail}
             size="lg"
             subject={productEnquirySubject(productName)}
-            message={productEnquiryMessage({
-              productName,
-              brandName,
-              sku,
-              quantity,
-              unitLabel: unit,
-              deliveryLocation: location,
-            })}
+            message={preparedMessage}
           >
             Email enquiry
           </EmailButton>
@@ -110,7 +137,7 @@ export function ProductEnquiryPanel({
           <RequestCallbackButton
             size="lg"
             variant="outline"
-            defaultReason={`Enquiry about ${productName} (${quantity} ${unit})`}
+            defaultReason={`${topic}: ${productName} (${quantity} ${unit})`}
             contact={{ phone: businessPhone, whatsappNumber }}
           />
         </div>

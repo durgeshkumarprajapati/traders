@@ -7,6 +7,7 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { Checkbox, Field, Input, Radio, Select } from "@/components/ui/form-controls";
 import { Drawer } from "@/components/ui/modal";
 import { STOCK_STATUSES, stockStatusLabel } from "@/components/ui/status-badge";
+import { VoiceSearchButton } from "./voice-search-button";
 import {
   PRICE_FILTERS,
   PRICE_FILTER_LABELS,
@@ -33,6 +34,7 @@ function FilterForm({
   params,
   onSubmit,
 }: Omit<Props, "activeCount"> & { onSubmit?: () => void }) {
+  const [searchValue, setSearchValue] = useState(params.q);
   return (
     // next/form: GET navigation to /products with the fields as query params (works without JS too).
     <Form
@@ -41,19 +43,23 @@ function FilterForm({
       className="space-y-gutter-lg"
       aria-label="Filter products"
     >
-      <Field label="Search products">
-        {(p) => (
-          <Input
-            icon={<Search />}
-            type="search"
-            name="q"
-            defaultValue={params.q}
-            placeholder="Search name, vernacular terms (sariya, eent, reti), brand, SKU"
-            maxLength={100}
-            {...p}
-          />
-        )}
-      </Field>
+      <div data-tour="product-search" className="space-y-2">
+        <Field label="Search products">
+          {(p) => (
+            <Input
+              icon={<Search />}
+              type="search"
+              name="q"
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              placeholder="Search name, vernacular terms (sariya, eent, reti), brand, SKU"
+              maxLength={100}
+              {...p}
+            />
+          )}
+        </Field>
+        <VoiceSearchButton onTranscript={(spoken) => setSearchValue(spoken)} />
+      </div>
       <fieldset className="space-y-gutter-sm">
         <legend className="mb-gutter-sm text-label-lg">Category</legend>
         <Radio name="category" value="" label="All categories" defaultChecked={!params.category} />

@@ -13,6 +13,7 @@ import { respondToQuotationAction } from "@/features/quotations/response-actions
 import type { CustomerTrackedQuotation } from "@/features/quotations/types";
 import { parsePhone } from "@/lib/phone";
 import { CallButton, WhatsAppButton } from "./contact-actions";
+import { ContextualHelp } from "./contextual-help";
 
 export interface QuotationBusiness {
   name: string;
@@ -311,6 +312,7 @@ export function QuotationView({
         ) : canRespond ? (
           <div className="space-y-gutter-sm">
             <h2 className="text-title-md font-bold text-primary">Respond to this Quotation</h2>
+            <ContextualHelp topic="quotation" />
             <p className="text-body-sm text-on-surface-variant">
               Approve this quotation directly online, request revisions, or decline. No login is
               required.
