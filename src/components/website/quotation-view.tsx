@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { AlertTriangle, ArrowLeft, Check, Copy, Download, Share2 } from "lucide-react";
+import { useState, useTransition } from "react";
+import { AlertTriangle, ArrowLeft, Check, CheckCircle2, Copy, Download, MessageSquareWarning, Share2, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button, ButtonAnchor, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/form-controls";
+import { AlertModal } from "@/components/ui/modal";
 import { Table, TBody, Td, Th, THead, Tr } from "@/components/ui/table";
 import { formatRupees } from "@/features/quotations/calculations";
+import { respondToQuotationAction } from "@/features/quotations/response-actions";
 import type { CustomerTrackedQuotation } from "@/features/quotations/types";
 import { parsePhone } from "@/lib/phone";
 import { CallButton, WhatsAppButton } from "./contact-actions";
@@ -39,6 +42,46 @@ export function QuotationView({
   business: QuotationBusiness;
 }) {
   const [copied, setCopied] = useState(false);
+  const [pending, startTransition] = useTransition();
+  const [confirmMode, setConfirmMode] = useState<"ACCEPTED" | "REJECTED" | null>(null);
+  const [showChangeForm, setShowChangeForm] = useState(false);
+  const [comment, setComment] = useState("");
+  const [respError, setRespError] = useState<string | null>(null);
+  const [recordedStatus, setRecordedStatus] = useState<string | null>(
+    quotation.response?.responseType ??
+      (quotation.status === "ACCEPTED" ||
+      quotation.status === "REJECTED" ||
+      quotation.status === "CHANGE_REQUESTED"
+        ? quotation.status
+        : null),
+  );
+
+  const canRespond =
+    quotation.isLatest &&
+    !quotation.isExpired &&
+    quotation.status === "ISSUED" &&
+    !recordedStatus;
+
+  function submitResponse(
+    responseType: "ACCEPTED" | "CHANGE_REQUESTED" | "REJECTED",
+    notes?: string,
+  ) {
+    setRespError(null);
+    startTransition(async () => {
+      const res = await respondToQuotationAction({
+        token,
+        responseType,
+        comment: notes?.trim() || undefined,
+      });
+      if (!res.ok) {
+        setRespError(res.message);
+        return;
+      }
+      setRecordedStatus(res.status);
+      setConfirmMode(null);
+      setShowChangeForm(false);
+    });
+  }
 
   function copyLink() {
     navigator.clipboard.writeText(window.location.href).then(() => {
@@ -234,6 +277,141 @@ export function QuotationView({
           )}
         </div>
       </Card>
+
+      <Card className="p-gutter-md">
+        {recordedStatus ? (
+          <div role="status" className="flex items-start gap-3">
+            {recordedStatus === "ACCEPTED" ? (
+              <CheckCircle2 aria-hidden className="mt-0.5 size-5 shrink-0 text-success" />
+            ) : recordedStatus === "CHANGE_REQUESTED" ? (
+              <MessageSquareWarning aria-hidden className="mt-0.5 size-5 shrink-0 text-warning" />
+            ) : (
+              <XCircle aria-hidden className="mt-0.5 size-5 shrink-0 text-error" />
+            )}
+            <div>
+              <p className="text-title-md font-bold text-on-surface">
+                {recordedStatus === "ACCEPTED"
+                  ? "Quotation Accepted"
+                  : recordedStatus === "CHANGE_REQUESTED"
+                    ? "Changes Requested"
+                    : "Quotation Declined"}
+              </p>
+              <p className="text-body-sm text-on-surface-variant">
+                {quotation.response?.respondedAt
+                  ? `Recorded on ${fmtDate(quotation.response.respondedAt)}.`
+                  : "Your response has been recorded for our team."}
+              </p>
+              {quotation.response?.comment && (
+                <p className="mt-1 text-body-sm text-on-surface">
+                  Note: {quotation.response.comment}
+                </p>
+              )}
+            </div>
+          </div>
+        ) : canRespond ? (
+          <div className="space-y-gutter-sm">
+            <h2 className="text-title-md font-bold text-primary">Respond to this Quotation</h2>
+            <p className="text-body-sm text-on-surface-variant">
+              Approve this quotation directly online, request revisions, or decline. No login is
+              required.
+            </p>
+            {respError && (
+              <p role="alert" className="text-body-sm font-medium text-error">
+                {respError}
+              </p>
+            )}
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="primary"
+                size="sm"
+                disabled={pending}
+                onClick={() => setConfirmMode("ACCEPTED")}
+              >
+                <CheckCircle2 aria-hidden className="mr-1.5 size-4" />
+                Accept Quotation
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={pending}
+                onClick={() => setShowChangeForm((v) => !v)}
+              >
+                <MessageSquareWarning aria-hidden className="mr-1.5 size-4" />
+                Request Changes
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={pending}
+                onClick={() => setConfirmMode("REJECTED")}
+              >
+                <XCircle aria-hidden className="mr-1.5 size-4" />
+                Reject
+              </Button>
+            </div>
+
+            {showChangeForm && (
+              <form
+                className="mt-gutter-sm space-y-gutter-xs rounded border border-border bg-surface-muted p-gutter-md"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  submitResponse("CHANGE_REQUESTED", comment);
+                }}
+              >
+                <label htmlFor="change-notes" className="block text-label-md font-semibold">
+                  Describe the changes needed
+                </label>
+                <Textarea
+                  id="change-notes"
+                  rows={3}
+                  required
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  placeholder="e.g. Please update quantity to 150 bags or include delivery to..."
+                />
+                <div className="flex gap-2">
+                  <Button type="submit" size="sm" disabled={pending}>
+                    Submit Change Request
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setShowChangeForm(false)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            )}
+          </div>
+        ) : null}
+      </Card>
+
+      <AlertModal
+        open={confirmMode === "ACCEPTED"}
+        onClose={() => setConfirmMode(null)}
+        title="Confirm Quotation Acceptance"
+        description={`Confirm acceptance of quotation ${quotation.reference} (version ${quotation.version}) for ${formatRupees(quotation.totalAmount)}?`}
+        confirmLabel={pending ? "Confirming..." : "Yes, Accept Quotation"}
+        destructive={false}
+        pending={pending}
+        onConfirm={() => submitResponse("ACCEPTED")}
+      />
+
+      <AlertModal
+        open={confirmMode === "REJECTED"}
+        onClose={() => setConfirmMode(null)}
+        title="Decline Quotation"
+        description={`Are you sure you want to decline quotation ${quotation.reference}?`}
+        confirmLabel={pending ? "Submitting..." : "Yes, Reject Quotation"}
+        destructive
+        pending={pending}
+        onConfirm={() => submitResponse("REJECTED", comment)}
+      />
 
       <Card className="flex flex-col gap-gutter-sm p-gutter-md sm:flex-row sm:items-center sm:justify-between">
         <p className="text-body-md">

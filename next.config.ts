@@ -41,6 +41,7 @@ const nextConfig: NextConfig = {
       { source: "/:path*", headers: securityHeaders },
       { source: "/track-enquiry", headers: privateHeaders },
       { source: "/quotation/:path*", headers: privateHeaders },
+      { source: "/order/:path*", headers: privateHeaders },
       { source: "/api/quotation/:path*", headers: privateHeaders },
       { source: "/api/admin/:path*", headers: privateHeaders },
       // Rate-alert confirm / unsubscribe links carry their token in the URL fragment; keep these pages uncached, unindexed and referrer-free.

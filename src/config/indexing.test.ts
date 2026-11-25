@@ -31,6 +31,7 @@ describe("search indexing switch", () => {
           "/dev",
           "/track-enquiry",
           "/quotation",
+          "/order",
           "/my-material-lists",
           "/rate-alerts/confirm",
           "/rate-alerts/unsubscribe",

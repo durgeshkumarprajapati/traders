@@ -27,6 +27,7 @@ import {
   revokeQuotationLinkAction,
   rotateQuotationLinkAction,
 } from "@/features/quotations/actions";
+import { createOrderFromQuotationAction } from "@/features/orders/actions";
 import { calculateQuotationTotals, formatRupees } from "@/features/quotations/calculations";
 import type { QuotationRecord, QuotationStatus } from "@/features/quotations/types";
 import { buildMailtoUrl } from "@/lib/mailto";
@@ -50,6 +51,7 @@ const STATUS_TONE: Record<QuotationStatus, "neutral" | "success" | "warning" | "
   EXPIRED: "error",
   ACCEPTED: "success",
   REJECTED: "error",
+  CHANGE_REQUESTED: "warning",
 };
 
 const num = (s: string) => (s.trim() === "" ? 0 : Number(s));
@@ -367,6 +369,32 @@ export function QuotationManager({
                     >
                       <Send aria-hidden className="mr-1.5 size-4" />
                       Issue to customer
+                    </Button>
+                  )}
+                  {q.status === "ACCEPTED" && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="primary"
+                      disabled={isPending}
+                      onClick={() =>
+                        startTransition(async () => {
+                          const res = await createOrderFromQuotationAction({
+                            quotationId: q.id,
+                          });
+                          if (res.ok) {
+                            setFeedback({
+                              tone: "success",
+                              text: `Order ${res.data.reference} created. Customer tracking path: ${res.data.trackingPath}`,
+                            });
+                            router.refresh();
+                          } else {
+                            setFeedback({ tone: "error", text: res.message });
+                          }
+                        })
+                      }
+                    >
+                      Create Order
                     </Button>
                   )}
                   {q.status === "ISSUED" && (

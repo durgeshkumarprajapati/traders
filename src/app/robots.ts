@@ -16,6 +16,7 @@ export default function robots(): MetadataRoute.Robots {
         "/dev",
         "/track-enquiry",
         "/quotation",
+        "/order",
         "/my-material-lists",
         "/rate-alerts/confirm",
         "/rate-alerts/unsubscribe",

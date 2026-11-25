@@ -7,6 +7,7 @@ export const QUOTATION_STATUSES = [
   "EXPIRED",
   "ACCEPTED",
   "REJECTED",
+  "CHANGE_REQUESTED",
 ] as const;
 
 export type QuotationStatus = (typeof QUOTATION_STATUSES)[number];
@@ -79,6 +80,11 @@ export interface CustomerTrackedQuotation {
   termsAndConditions: string | null;
   validUntil: string | null;
   issuedAt: string | null;
+  response?: {
+    responseType: "ACCEPTED" | "CHANGE_REQUESTED" | "REJECTED";
+    comment: string | null;
+    respondedAt: string;
+  } | null;
   items: Array<{
     position: number;
     productName: string;

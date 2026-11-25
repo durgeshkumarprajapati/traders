@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
 import { loadCatalogue } from "@/features/catalogue/server";
+import { listPublicProjects } from "@/features/projects/server/projects";
+import { listPublicServiceAreas } from "@/features/seo/service-areas";
 import { publicEnv } from "@/lib/env/public";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -33,6 +35,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       "/delivery-check",
       "/ask-expert",
       "/rate-alerts",
+      "/projects",
     ].map((path) => ({
       url: `${baseUrl}${path}`,
       lastModified: now,
@@ -48,7 +51,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   try {
-    const load = await loadCatalogue();
+    const [load, projects, areas] = await Promise.all([
+      loadCatalogue(),
+      listPublicProjects(),
+      listPublicServiceAreas(),
+    ]);
+    const dynamicRoutes: MetadataRoute.Sitemap = [
+      ...projects.map((p) => ({
+        url: `${baseUrl}/projects/${p.slug}`,
+        lastModified: new Date(p.updatedAt),
+        changeFrequency: "monthly" as const,
+        priority: 0.7,
+      })),
+      ...areas.map((a) => ({
+        url: `${baseUrl}/areas/${a.slug}`,
+        lastModified: new Date(a.updatedAt),
+        changeFrequency: "monthly" as const,
+        priority: 0.7,
+      })),
+    ];
     if (load.ok) {
       const productRoutes: MetadataRoute.Sitemap = load.catalogue.products.map((p) => ({
         url: `${baseUrl}/products/${p.slug}`,
@@ -56,8 +77,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         changeFrequency: "weekly",
         priority: p.isFeatured ? 0.8 : 0.6,
       }));
-      return [...staticRoutes, ...productRoutes];
+      return [...staticRoutes, ...productRoutes, ...dynamicRoutes];
     }
+    return [...staticRoutes, ...dynamicRoutes];
   } catch {
     // If catalogue loading fails during sitemap generation, return base static routes
   }

@@ -52,10 +52,14 @@ describe("Phase 6 credential boundaries", () => {
     expect(owners).toEqual([
       "app/api/notifications/test/route.ts", // operator-only (CRON_SECRET) email delivery test
       "app/api/rate-alerts/process/route.ts", // operator-only (CRON_SECRET) daily rate-alert job
+      "app/api/whatsapp/webhook/route.ts", // Meta webhook (HMAC-SHA256 verified)
       "features/admin/server/dashboard.ts",
       "features/admin/server/enquiries.ts",
       "features/admin/server/rate-alerts.ts",
+      "features/analytics/server/analytics.ts",
       "features/auth/actions.ts",
+      "features/contractors/server/contractors.ts",
+      "features/crm/server/crm.ts",
       "features/enquiries/server/deps.ts",
       "features/enquiries/server/email-template.ts",
       "features/enquiries/server/notifications.ts",
@@ -63,9 +67,14 @@ describe("Phase 6 credential boundaries", () => {
       "features/enquiries/server/submit.ts",
       "features/enquiries/server/tracking.ts",
       "features/health/server.ts",
+      "features/orders/server/orders.ts",
+      "features/projects/server/projects.ts",
+      "features/quotations/response-actions.ts",
       "features/quotations/server/quotations.ts",
       "features/rate-alerts/actions.ts",
       "features/rate-alerts/server/service.ts",
+      "features/seo/service-areas.ts",
+      "features/whatsapp/server/service.ts",
       "lib/auth/admin.ts",
       "proxy.ts",
     ]);
@@ -137,6 +146,7 @@ describe("Phase 6 credential boundaries", () => {
       "app/api/qr/product/[slug]/route.ts", // public QR image of an active product
       "app/api/quotation/[token]/pdf/route.ts",
       "app/api/rate-alerts/process/route.ts", // CRON_SECRET required
+      "app/api/whatsapp/webhook/route.ts", // Meta webhook (HMAC-SHA256 verified)
     ]);
   });
 });
